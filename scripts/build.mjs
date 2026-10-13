@@ -7,9 +7,9 @@ const {activities,period,syncedAt,daily,distance,duration,activeDays,missingDist
 const pretty=d=>d.replaceAll('-','.');
 assert.equal(daily.length,365);
 assert.equal(Math.round(daily.reduce((s,d)=>s+d.distanceKm,0)*100),Math.round(distance*100));
-const favicon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#398afd"/><path d="M6 22V16M12 22V10M18 22V6M24 22V13" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
+const favicon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#fc4c02"/><path d="M6 22V16M12 22V10M18 22V6M24 22V13" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
 const html=`<!DOCTYPE html><html lang="zh-CN"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101719">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#131313">
 <meta name="description" content="最近一年的真实运动记录：${activities.length} 次运动，${distance.toFixed(2)} 公里。查看距离、时长与训练负荷的全年活动热力图。">
 <meta property="og:title" content="我的运动记录"><meta property="og:description" content="最近一年的运动累计与每日活动热力图。"><meta property="og:type" content="website">
 <title>我的运动记录 · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script></head>
