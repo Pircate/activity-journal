@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 const data=JSON.parse(await readFile(new URL('../docs/activities.json',import.meta.url),'utf8'));
 import {createJournal, formatTime as time, escapeHtml as esc, validateData} from '../docs/journal.mjs';
 validateData(data);
-const {activities,period,syncedAt,daily,distance,duration,activeDays,missingDistance,missingLoad,sports,columns,cells,monthLabels,rows,initialDate}=createJournal(data);
+const {activities,recent,period,syncedAt,daily,distance,duration,activeDays,missingDistance,missingLoad,sports,columns,cells,monthLabels,cards,initialDate}=createJournal(data);
 const pretty=d=>d.replaceAll('-','.');
 assert.equal(daily.length,365);
 assert.equal(Math.round(daily.reduce((s,d)=>s+d.distanceKm,0)*100),Math.round(distance*100));
@@ -25,8 +25,8 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <div class="heatmap-card"><div class="heatmap-scroll" tabindex="0" aria-label="全年活动热力图，可横向滚动"><div class="heatmap" style="--columns:${columns}"><div class="day-grid" role="group" aria-label="全年每日活动，使用方向键选择日期">${cells}</div><div class="month-labels" aria-hidden="true">${monthLabels}</div></div></div>
 <div class="heatmap-bottom"><p id="metric-explanation">颜色越亮，代表当天累计距离越多。</p><div class="heatmap-scale" aria-label="活动强度从少到多"><span>少</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i><span>多</span></div></div><p class="mobile-hint">可横向滑动查看全年记录。</p>
 <div class="day-inspector"><label for="selected-date">查看某一天</label><input id="selected-date" type="date" min="${period.start}" max="${period.end}" value="${initialDate}"><p id="day-description" aria-live="polite"></p></div>
-<p class="chart-caption">每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供。负荷为 COROS 的活动训练负荷。${missingLoad?' '+missingLoad+' 次运动未提供负荷，统计时保留缺失标记。':''}</p><noscript><p>启用 JavaScript 后可查看热力图和切换指标；完整运动记录如下。</p></noscript></div></section>
-<section class="records-section" id="records" aria-labelledby="records-title"><div class="section-head"><h2 id="records-title"><span class="section-number">02</span>一年内的运动记录</h2><p>共 ${activities.length} 条 · 最新记录在前</p></div><table class="records-table"><caption class="sr-only">一年内的全部运动记录。时长格式为小时:分钟:秒，或分钟:秒。负荷为 COROS 训练负荷。</caption><thead><tr><th scope="col">日期</th><th scope="col">运动</th><th scope="col">距离</th><th scope="col">时长</th><th scope="col">负荷</th></tr></thead><tbody>${rows}</tbody></table></section></main>
+<p class="chart-caption">每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供。负荷为 COROS 的活动训练负荷。${missingLoad?' '+missingLoad+' 次运动未提供负荷，统计时保留缺失标记。':''}</p><noscript><p>启用 JavaScript 后可查看热力图和切换指标；下方为最近一周的运动记录。</p></noscript></div></section>
+<section class="records-section" id="records" aria-labelledby="records-title"><div class="section-head"><h2 id="records-title"><span class="section-number">02</span>最近一周的运动记录</h2><p>${recent.length?'共 '+recent.length+' 条 · 最新记录在前':'最近一周还没有运动记录'}</p></div><div class="records-grid">${cards}</div></section></main>
 <footer><div><p class="footer-title">每一程，都是记录。</p><p>数据来自 COROS · 日期按北京时间展示</p></div><div class="footer-right"><p>同步于 <time id="sync-time">${syncedAt.replace(' +08:00','').replaceAll('-','.')}</time>（北京时间）</p><p class="footer-note">每天 22:00 同步后更新 · 打开时读取最新数据</p><p id="sync-status" role="status" aria-live="polite"></p></div></footer></div>
 <script type="application/json" id="journal-data">${JSON.stringify(data).replaceAll('<','\\u003c')}</script></body></html>`;
 await writeFile(new URL('../docs/index.html',import.meta.url),html);

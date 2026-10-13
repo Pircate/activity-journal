@@ -1,5 +1,7 @@
 export const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const formatTime = seconds => Math.floor(seconds / 3600) + ':' + String(Math.floor(seconds % 3600 / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+const clockIcon = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.25 1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const loadIcon = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M8.75 1.75 3.5 8.9h3.6l-.85 5.35 5.25-7.15H7.9l.85-5.35Z"/></svg>';
 export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit'}).format(date);
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));
 export function validateData(data) {
@@ -18,6 +20,7 @@ export function shiftDate(date, days) {
 export function createJournal(data, endDate = data.period.end) {
   const period = {start:shiftDate(endDate, -364), end:endDate};
   const activities = data.activities.filter(a => a.date >= period.start && a.date <= period.end).slice().sort((a,b) => b.date.localeCompare(a.date));
+  const recent = activities.filter(a => a.date >= shiftDate(period.end, -6));
   const daily = [];
   for (let date = period.start; date <= period.end; date = shiftDate(date, 1)) {
     const records = activities.filter(a => a.date === date);
@@ -46,7 +49,7 @@ export function createJournal(data, endDate = data.period.end) {
   const months = [];
   padded.forEach((d,i) => {if(d.date.endsWith('-01') && d.date >= period.start && d.date <= period.end) months.push({column:Math.floor(i/7)+1, label:Number(d.date.slice(5,7))+'月'});});
   const monthLabels = months.map((m,i) => '<span style="grid-column:' + m.column + '/' + (months[i+1]?.column ?? columns+1) + '">' + m.label + '</span>').join('');
-  const rows = activities.map(a => '<tr data-date="' + a.date + '"><td><time datetime="' + a.date + '">' + a.date.replaceAll('-','.') + '</time></td><td><span class="sport-tag ' + (a.sport === '徒步' ? 'hike-tag' : '') + '">' + escapeHtml(a.sport) + '</span></td><td class="number">' + (a.distanceKm === null ? '未记录' : a.distanceKm.toFixed(2) + '<span class="unit"> 公里</span>') + '</td><td class="number duration-cell">' + escapeHtml(a.duration) + '</td><td class="number load-cell">' + (a.trainingLoad ?? '未记录') + '</td></tr>').join('');
+  const cards = recent.length ? recent.map(a => '<article class="record-card"><div class="record-card-head"><h3 class="record-sport' + (a.sport === '徒步' ? ' hike' : '') + '">' + escapeHtml(a.sport) + '</h3><time class="record-date" datetime="' + a.date + '">' + Number(a.date.slice(5, 7)) + '月' + Number(a.date.slice(8, 10)) + '日</time></div><p class="record-summary">' + (a.distanceKm === null ? '未记录距离' : a.distanceKm.toFixed(2) + ' 公里') + '</p><div class="record-meta"><span class="record-meta-item">' + clockIcon + escapeHtml(a.duration) + '</span><span class="record-meta-item record-load">' + loadIcon + (a.trainingLoad ?? '未记录') + '</span></div></article>').join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
   const initialDate = daily.findLast(d => d.count > 0)?.date ?? period.end;
-  return {activities, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, rows, initialDate};
+  return {activities, recent, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
 }

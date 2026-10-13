@@ -82,7 +82,7 @@ dateInput.addEventListener('change', () => {
 function renderJournal() {
   const focusedDate = document.activeElement?.matches('.day-cell[data-date]') ? document.activeElement.dataset.date : null;
   const journal = createJournal(data, beijingDate());
-  const {period, distance, duration, activities, activeDays, missingDistance, missingLoad} = journal;
+  const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad} = journal;
   const pretty = date => date.replaceAll('-', '.');
   document.querySelector('.period').innerHTML = '<time datetime="' + period.start + '">' + pretty(period.start) + '</time> — <time datetime="' + period.end + '">' + pretty(period.end) + '</time>';
   document.querySelector('.legend').innerHTML = journal.sports.map(s => '<span class="legend-item">' + escapeHtml(s.sport) + ' ' + s.count + ' 次</span>').join('');
@@ -98,8 +98,8 @@ function renderJournal() {
   grid.innerHTML = journal.cells;
   document.querySelector('.heatmap').style.setProperty('--columns', journal.columns);
   document.querySelector('.month-labels').innerHTML = journal.monthLabels;
-  document.querySelector('.records-table tbody').innerHTML = journal.rows;
-  document.querySelector('.records-section .section-head p').textContent = '共 ' + activities.length + ' 条 · 最新记录在前';
+  document.querySelector('.records-grid').innerHTML = journal.cards;
+  document.querySelector('.records-section .section-head p').textContent = recent.length ? '共 ' + recent.length + ' 条 · 最新记录在前' : '最近一周还没有运动记录';
   document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。负荷为 COROS 的活动训练负荷。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '');
   dateInput.min = period.start;
   dateInput.max = period.end;
