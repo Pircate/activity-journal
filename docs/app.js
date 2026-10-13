@@ -128,7 +128,8 @@ async function refreshData() {
     data = latest;
     renderJournal();
     const age = Date.now() - syncTimestamp(data.syncedAt);
-    status.textContent = data.period.end < beijingDate() || age > 2 * 3600000 ? '最近同步：' + data.syncedAt.replace(' +08:00', '') + '，等待下一次自动同步。' : '已读取最新已同步数据';
+    const upToDate = data.period.end >= beijingDate() && age <= 26 * 3600000;
+    status.textContent = upToDate ? '已读取最新已同步数据' : '显示最近成功同步的数据，每天 22:00 随运动同步任务更新。';
   } catch {
     status.textContent = '暂时无法读取最新数据，当前显示最近成功同步的记录。';
   } finally {
