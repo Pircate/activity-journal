@@ -1,5 +1,6 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 const data=JSON.parse(await readFile(new URL('../docs/activities.json',import.meta.url),'utf8'));
 import {createJournal, formatTime as time, escapeHtml as esc, validateData} from '../docs/journal.mjs';
 validateData(data);
@@ -7,12 +8,15 @@ const {activities,period,syncedAt,daily,distance,duration,activeDays,missingDist
 const pretty=d=>d.replaceAll('-','.');
 assert.equal(daily.length,365);
 assert.equal(Math.round(daily.reduce((s,d)=>s+d.distanceKm,0)*100),Math.round(distance*100));
+// 用内容哈希做缓存失效：改样式或脚本后，浏览器一定会重新拉取。
+const assetFiles=['style.css','app.js','journal.mjs'];
+const assetVersion=createHash('sha256').update((await Promise.all(assetFiles.map(name=>readFile(new URL('../docs/'+name,import.meta.url))))).join('\0')).digest('hex').slice(0,8);
 const favicon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#fc4c02"/><path d="M6 22V16M12 22V10M18 22V6M24 22V13" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
 const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#131313">
 <meta name="description" content="最近一年的真实运动记录：${activities.length} 次运动，${distance.toFixed(2)} 公里。查看距离、时长与训练负荷的全年活动热力图。">
 <meta property="og:title" content="我的运动记录"><meta property="og:description" content="最近一年的运动累计与每日活动热力图。"><meta property="og:type" content="website">
-<title>我的运动记录 · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css"><script type="module" src="app.js"></script></head>
+<title>我的运动记录 · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css?v=${assetVersion}"><script type="module" src="app.js?v=${assetVersion}"></script></head>
 <body><a class="skip" href="#main">跳转到运动概览</a><div class="wrap">
 <header><a class="brand" href="#main" aria-label="我的运动记录，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>我的运动记录</a><nav aria-label="页面导航"><a href="#rhythm">全年活动</a><a href="#records">运动记录</a></nav></header>
 <main id="main"><section class="hero" aria-labelledby="title"><div><p class="eyebrow">个人运动日志<span>最近一年</span></p><h1 id="title">我的运动记录</h1><p class="period"><time datetime="${period.start}">${pretty(period.start)}</time> — <time datetime="${period.end}">${pretty(period.end)}</time></p></div><div class="year-aside"><span class="year-number">365</span><span class="year-label">天的运动历程</span><div class="legend">${sports.map(s=>'<span class="legend-item">'+esc(s.sport)+' '+s.count+' 次</span>').join('')}</div></div></section>

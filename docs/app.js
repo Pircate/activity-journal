@@ -1,4 +1,6 @@
-import {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp} from './journal.mjs';
+// 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
+const version = new URL(import.meta.url).searchParams.get('v');
+const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
 const dateInput = document.getElementById('selected-date');
