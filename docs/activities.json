@@ -1,10 +1,17 @@
 {
   "period": {
-    "start": "2025-10-14",
-    "end": "2026-10-13"
+    "start": "2025-10-15",
+    "end": "2026-10-14"
   },
-  "syncedAt": "2026-10-13 22:13:18 +08:00",
+  "syncedAt": "2026-10-14 22:06:34 +08:00",
   "activities": [
+    {
+      "date": "2026-10-14",
+      "sport": "骑行",
+      "distanceKm": 20.07,
+      "duration": "56:10",
+      "trainingLoad": null
+    },
     {
       "date": "2026-10-13",
       "sport": "骑行",
@@ -1726,13 +1733,6 @@
       "distanceKm": 37.9,
       "duration": "1:20:09",
       "trainingLoad": 114
-    },
-    {
-      "date": "2025-10-14",
-      "sport": "骑行",
-      "distanceKm": 35.18,
-      "duration": "1:20:05",
-      "trainingLoad": 88
     }
   ]
 }
