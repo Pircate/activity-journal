@@ -1,7 +1,29 @@
 export const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const formatTime = seconds => Math.floor(seconds / 3600) + ':' + String(Math.floor(seconds % 3600 / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
-const clockIcon = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.25 1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-const loadIcon = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M8.75 1.75 3.5 8.9h3.6l-.85 5.35 5.25-7.15H7.9l.85-5.35Z"/></svg>';
+const sportIcon = sport => {
+  const paths = sport === '徒步'
+    ? '<circle cx="17" cy="4" r="2" fill="currentColor" stroke="none"/><path d="m14 9-3 7-5 4m8-11 5 5 5 1m-10-6 4 10-1 9m-4-10-3 10m14-14 2 14M9 8l-2 7 4 1"/>'
+    : sport.includes('骑行')
+      ? '<circle cx="7" cy="23" r="6"/><circle cx="25" cy="23" r="6"/><circle cx="22" cy="5" r="2" fill="currentColor" stroke="none"/><path d="m16 8-5 6 7 4-2 7m0-17 6 6h5m-6 0 4 9M7 23l5-9"/>'
+      : '<path d="M2 17h6l4-11 7 21 4-10h7"/>';
+  return '<svg class="record-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+};
+
+function recordCard(activity) {
+  const {date, sport, distanceKm, duration, trainingLoad} = activity;
+  const seconds = duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
+  const speed = distanceKm !== null && seconds > 0 ? (distanceKm * 3600 / seconds).toFixed(1) : null;
+  const weekday = new Intl.DateTimeFormat('zh-CN', {timeZone:'UTC', weekday:'long'}).format(new Date(date + 'T00:00:00Z'));
+  const distance = distanceKm === null ? '<span class="record-distance-missing">未记录距离</span>' : distanceKm.toFixed(2) + '<small>km</small>';
+  return `<article class="record-card${sport === '徒步' ? ' hike' : ''}">
+    <div class="record-body">
+      <h3 class="record-distance">${sportIcon(sport)}<span><span class="sr-only">距离 </span>${distance}</span></h3>
+      <div class="record-meta"><span><span class="sr-only">运动时长 </span>${escapeHtml(duration)}</span>${speed === null ? '' : '<span><span class="sr-only">平均速度 </span>' + speed + '<small>km/h</small></span>'}</div>
+      <p class="record-details"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</time><span>${weekday}</span><span class="record-sport">${escapeHtml(sport)}</span></p>
+    </div>
+    <div class="record-load"><span class="record-load-value${trainingLoad === null ? ' missing' : ''}">${trainingLoad ?? '未记录'}</span><span class="record-load-label">训练负荷</span></div>
+  </article>`;
+}
 export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit'}).format(date);
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));
 export function validateData(data) {
@@ -49,7 +71,7 @@ export function createJournal(data, endDate = data.period.end) {
   const months = [];
   padded.forEach((d,i) => {if(d.date.endsWith('-01') && d.date >= period.start && d.date <= period.end) months.push({column:Math.floor(i/7)+1, label:Number(d.date.slice(5,7))+'月'});});
   const monthLabels = months.map((m,i) => '<span style="grid-column:' + m.column + '/' + (months[i+1]?.column ?? columns+1) + '">' + m.label + '</span>').join('');
-  const cards = recent.length ? recent.map(a => '<article class="record-card"><div class="record-card-head"><h3 class="record-sport' + (a.sport === '徒步' ? ' hike' : '') + '">' + escapeHtml(a.sport) + '</h3><time class="record-date" datetime="' + a.date + '">' + Number(a.date.slice(5, 7)) + '月' + Number(a.date.slice(8, 10)) + '日</time></div><p class="record-summary">' + (a.distanceKm === null ? '未记录距离' : a.distanceKm.toFixed(2) + ' 公里') + '</p><div class="record-meta"><span class="record-meta-item">' + clockIcon + escapeHtml(a.duration) + '</span><span class="record-meta-item record-load">' + loadIcon + (a.trainingLoad ?? '未记录') + '</span></div></article>').join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
+  const cards = recent.length ? recent.map(recordCard).join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
   const initialDate = daily.findLast(d => d.count > 0)?.date ?? period.end;
   return {activities, recent, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
 }
