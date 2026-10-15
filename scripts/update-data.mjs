@@ -120,7 +120,7 @@ export async function readConfig(configPath = join(homedir(), '.config/interval-
   return config;
 }
 
-export async function fetchYear({config, fetchImpl = fetch, now = new Date()} = {}) {
+export async function fetchAllActivities({config, fetchImpl = fetch, now = new Date()} = {}) {
   config ??= await readConfig();
   if (typeof config?.INTERVALS_ICU_API_KEY !== 'string' || !config.INTERVALS_ICU_API_KEY.trim()) {
     throw new Error('请配置 ~/.config/interval-icu/config.json 中的 INTERVALS_ICU_API_KEY');
@@ -137,13 +137,22 @@ export async function fetchYear({config, fetchImpl = fetch, now = new Date()} = 
   const athlete = await get('athlete/0');
   if (!athlete || typeof athlete.id !== 'string' && typeof athlete.id !== 'number') throw new Error('Intervals.icu 账号信息无效');
   const end = beijingDate(now);
-  const period = {start:shiftDate(end, -364), end};
-  // API 按活动当地日期查询；两端多取一天，再按 UTC 开始时间转换为北京时间裁剪。
-  const params = new URLSearchParams({oldest:shiftDate(period.start, -1), newest:shiftDate(end, 1) + 'T23:59:59',
-    limit:'10000', fields:'id,type,start_date,moving_time,distance,icu_training_load,source,start_date_local'});
-  const records = await get(`athlete/${encodeURIComponent(athlete.id)}/activities?${params}`);
-  if (!Array.isArray(records) || records.length >= 10000) throw new Error('活动列表无效或达到查询上限，无法确认完整性，未更新数据');
-  if (records.some(a => !a?.id) || new Set(records.map(a => a.id)).size !== records.length) throw new Error('活动 ID 缺失或重复，未更新数据');
+  // 从历史起点获取全部记录；达到条数上限时二分当地日期范围，不使用可能截断的结果。
+  const fetchRange = async (oldest, newest) => {
+    const params = new URLSearchParams({oldest, newest:newest + 'T23:59:59',
+      limit:'10000', fields:'id,type,start_date,moving_time,distance,icu_training_load,source,start_date_local'});
+    const records = await get(`athlete/${encodeURIComponent(athlete.id)}/activities?${params}`);
+    if (!Array.isArray(records)) throw new Error('活动列表无效，未更新数据');
+    if (records.length < 10000) return records;
+    if (oldest === newest) throw new Error('单日活动达到查询上限，无法确认完整性，未更新数据');
+    const days = Math.round((Date.parse(newest) - Date.parse(oldest)) / 86400000);
+    const middle = shiftDate(oldest, Math.floor(days / 2));
+    return [...await fetchRange(oldest, middle), ...await fetchRange(shiftDate(middle, 1), newest)];
+  };
+  // 当地日期上界多取一天，再转换北京时间裁剪。
+  const records = await fetchRange('1900-01-01', shiftDate(end, 1));
+  if (records.some(a => !a?.id) || new Set(records.map(a => String(a.id))).size !== records.length) throw new Error('活动 ID 缺失或重复，未更新数据');
+  const period = {start:'1900-01-01', end};
   const gearLibrary = normalizeGear(await get(`athlete/${encodeURIComponent(athlete.id)}/gear`));
   const syncedAt = new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'}).format(now) + ' +08:00';
   const unavailable = records.filter(a => a.source === 'STRAVA' && !a.type && !a.start_date && a._note === 'STRAVA activities are not available via the API');
@@ -151,16 +160,18 @@ export async function fetchYear({config, fetchImpl = fetch, now = new Date()} = 
     .filter(a => a.date >= period.start && a.date <= period.end);
   // 空壳只保留平台提供的当地日期，公开注明详情缺失，不混入可读取活动的总量。
   for (const a of unavailable) {
-    if (!/^\d{4}-\d{2}-\d{2}T/.test(a.start_date_local ?? '')) throw new Error('无法读取的活动缺少有效日期');
+    if (!/^\d{4}-\d{2}-\d{2}T/.test(a.start_date_local ?? '') || !isDate(a.start_date_local.slice(0,10))) throw new Error('无法读取的活动缺少有效日期');
   }
   const data = {period, syncedAt, activities:normalizeActivities(records.filter(a => !unavailable.includes(a)), period), unavailableActivities, gearLibrary};
+  const firstDate = [...data.activities, ...unavailableActivities].reduce((first, a) => a.date < first ? a.date : first, shiftDate(end, -364));
+  period.start = firstDate.slice(0,4) + '-01-01';
   validateData(data);
   return data;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  if (process.argv.length > 2) throw new Error('用法：node scripts/update-data.mjs（直接获取 Intervals.icu 最近一年数据）');
-  const data = await fetchYear();
+  if (process.argv.length > 2) throw new Error('用法：node scripts/update-data.mjs（获取 Intervals.icu 全部历史数据）');
+  const data = await fetchAllActivities();
   const target = new URL('../docs/activities.json', import.meta.url);
   const temporary = new URL('../docs/activities.json.tmp', import.meta.url);
   try {

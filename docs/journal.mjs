@@ -128,16 +128,27 @@ export function shiftDate(date, days) {
   return value.toISOString().slice(0, 10);
 }
 
-export function createJournal(data, endDate = data.period.end) {
-  const period = {start:shiftDate(endDate, -364), end:endDate};
+export function availableYears(data, endDate = data.period.end) {
+  const last = Number((data.period.end < endDate ? data.period.end : endDate).slice(0,4));
+  const first = Number(data.period.start.slice(0,4));
+  return Array.from({length:Math.max(0, last - first + 1)}, (_, i) => String(last - i));
+}
+
+export function renderYearOptions(data, endDate = data.period.end) {
+  return '<option value="recent">最近一年</option>' + availableYears(data, endDate).map(year => `<option value="${year}">${year} 年</option>`).join('');
+}
+
+export function createJournal(data, endDate = data.period.end, range = 'recent') {
+  if (range !== 'recent' && !availableYears(data, endDate).includes(String(range))) throw new Error('所选年份不在已同步范围内');
+  const period = range === 'recent' ? {start:shiftDate(endDate, -364), end:endDate} : {start:range + '-01-01', end:range + '-12-31'};
   const activities = data.activities.filter(a => a.date >= period.start && a.date <= period.end).slice().sort((a,b) => b.date.localeCompare(a.date));
   const unavailableActivities = data.unavailableActivities.filter(a => a.date >= period.start && a.date <= period.end);
   const unavailableCount = unavailableActivities.length;
-  const recent = activities.filter(a => a.date >= shiftDate(period.end, -6));
+  const recent = data.activities.filter(a => a.date >= shiftDate(endDate, -6) && a.date <= endDate).slice().sort((a,b) => b.date.localeCompare(a.date));
   const daily = [];
   for (let date = period.start; date <= period.end; date = shiftDate(date, 1)) {
     const records = activities.filter(a => a.date === date);
-    daily.push({date, records, count:records.length, unavailable:unavailableActivities.filter(a => a.date === date).length, pending:date > data.period.end,
+    daily.push({date, records, count:records.length, unavailable:unavailableActivities.filter(a => a.date === date).length, pending:date < data.period.start || date > data.period.end || date > endDate,
       distanceKm:records.reduce((s,a) => s + Math.round((a.distanceKm ?? 0) * 100), 0) / 100,
       durationSeconds:records.reduce((s,a) => s + a.duration.split(':').reduce((v,n) => v * 60 + Number(n), 0), 0),
       trainingLoad:records.length && records.every(a => a.trainingLoad === null) ? null : records.reduce((s,a) => s + (a.trainingLoad ?? 0), 0),
@@ -163,6 +174,6 @@ export function createJournal(data, endDate = data.period.end) {
   padded.forEach((d,i) => {if(d.date.endsWith('-01') && d.date >= period.start && d.date <= period.end) months.push({column:Math.floor(i/7)+1, label:Number(d.date.slice(5,7))+'月'});});
   const monthLabels = months.map((m,i) => '<span style="grid-column:' + m.column + '/' + (months[i+1]?.column ?? columns+1) + '">' + m.label + '</span>').join('');
   const cards = recent.length ? recent.map(recordCard).join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
-  const initialDate = daily.findLast(d => d.count > 0)?.date ?? period.end;
+  const initialDate = daily.findLast(d => d.count > 0)?.date ?? daily.findLast(d => !d.pending)?.date ?? period.end;
   return {activities, recent, unavailableCount, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
 }

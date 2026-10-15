@@ -1,12 +1,13 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
-const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, availableYears} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
 const dateInput = document.getElementById('selected-date');
 const description = document.getElementById('day-description');
 const dayRecords = document.getElementById('day-records');
 const explanation = document.getElementById('metric-explanation');
+const yearSelect = document.getElementById('activity-year');
 const metrics = {
   distanceKm: { label: '距离', thresholds: [10, 30, 60], format: value => value.toFixed(2) + ' 公里', missing: 'missingDistance' },
   durationSeconds: { label: '时长', thresholds: [1800, 3600, 7200], format: formatTime },
@@ -83,11 +84,24 @@ dateInput.addEventListener('change', () => {
   if (dateInput.validity.valid && byDate.has(dateInput.value)) selectDay(dateInput.value);
   else dateInput.value = selectedDate;
 });
+yearSelect.addEventListener('change', () => {
+  selectedDate = undefined;
+  renderJournal();
+});
 function renderJournal() {
   const focusedDate = document.activeElement?.matches('.day-cell[data-date]') ? document.activeElement.dataset.date : null;
-  const journal = createJournal(data, beijingDate());
+  const today = beijingDate();
+  const range = availableYears(data, today).includes(yearSelect.value) ? yearSelect.value : 'recent';
+  yearSelect.innerHTML = renderYearOptions(data, today);
+  yearSelect.value = range;
+  const journal = createJournal(data, today, range);
   const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');
+  const rangeLabel = range === 'recent' ? '最近一年' : range + ' 年';
+  document.querySelector('.eyebrow span').textContent = rangeLabel;
+  document.querySelector('.year-number').textContent = journal.daily.length;
+  document.querySelector('.metrics').setAttribute('aria-label', rangeLabel + '运动概览');
+  document.title = '我的运动记录 · ' + rangeLabel;
   document.querySelector('.period').innerHTML = '<time datetime="' + period.start + '">' + pretty(period.start) + '</time> — <time datetime="' + period.end + '">' + pretty(period.end) + '</time>';
   document.querySelector('.legend').innerHTML = journal.sports.map(s => '<span class="legend-item">' + escapeHtml(s.sport) + ' ' + s.count + ' 次</span>').join('');
   const values = document.querySelectorAll('.metric-value');

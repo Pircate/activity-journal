@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
-import {normalizeGear, fetchYear} from './update-data.mjs';
+import {normalizeGear, fetchAllActivities} from './update-data.mjs';
 import {renderGearLibrary, validateData, createJournal} from '../docs/journal.mjs';
 
 const part = (id, type, extra = {}) => ({id, type, name:id, component:true, distance:12000000, ...extra});
@@ -140,7 +140,7 @@ test('装备 API 失败时整次同步失败，CLI 从本地配置取密钥并�
   const before = await readFile(dataPath,'utf8');
   const fetchMock = async url => url.endsWith('/gear') ? {ok:false,status:503}
     : {ok:true,json:async () => url.endsWith('/athlete/0') ? {id:'athlete-test'} : []};
-  await assert.rejects(fetchYear({config:{INTERVALS_ICU_API_KEY:'test'},fetchImpl:fetchMock}),/HTTP 503/);
+  await assert.rejects(fetchAllActivities({config:{INTERVALS_ICU_API_KEY:'test'},fetchImpl:fetchMock}),/HTTP 503/);
   const directory = await mkdtemp(join(tmpdir(),'interval-icu-cli-'));
   t.after(() => rm(directory,{recursive:true,force:true}));
   await mkdir(join(directory,'.config/interval-icu'),{recursive:true});
