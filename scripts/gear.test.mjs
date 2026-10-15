@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile, access} from 'node:fs/promises';
+import {readFile, access, mkdtemp, mkdir, writeFile, rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {normalizeGear, fetchYear} from './update-data.mjs';
 import {renderGearLibrary, validateData, createJournal} from '../docs/journal.mjs';
@@ -132,15 +134,21 @@ test('拒绝无效装备列表、重复标识、循环、缺失引用及无效�
   assert.throws(() => validateData(data));
 });
 
-test('装备 API 失败时整次同步失败，CLI 保留已发布文件且不产生临时文件', async () => {
+test('装备 API 失败时整次同步失败，CLI 从本地配置取密钥并保留已发布文件', async t => {
   const dataPath = new URL('../docs/activities.json',import.meta.url);
   const before = await readFile(dataPath,'utf8');
   const fetchMock = async url => url.endsWith('/gear') ? {ok:false,status:503}
     : {ok:true,json:async () => url.endsWith('/athlete/0') ? {id:'athlete-test'} : []};
-  await assert.rejects(fetchYear({env:{INTERVALS_ICU_TOKEN:'test'},fetchImpl:fetchMock}),/HTTP 503/);
-  const bootstrap = 'globalThis.fetch = ' + fetchMock.toString();
+  await assert.rejects(fetchYear({config:{INTERVALS_ICU_API_KEY:'test'},fetchImpl:fetchMock}),/HTTP 503/);
+  const directory = await mkdtemp(join(tmpdir(),'interval-icu-cli-'));
+  t.after(() => rm(directory,{recursive:true,force:true}));
+  await mkdir(join(directory,'.config/interval-icu'),{recursive:true});
+  await writeFile(join(directory,'.config/interval-icu/config.json'),JSON.stringify({INTERVALS_ICU_API_KEY:'test'}));
+  const bootstrap = `import os from 'node:os'; import {syncBuiltinESMExports} from 'node:module';
+    os.homedir = () => ${JSON.stringify(directory)}; syncBuiltinESMExports();
+    globalThis.fetch = ${fetchMock.toString()};`;
   const result = spawnSync(process.execPath,['--import','data:text/javascript,'+encodeURIComponent(bootstrap),new URL('./update-data.mjs',import.meta.url).pathname],{
-    env:{...process.env,INTERVALS_ICU_TOKEN:'test',INTERVALS_ICU_API_KEY:''},encoding:'utf8',
+    encoding:'utf8',
   });
   assert.notEqual(result.status,0);
   assert.match(result.stderr,/HTTP 503/);

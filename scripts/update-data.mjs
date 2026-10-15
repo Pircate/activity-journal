@@ -1,4 +1,6 @@
-import {writeFile, rename, unlink} from 'node:fs/promises';
+import {readFile, writeFile, rename, unlink} from 'node:fs/promises';
+import {homedir} from 'node:os';
+import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {beijingDate, validateData, shiftDate, formatTime, replacementTargets, isDate} from '../docs/journal.mjs';
 
@@ -107,10 +109,22 @@ export function normalizeGear(records) {
   });
 }
 
-export async function fetchYear({env = process.env, fetchImpl = fetch, now = new Date()} = {}) {
-  const authorization = env.INTERVALS_ICU_TOKEN ? `Bearer ${env.INTERVALS_ICU_TOKEN}`
-    : env.INTERVALS_ICU_API_KEY ? 'Basic ' + Buffer.from('API_KEY:' + env.INTERVALS_ICU_API_KEY).toString('base64') : null;
-  if (!authorization) throw new Error('请配置 INTERVALS_ICU_API_KEY 或 INTERVALS_ICU_TOKEN 后重新运行');
+export async function readConfig(configPath = join(homedir(), '.config/interval-icu/config.json')) {
+  let config;
+  try {
+    config = JSON.parse(await readFile(configPath, 'utf8'));
+  } catch {
+    throw new Error('请配置 ~/.config/interval-icu/config.json，确保文件可读取且为有效 JSON');
+  }
+  return config;
+}
+
+export async function fetchYear({config, fetchImpl = fetch, now = new Date()} = {}) {
+  config ??= await readConfig();
+  if (typeof config?.INTERVALS_ICU_API_KEY !== 'string' || !config.INTERVALS_ICU_API_KEY.trim()) {
+    throw new Error('请配置 ~/.config/interval-icu/config.json 中的 INTERVALS_ICU_API_KEY');
+  }
+  const authorization = 'Basic ' + Buffer.from('API_KEY:' + config.INTERVALS_ICU_API_KEY).toString('base64');
   const get = async path => {
     const response = await fetchImpl('https://intervals.icu/api/v1/' + path, {
       headers:{Authorization:authorization, Accept:'application/json'},

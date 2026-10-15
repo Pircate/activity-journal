@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {fetchYear, normalizeActivities} from './update-data.mjs';
+import {mkdtemp, writeFile, rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {fetchYear, normalizeActivities, readConfig} from './update-data.mjs';
 import {createJournal, validateData} from '../docs/journal.mjs';
 const period = {start:'2025-10-16', end:'2026-10-15'};
 const record = {id:'i1', type:'Ride', start_date:'2026-10-14T16:30:00', moving_time:3601, distance:20070, icu_training_load:0};
@@ -24,7 +27,7 @@ test('拒绝 Strava 空壳、重复 ID、缺失时长与无效数值', () => {
 
 test('使用账号 ID 查询完整一年，包含时区边界且只输出公开字段', async () => {
   const calls = [];
-  const data = await fetchYear({env:{INTERVALS_ICU_API_KEY:'test-key'}, now:new Date('2026-10-15T04:00:00Z'),
+  const data = await fetchYear({config:{INTERVALS_ICU_API_KEY:'test-key'}, now:new Date('2026-10-15T04:00:00Z'),
     fetchImpl:async (url, options) => {
       calls.push({url:new URL(url), options});
       return {ok:true, json:async () => calls.length === 1 ? {id:'i123'} : calls.length === 2 ? [record] : []};
@@ -42,17 +45,19 @@ test('使用账号 ID 查询完整一年，包含时区边界且只输出公开�
 });
 
 test('授权缺失、HTTP 失败、列表截断均拒绝更新', async () => {
-  await assert.rejects(fetchYear({env:{}}), /请配置/);
-  await assert.rejects(fetchYear({env:{INTERVALS_ICU_TOKEN:'test'}, fetchImpl:async () => ({ok:false, status:401})}), /HTTP 401/);
+  for (const config of [{}, {INTERVALS_ICU_API_KEY:''}, {INTERVALS_ICU_API_KEY:'  '}, {INTERVALS_ICU_API_KEY:123}]) {
+    await assert.rejects(fetchYear({config}), /请配置/);
+  }
+  await assert.rejects(fetchYear({config:{INTERVALS_ICU_API_KEY:'test'}, fetchImpl:async () => ({ok:false, status:401})}), /HTTP 401/);
   let count = 0;
-  await assert.rejects(fetchYear({env:{INTERVALS_ICU_TOKEN:'test'}, fetchImpl:async () => ({ok:true,
+  await assert.rejects(fetchYear({config:{INTERVALS_ICU_API_KEY:'test'}, fetchImpl:async () => ({ok:true,
     json:async () => ++count === 1 ? {id:'i123'} : Array(10000).fill(record)})}), /查询上限/);
 });
 
 test('受限 Strava 记录在日期上标注缺失，并排除在距离、时长、次数之外', async () => {
   let count = 0;
   const restricted = {id:'s1', source:'STRAVA', start_date_local:'2026-10-15T20:00:00', _note:'STRAVA activities are not available via the API'};
-  const data = await fetchYear({env:{INTERVALS_ICU_TOKEN:'test'}, now:new Date('2026-10-15T04:00:00Z'),
+  const data = await fetchYear({config:{INTERVALS_ICU_API_KEY:'test'}, now:new Date('2026-10-15T04:00:00Z'),
     fetchImpl:async () => ({ok:true, json:async () => ++count === 1 ? {id:'i123'} : count === 2 ? [record, restricted] : []})});
   validateData(data);
   assert.deepEqual(data.unavailableActivities, [{date:'2026-10-15'}]);
@@ -66,4 +71,15 @@ test('受限 Strava 记录在日期上标注缺失，并排除在距离、时长
   const withoutDetails = createJournal({...data, activities:[]});
   assert.equal(withoutDetails.daily.at(-1).unavailable, 1);
   assert.equal(withoutDetails.activities.length, 0);
+});
+
+test('读取本地配置，文件缺失或 JSON 错误时拒绝继续且不泄漏内容', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'interval-icu-config-'));
+  t.after(() => rm(directory, {recursive:true, force:true}));
+  const path = join(directory, 'config.json');
+  await assert.rejects(readConfig(path), /请配置/);
+  await writeFile(path, '{"INTERVALS_ICU_API_KEY":"private-test-value"');
+  await assert.rejects(readConfig(path), error => /有效 JSON/.test(error.message) && !error.message.includes('private-test-value'));
+  await writeFile(path, JSON.stringify({INTERVALS_ICU_API_KEY:'test-key'}));
+  assert.deepEqual(await readConfig(path), {INTERVALS_ICU_API_KEY:'test-key'});
 });

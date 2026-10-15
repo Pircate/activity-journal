@@ -34,10 +34,15 @@
 
 ## 同步脚本
 
-使用 Node.js 22 或更新版本。先在仓库外配置环境变量：
+使用 Node.js 22 或更新版本。先在仓库外创建 `~/.config/interval-icu/config.json`：
 
-- `INTERVALS_ICU_API_KEY`：从 [Intervals.icu 设置](https://intervals.icu/settings) 底部 Developer Settings 获取的个人 API Key。
-- 或 `INTERVALS_ICU_TOKEN`：具有活动及装备读取权限的现有 OAuth Token；同时配置时优先使用此项。
+```json
+{
+  "INTERVALS_ICU_API_KEY": "你的个人 API Key"
+}
+```
+
+API Key 从 [Intervals.icu 设置](https://intervals.icu/settings) 底部 Developer Settings 获取。目录权限设为 `700`，配置文件权限设为 `600`。脚本每次运行直接读取该文件。
 
 不要将凭据写入代码、公开 JSON 或 Git。脚本先解析当前账号，再查询最近 365 天的完整活动及装备列表，全部校验成功后原子替换同一份公开快照。活动或装备任一请求失败时均保留上一版。重复运行不会累积重复记录，也不会混入此前 COROS 来源的数据。
 
