@@ -13,9 +13,25 @@ test('北京时间边界、米到公里、零负荷、缺失值及同日多次�
     {...record, id:'i3', start_date:'2025-10-15T15:59:59Z'},
     {...record, id:'i4', start_date:'2026-10-15T16:00:00Z'}], period);
   assert.deepEqual(activities, [
-    {date:'2026-10-15', sport:'骑行', distanceKm:20.07, duration:'1:00:01', trainingLoad:0},
-    {date:'2026-10-15', sport:'骑行', distanceKm:null, duration:'1:00:01', trainingLoad:null},
+    {date:'2026-10-15', sport:'骑行', distanceKm:20.07, duration:'1:00:01', trainingLoad:0, activityUrl:'https://intervals.icu/activities/i1'},
+    {date:'2026-10-15', sport:'骑行', distanceKm:null, duration:'1:00:01', trainingLoad:null, activityUrl:'https://intervals.icu/activities/i2'},
   ]);
+});
+
+test('活动链接精确区分同日运动，兼容旧快照并拒绝非平台链接', () => {
+  const activities = normalizeActivities([record, {...record, id:123}], period);
+  const data = {period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]};
+  validateData(data);
+  const cards = createJournal(data).cards;
+  for (const id of ['i1', '123']) assert.ok(cards.includes(`href="https://intervals.icu/activities/${id}" target="_blank" rel="noopener noreferrer"`));
+  assert.match(cards, /新标签页/);
+  for (const activityUrl of ['javascript:alert(1)', 'https://evil.test/activities/i1', 'https://intervals.icu/activities/i1/../../settings', 'https://intervals.icu/activities/i1?x=1', null]) {
+    assert.throws(() => validateData({...data, activities:[{...activities[0], activityUrl}]}), /运动记录格式无效/);
+  }
+  const {activityUrl, ...legacy} = activities[0];
+  validateData({...data, activities:[legacy]});
+  assert.doesNotMatch(createJournal({...data, activities:[legacy]}).cards, /record-link/);
+  for (const id of ['../settings', {}, 'i1" onclick="alert(1)', null]) assert.throws(() => normalizeActivities([{...record, id}], period));
 });
 
 test('拒绝 Strava 空壳、重复 ID、缺失时长与无效数值', () => {

@@ -32,7 +32,7 @@ node scripts/build.mjs
 
 Strava API 明确返回的受限空壳只保留当地日期，在页面标注详情缺失，不计入总量；不得猜测详情或把它当成没有运动。
 
-公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动仅含 date、sport、distanceKm、duration、trainingLoad。缺失距离和负荷保留为 null。不发布活动或装备标识、账号信息、装备备注、坐标、心率、原始文件链接或凭据。
+公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动仅含 date、sport、distanceKm、duration、trainingLoad、activityUrl。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，供最近一周卡片跳转，包含活动 ID；不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、装备标识、账号信息、装备备注、坐标、心率、原始文件链接或凭据。
 
 gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm、components；配件仅含 name、type、distanceKm、replacement。首次尚未同步的仓库快照使用 null，禁止在同步失败时改为 null 或空列表。已退役装备隐藏，component_ids 只在脚本内部用于递归解析归属，不发布原始标识。
 

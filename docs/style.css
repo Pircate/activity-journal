@@ -13,6 +13,7 @@ footer{border-top:1px solid var(--line);margin-top:8px;padding:7px 0 7px;display
 @media(max-width:360px){.record-distance{font-size:1.25rem;gap:8px}.record-icon{width:17px;height:17px}.record-load{min-width:48px;padding-left:8px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media print{body{background:#fff;color:#111}.year-aside,nav,.skip{display:none}.hero{display:block}.metric-value.primary,.record-distance,.record-sport,.record-load-value{color:#111}.chart-card,.record-card{background:#fff}.bar{background:#c2410c}.bar.hike{background:#888}}
+.record-card{position:relative}.record-link{display:flex;align-items:center;gap:inherit}.record-link::after{content:"";position:absolute;inset:0;border-radius:inherit}.record-link:focus-visible{outline:none}.record-card:has(.record-link:hover),.record-card:has(.record-link:focus-visible){border-color:var(--accent)}.record-link:focus-visible::after{outline:2px solid var(--accent);outline-offset:3px}.record-open{color:var(--accent-soft)}
 /* 全年活动热力图 */
 .hero{grid-template-columns:1fr 200px}.year-aside{text-align:right}.year-number{display:block;color:var(--accent);font-size:2.25rem;font-weight:550;line-height:1.1;letter-spacing:-.06em;font-variant-numeric:tabular-nums}.year-label{font-size:.75rem;color:var(--muted)}.year-aside .legend{gap:4px 12px;justify-content:flex-end}
 .metrics{grid-template-columns:1.5fr 1fr .85fr}.metric-value.primary{font-size:clamp(1.4rem,1.9vw,1.75rem)}

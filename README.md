@@ -4,7 +4,7 @@
 
 ## 页面内容
 
-展示截至北京时间当天最近 365 天的累计距离、运动时长、运动次数、最近一周的运动记录和全年活动热力图。可切换距离、时长和 Intervals.icu 训练负荷，也可用日期选择器或方向键查看每天的指标。
+展示截至北京时间当天最近 365 天的累计距离、运动时长、运动次数、最近一周的运动记录和全年活动热力图。点击最近一周的活动卡片，会在新标签页打开 Intervals.icu 对应运动记录；也支持 Tab 聚焦、Enter 打开，查看权限由 Intervals.icu 控制。可切换距离、时长和 Intervals.icu 训练负荷，也可用日期选择器或方向键查看每天的指标。
 
 全年活动下方的运动装备库按自行车展示在用配件和累计里程，不受最近 365 天范围限制。配件列表默认折叠，点击自行车标题栏可独立展开或折叠，也支持键盘操作。链条、前胎、后胎按 5000 km，飞轮按 10000 km，牙盘按 30000 km 显示更换进度；达到 80% 提示“即将到期”，达到目标提示“建议更换”，超期保留实际里程。
 
@@ -30,7 +30,7 @@
 
 页面打开、从后台返回时都会绕过浏览器缓存读取 `docs/activities.json`，页面保持打开时每 5 分钟再检查一次。热力图每日自动滚动，尚未同步的日期不算作已确认没有运动的日期。
 
-每条公开活动记录仅含北京时间日期、中文运动类型、距离、运动时长和训练负荷。装备仅公开名称、类型、里程和更换摘要。缺失距离或负荷保留为 `null`；不发布坐标、心率、账号信息、原始活动或装备标识、装备备注或凭据。
+每条公开活动记录仅含北京时间日期、中文运动类型、距离、运动时长、训练负荷和活动页面链接 `activityUrl`（含对应活动 ID）。装备仅公开名称、类型、里程和更换摘要。缺失距离或负荷保留为 `null`；不发布坐标、心率、账号信息、额外的活动标识字段、装备标识、装备备注或凭据。
 
 ## 同步脚本
 
@@ -56,7 +56,7 @@ node --test scripts/*.test.mjs
 
 API 不提供部分 Strava 来源活动的完整内容；这些记录仅在 `unavailableActivities` 中保留平台提供的当地日期，页面明确标注缺失，不计入距离、时长和次数。其他缺失运动时长、重复活动 ID、无效记录或达到查询上限的情况会让整次同步失败并保留旧文件。不使用旧来源的数据补齐；可读取活动缺失的距离和负荷保留为空。
 
-`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件仅含 `name`、`type`、`distanceKm`、`replacement`。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
+`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。活动的 `activityUrl` 只接受 `https://intervals.icu/activities/` 加平台活动 ID；兼容尚无链接的旧活动快照，这些卡片不提供跳转。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件仅含 `name`、`type`、`distanceKm`、`replacement`。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
 
 同步与构建成功后，将更新文件提交并推送到 `main`，GitHub Pages 从 `docs/` 自动发布。网页只读取同源公开 JSON，凭据仅在本机脚本运行时使用。
 

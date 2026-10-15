@@ -3,1785 +3,2039 @@
     "start": "2025-10-16",
     "end": "2026-10-15"
   },
-  "syncedAt": "2026-10-15 22:13:39 +08:00",
+  "syncedAt": "2026-10-15 22:23:16 +08:00",
   "activities": [
     {
       "date": "2026-10-15",
       "sport": "虚拟骑行",
       "distanceKm": 14.69,
       "duration": "1:00:15",
-      "trainingLoad": 49
+      "trainingLoad": 49,
+      "activityUrl": "https://intervals.icu/activities/i197611101"
     },
     {
       "date": "2026-10-14",
       "sport": "虚拟骑行",
       "distanceKm": 20.07,
       "duration": "0:56:10",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i197188018"
     },
     {
       "date": "2026-10-13",
       "sport": "虚拟骑行",
       "distanceKm": 25.06,
       "duration": "0:50:01",
-      "trainingLoad": 53
+      "trainingLoad": 53,
+      "activityUrl": "https://intervals.icu/activities/i196784536"
     },
     {
       "date": "2026-10-11",
       "sport": "骑行",
       "distanceKm": 24.55,
       "duration": "1:00:01",
-      "trainingLoad": 49
+      "trainingLoad": 49,
+      "activityUrl": "https://intervals.icu/activities/i196034565"
     },
     {
       "date": "2026-10-11",
       "sport": "徒步",
       "distanceKm": 2.81,
       "duration": "0:41:55",
-      "trainingLoad": 6
+      "trainingLoad": 6,
+      "activityUrl": "https://intervals.icu/activities/i195973163"
     },
     {
       "date": "2026-10-09",
       "sport": "骑行",
       "distanceKm": 6.12,
       "duration": "0:15:02",
-      "trainingLoad": 9
+      "trainingLoad": 9,
+      "activityUrl": "https://intervals.icu/activities/i195352761"
     },
     {
       "date": "2026-10-09",
       "sport": "骑行",
       "distanceKm": 66,
       "duration": "2:06:58",
-      "trainingLoad": 164
+      "trainingLoad": 164,
+      "activityUrl": "https://intervals.icu/activities/i195352735"
     },
     {
       "date": "2026-10-07",
       "sport": "骑行",
       "distanceKm": 67.89,
       "duration": "2:11:13",
-      "trainingLoad": 203
+      "trainingLoad": 203,
+      "activityUrl": "https://intervals.icu/activities/i194589542"
     },
     {
       "date": "2026-10-05",
       "sport": "骑行",
       "distanceKm": 24.03,
       "duration": "1:02:37",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i193641163"
     },
     {
       "date": "2026-10-04",
       "sport": "骑行",
       "distanceKm": 5.03,
       "duration": "0:12:08",
-      "trainingLoad": 6
+      "trainingLoad": 6,
+      "activityUrl": "https://intervals.icu/activities/i193298995"
     },
     {
       "date": "2026-10-04",
       "sport": "骑行",
       "distanceKm": 55.49,
       "duration": "1:45:04",
-      "trainingLoad": 148
+      "trainingLoad": 148,
+      "activityUrl": "https://intervals.icu/activities/i193299002"
     },
     {
       "date": "2026-10-02",
       "sport": "骑行",
       "distanceKm": 73.52,
       "duration": "1:58:54",
-      "trainingLoad": 190
+      "trainingLoad": 190,
+      "activityUrl": "https://intervals.icu/activities/i192532318"
     },
     {
       "date": "2026-10-01",
       "sport": "骑行",
       "distanceKm": 26.98,
       "duration": "1:03:53",
-      "trainingLoad": 58
+      "trainingLoad": 58,
+      "activityUrl": "https://intervals.icu/activities/i192073893"
     },
     {
       "date": "2026-09-29",
       "sport": "虚拟骑行",
       "distanceKm": 26.05,
       "duration": "1:00:24",
-      "trainingLoad": 55
+      "trainingLoad": 55,
+      "activityUrl": "https://intervals.icu/activities/i191513308"
     },
     {
       "date": "2026-09-27",
       "sport": "虚拟骑行",
       "distanceKm": 30.17,
       "duration": "1:00:20",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i190832775"
     },
     {
       "date": "2026-09-26",
       "sport": "虚拟骑行",
       "distanceKm": 13.89,
       "duration": "0:56:33",
-      "trainingLoad": 48
+      "trainingLoad": 48,
+      "activityUrl": "https://intervals.icu/activities/i190508378"
     },
     {
       "date": "2026-09-24",
       "sport": "骑行",
       "distanceKm": 62.45,
       "duration": "2:00:11",
-      "trainingLoad": 165
+      "trainingLoad": 165,
+      "activityUrl": "https://intervals.icu/activities/i189828508"
     },
     {
       "date": "2026-09-22",
       "sport": "虚拟骑行",
       "distanceKm": 40.83,
       "duration": "1:24:07",
-      "trainingLoad": 65
+      "trainingLoad": 65,
+      "activityUrl": "https://intervals.icu/activities/i189199248"
     },
     {
       "date": "2026-09-19",
       "sport": "骑行",
       "distanceKm": 47.63,
       "duration": "1:34:09",
-      "trainingLoad": 122
+      "trainingLoad": 122,
+      "activityUrl": "https://intervals.icu/activities/i188155577"
     },
     {
       "date": "2026-09-17",
       "sport": "虚拟骑行",
       "distanceKm": 15.05,
       "duration": "0:59:07",
-      "trainingLoad": 51
+      "trainingLoad": 51,
+      "activityUrl": "https://intervals.icu/activities/i187619729"
     },
     {
       "date": "2026-09-16",
       "sport": "虚拟骑行",
       "distanceKm": 30.09,
       "duration": "1:03:01",
-      "trainingLoad": 68
+      "trainingLoad": 68,
+      "activityUrl": "https://intervals.icu/activities/i187308866"
     },
     {
       "date": "2026-09-14",
       "sport": "虚拟骑行",
       "distanceKm": 12.45,
       "duration": "1:00:50",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i186593644"
     },
     {
       "date": "2026-09-13",
       "sport": "徒步",
       "distanceKm": 4.56,
       "duration": "1:13:32",
-      "trainingLoad": 9
+      "trainingLoad": 9,
+      "activityUrl": "https://intervals.icu/activities/i186088364"
     },
     {
       "date": "2026-09-12",
       "sport": "骑行",
       "distanceKm": 63.98,
       "duration": "2:02:36",
-      "trainingLoad": 182
+      "trainingLoad": 182,
+      "activityUrl": "https://intervals.icu/activities/i185759518"
     },
     {
       "date": "2026-09-10",
       "sport": "虚拟骑行",
       "distanceKm": 31.07,
       "duration": "0:58:41",
-      "trainingLoad": 62
+      "trainingLoad": 62,
+      "activityUrl": "https://intervals.icu/activities/i185256600"
     },
     {
       "date": "2026-09-09",
       "sport": "虚拟骑行",
       "distanceKm": 30.12,
       "duration": "1:01:09",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i184918802"
     },
     {
       "date": "2026-09-09",
       "sport": "虚拟骑行",
       "distanceKm": 1.62,
       "duration": "0:01:59",
-      "trainingLoad": 1
+      "trainingLoad": 1,
+      "activityUrl": "https://intervals.icu/activities/i184896431"
     },
     {
       "date": "2026-09-06",
       "sport": "骑行",
       "distanceKm": 100.28,
       "duration": "3:16:27",
-      "trainingLoad": 212
+      "trainingLoad": 212,
+      "activityUrl": "https://intervals.icu/activities/i183863081"
     },
     {
       "date": "2026-09-05",
       "sport": "徒步",
       "distanceKm": 4.8,
       "duration": "1:04:20",
-      "trainingLoad": 9
+      "trainingLoad": 9,
+      "activityUrl": "https://intervals.icu/activities/i183452522"
     },
     {
       "date": "2026-09-04",
       "sport": "骑行",
       "distanceKm": 46.35,
       "duration": "1:38:03",
-      "trainingLoad": 92
+      "trainingLoad": 92,
+      "activityUrl": "https://intervals.icu/activities/i183186264"
     },
     {
       "date": "2026-09-02",
       "sport": "虚拟骑行",
       "distanceKm": 21.06,
       "duration": "0:53:28",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i182460996"
     },
     {
       "date": "2026-09-01",
       "sport": "骑行",
       "distanceKm": 60.58,
       "duration": "1:53:15",
-      "trainingLoad": 157
+      "trainingLoad": 157,
+      "activityUrl": "https://intervals.icu/activities/i181996646"
     },
     {
       "date": "2026-08-30",
       "sport": "骑行",
       "distanceKm": 5.69,
       "duration": "0:17:20",
-      "trainingLoad": 4
+      "trainingLoad": 4,
+      "activityUrl": "https://intervals.icu/activities/i181250288"
     },
     {
       "date": "2026-08-30",
       "sport": "骑行",
       "distanceKm": 50.04,
       "duration": "1:34:41",
-      "trainingLoad": 125
+      "trainingLoad": 125,
+      "activityUrl": "https://intervals.icu/activities/i181250281"
     },
     {
       "date": "2026-08-26",
       "sport": "虚拟骑行",
       "distanceKm": 27.58,
       "duration": "1:04:02",
-      "trainingLoad": 28
+      "trainingLoad": 28,
+      "activityUrl": "https://intervals.icu/activities/i180016769"
     },
     {
       "date": "2026-08-25",
       "sport": "虚拟骑行",
       "distanceKm": 27.61,
       "duration": "1:02:53",
-      "trainingLoad": 38
+      "trainingLoad": 38,
+      "activityUrl": "https://intervals.icu/activities/i179611701"
     },
     {
       "date": "2026-08-23",
       "sport": "骑行",
       "distanceKm": 51.54,
       "duration": "1:36:34",
-      "trainingLoad": 141
+      "trainingLoad": 141,
+      "activityUrl": "https://intervals.icu/activities/i178835449"
     },
     {
       "date": "2026-08-22",
       "sport": "骑行",
       "distanceKm": 40.11,
       "duration": "1:22:51",
-      "trainingLoad": 102
+      "trainingLoad": 102,
+      "activityUrl": "https://intervals.icu/activities/i178546407"
     },
     {
       "date": "2026-08-20",
       "sport": "虚拟骑行",
       "distanceKm": 21.8,
       "duration": "1:00:02",
-      "trainingLoad": 61
+      "trainingLoad": 61,
+      "activityUrl": "https://intervals.icu/activities/i177899957"
     },
     {
       "date": "2026-08-18",
       "sport": "虚拟骑行",
       "distanceKm": 27.22,
       "duration": "1:01:02",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i177158861"
     },
     {
       "date": "2026-08-16",
       "sport": "骑行",
       "distanceKm": 35.02,
       "duration": "1:07:23",
-      "trainingLoad": 105
+      "trainingLoad": 105,
+      "activityUrl": "https://intervals.icu/activities/i176377766"
     },
     {
       "date": "2026-08-15",
       "sport": "骑行",
       "distanceKm": 45.02,
       "duration": "1:32:09",
-      "trainingLoad": 114
+      "trainingLoad": 114,
+      "activityUrl": "https://intervals.icu/activities/i176036970"
     },
     {
       "date": "2026-08-12",
       "sport": "虚拟骑行",
       "distanceKm": 28.87,
       "duration": "1:02:04",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i175124636"
     },
     {
       "date": "2026-08-11",
       "sport": "虚拟骑行",
       "distanceKm": 32.13,
       "duration": "1:10:11",
-      "trainingLoad": 53
+      "trainingLoad": 53,
+      "activityUrl": "https://intervals.icu/activities/i174738560"
     },
     {
       "date": "2026-08-07",
       "sport": "骑行",
       "distanceKm": 46.13,
       "duration": "1:35:52",
-      "trainingLoad": 104
+      "trainingLoad": 104,
+      "activityUrl": "https://intervals.icu/activities/i173364115"
     },
     {
       "date": "2026-08-05",
       "sport": "虚拟骑行",
       "distanceKm": 32.73,
       "duration": "1:00:08",
-      "trainingLoad": 72
+      "trainingLoad": 72,
+      "activityUrl": "https://intervals.icu/activities/i172714604"
     },
     {
       "date": "2026-08-04",
       "sport": "虚拟骑行",
       "distanceKm": 31.77,
       "duration": "1:10:07",
-      "trainingLoad": 53
+      "trainingLoad": 53,
+      "activityUrl": "https://intervals.icu/activities/i172359463"
     },
     {
       "date": "2026-08-02",
       "sport": "骑行",
       "distanceKm": 55.89,
       "duration": "1:45:04",
-      "trainingLoad": 150
+      "trainingLoad": 150,
+      "activityUrl": "https://intervals.icu/activities/i171675944"
     },
     {
       "date": "2026-08-02",
       "sport": "徒步",
       "distanceKm": 4.34,
       "duration": "0:58:14",
-      "trainingLoad": 11
+      "trainingLoad": 11,
+      "activityUrl": "https://intervals.icu/activities/i171578894"
     },
     {
       "date": "2026-07-30",
       "sport": "虚拟骑行",
       "distanceKm": 30.06,
       "duration": "1:06:07",
-      "trainingLoad": 49
+      "trainingLoad": 49,
+      "activityUrl": "https://intervals.icu/activities/i170760201"
     },
     {
       "date": "2026-07-29",
       "sport": "虚拟骑行",
       "distanceKm": 30.21,
       "duration": "1:40:02",
-      "trainingLoad": 73
+      "trainingLoad": 73,
+      "activityUrl": "https://intervals.icu/activities/i170431799"
     },
     {
       "date": "2026-07-27",
       "sport": "虚拟骑行",
       "distanceKm": 28.15,
       "duration": "1:00:05",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i169692017"
     },
     {
       "date": "2026-07-25",
       "sport": "骑行",
       "distanceKm": 41.37,
       "duration": "1:27:05",
-      "trainingLoad": 95
+      "trainingLoad": 95,
+      "activityUrl": "https://intervals.icu/activities/i169058836"
     },
     {
       "date": "2026-07-23",
       "sport": "虚拟骑行",
       "distanceKm": 40.17,
       "duration": "1:26:31",
-      "trainingLoad": 66
+      "trainingLoad": 66,
+      "activityUrl": "https://intervals.icu/activities/i168438676"
     },
     {
       "date": "2026-07-21",
       "sport": "虚拟骑行",
       "distanceKm": 19.52,
       "duration": "1:00:06",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i167718631"
     },
     {
       "date": "2026-07-19",
       "sport": "骑行",
       "distanceKm": 45.05,
       "duration": "1:28:44",
-      "trainingLoad": 117
+      "trainingLoad": 117,
+      "activityUrl": "https://intervals.icu/activities/i167095538"
     },
     {
       "date": "2026-07-18",
       "sport": "骑行",
       "distanceKm": 40.14,
       "duration": "1:19:02",
-      "trainingLoad": 116
+      "trainingLoad": 116,
+      "activityUrl": "https://intervals.icu/activities/i166789468"
     },
     {
       "date": "2026-07-15",
       "sport": "虚拟骑行",
       "distanceKm": 33.33,
       "duration": "1:13:04",
-      "trainingLoad": 55
+      "trainingLoad": 55,
+      "activityUrl": "https://intervals.icu/activities/i165964879"
     },
     {
       "date": "2026-07-14",
       "sport": "虚拟骑行",
       "distanceKm": 45.63,
       "duration": "1:31:00",
-      "trainingLoad": 70
+      "trainingLoad": 70,
+      "activityUrl": "https://intervals.icu/activities/i165629979"
     },
     {
       "date": "2026-07-11",
       "sport": "骑行",
       "distanceKm": 60.59,
       "duration": "1:54:23",
-      "trainingLoad": 121
+      "trainingLoad": 121,
+      "activityUrl": "https://intervals.icu/activities/i164603820"
     },
     {
       "date": "2026-07-08",
       "sport": "虚拟骑行",
       "distanceKm": 46.11,
       "duration": "1:30:36",
-      "trainingLoad": 69
+      "trainingLoad": 69,
+      "activityUrl": "https://intervals.icu/activities/i163874064"
     },
     {
       "date": "2026-07-07",
       "sport": "虚拟骑行",
       "distanceKm": 33.14,
       "duration": "1:11:03",
-      "trainingLoad": 54
+      "trainingLoad": 54,
+      "activityUrl": "https://intervals.icu/activities/i163536374"
     },
     {
       "date": "2026-07-05",
       "sport": "骑行",
       "distanceKm": 40.61,
       "duration": "1:20:01",
-      "trainingLoad": 120
+      "trainingLoad": 120,
+      "activityUrl": "https://intervals.icu/activities/i162876272"
     },
     {
       "date": "2026-07-04",
       "sport": "虚拟骑行",
       "distanceKm": 60.14,
       "duration": "2:02:16",
-      "trainingLoad": 109
+      "trainingLoad": 109,
+      "activityUrl": "https://intervals.icu/activities/i162525781"
     },
     {
       "date": "2026-07-01",
       "sport": "虚拟骑行",
       "distanceKm": 35.14,
       "duration": "1:10:04",
-      "trainingLoad": 53
+      "trainingLoad": 53,
+      "activityUrl": "https://intervals.icu/activities/i161778430"
     },
     {
       "date": "2026-06-30",
       "sport": "虚拟骑行",
       "distanceKm": 24.62,
       "duration": "0:50:14",
-      "trainingLoad": 36
+      "trainingLoad": 36,
+      "activityUrl": "https://intervals.icu/activities/i161481283"
     },
     {
       "date": "2026-06-28",
       "sport": "骑行",
       "distanceKm": 71.06,
       "duration": "2:02:41",
-      "trainingLoad": 167
+      "trainingLoad": 167,
+      "activityUrl": "https://intervals.icu/activities/i160849589"
     },
     {
       "date": "2026-06-27",
       "sport": "骑行",
       "distanceKm": 6.65,
       "duration": "0:19:07",
-      "trainingLoad": 6
+      "trainingLoad": 6,
+      "activityUrl": "https://intervals.icu/activities/i160622759"
     },
     {
       "date": "2026-06-27",
       "sport": "骑行",
       "distanceKm": 51.52,
       "duration": "1:38:29",
-      "trainingLoad": 119
+      "trainingLoad": 119,
+      "activityUrl": "https://intervals.icu/activities/i160622755"
     },
     {
       "date": "2026-06-26",
       "sport": "虚拟骑行",
       "distanceKm": 28.17,
       "duration": "1:00:15",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i160437565"
     },
     {
       "date": "2026-06-23",
       "sport": "虚拟骑行",
       "distanceKm": 30.06,
       "duration": "1:03:28",
-      "trainingLoad": 45
+      "trainingLoad": 45,
+      "activityUrl": "https://intervals.icu/activities/i159665431"
     },
     {
       "date": "2026-06-21",
       "sport": "虚拟骑行",
       "distanceKm": 60.91,
       "duration": "1:57:20",
-      "trainingLoad": 107
+      "trainingLoad": 107,
+      "activityUrl": "https://intervals.icu/activities/i159077515"
     },
     {
       "date": "2026-06-19",
       "sport": "虚拟骑行",
       "distanceKm": 60.18,
       "duration": "1:56:10",
-      "trainingLoad": 105
+      "trainingLoad": 105,
+      "activityUrl": "https://intervals.icu/activities/i158500832"
     },
     {
       "date": "2026-06-17",
       "sport": "虚拟骑行",
       "distanceKm": 29.49,
       "duration": "1:00:11",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i158045403"
     },
     {
       "date": "2026-06-16",
       "sport": "虚拟骑行",
       "distanceKm": 33.32,
       "duration": "1:19:15",
-      "trainingLoad": 62
+      "trainingLoad": 62,
+      "activityUrl": "https://intervals.icu/activities/i157743218"
     },
     {
       "date": "2026-06-14",
       "sport": "骑行",
       "distanceKm": 25.24,
       "duration": "1:02:32",
-      "trainingLoad": 31
+      "trainingLoad": 31,
+      "activityUrl": "https://intervals.icu/activities/i157066028"
     },
     {
       "date": "2026-06-13",
       "sport": "骑行",
       "distanceKm": 6.03,
       "duration": "0:16:22",
-      "trainingLoad": 5
+      "trainingLoad": 5,
+      "activityUrl": "https://intervals.icu/activities/i156795432"
     },
     {
       "date": "2026-06-13",
       "sport": "骑行",
       "distanceKm": 50.18,
       "duration": "1:26:24",
-      "trainingLoad": 134
+      "trainingLoad": 134,
+      "activityUrl": "https://intervals.icu/activities/i156795426"
     },
     {
       "date": "2026-06-10",
       "sport": "虚拟骑行",
       "distanceKm": 25.35,
       "duration": "1:22:26",
-      "trainingLoad": 65
+      "trainingLoad": 65,
+      "activityUrl": "https://intervals.icu/activities/i156071013"
     },
     {
       "date": "2026-06-09",
       "sport": "虚拟骑行",
       "distanceKm": 30.03,
       "duration": "1:01:05",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i155707421"
     },
     {
       "date": "2026-06-07",
       "sport": "骑行",
       "distanceKm": 55.21,
       "duration": "1:49:25",
-      "trainingLoad": 123
+      "trainingLoad": 123,
+      "activityUrl": "https://intervals.icu/activities/i154919515"
     },
     {
       "date": "2026-06-06",
       "sport": "骑行",
       "distanceKm": 6.11,
       "duration": "0:15:23",
-      "trainingLoad": 6
+      "trainingLoad": 6,
+      "activityUrl": "https://intervals.icu/activities/i154692074"
     },
     {
       "date": "2026-06-06",
       "sport": "骑行",
       "distanceKm": 50.06,
       "duration": "1:33:00",
-      "trainingLoad": 126
+      "trainingLoad": 126,
+      "activityUrl": "https://intervals.icu/activities/i154692070"
     },
     {
       "date": "2026-06-05",
       "sport": "骑行",
       "distanceKm": 28,
       "duration": "1:03:19",
-      "trainingLoad": 45
+      "trainingLoad": 45,
+      "activityUrl": "https://intervals.icu/activities/i154527278"
     },
     {
       "date": "2026-06-03",
       "sport": "虚拟骑行",
       "distanceKm": 30.09,
       "duration": "1:00:57",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i153924938"
     },
     {
       "date": "2026-06-02",
       "sport": "虚拟骑行",
       "distanceKm": 31.39,
       "duration": "1:00:13",
-      "trainingLoad": 73
+      "trainingLoad": 73,
+      "activityUrl": "https://intervals.icu/activities/i153495521"
     },
     {
       "date": "2026-05-31",
       "sport": "虚拟骑行",
       "distanceKm": 34.62,
       "duration": "1:10:02",
-      "trainingLoad": 49
+      "trainingLoad": 49,
+      "activityUrl": "https://intervals.icu/activities/i152899563"
     },
     {
       "date": "2026-05-30",
       "sport": "虚拟骑行",
       "distanceKm": 38.85,
       "duration": "2:00:02",
-      "trainingLoad": 107
+      "trainingLoad": 107,
+      "activityUrl": "https://intervals.icu/activities/i152626015"
     },
     {
       "date": "2026-05-29",
       "sport": "虚拟骑行",
       "distanceKm": 30.26,
       "duration": "1:01:01",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i152414924"
     },
     {
       "date": "2026-05-27",
       "sport": "骑行",
       "distanceKm": 24.35,
       "duration": "1:07:59",
-      "trainingLoad": 73
+      "trainingLoad": 73,
+      "activityUrl": "https://intervals.icu/activities/i151777174"
     },
     {
       "date": "2026-05-25",
       "sport": "虚拟骑行",
       "distanceKm": 1.11,
       "duration": "0:08:36",
-      "trainingLoad": 2
+      "trainingLoad": 2,
+      "activityUrl": "https://intervals.icu/activities/i151336442"
     },
     {
       "date": "2026-05-24",
       "sport": "虚拟骑行",
       "distanceKm": 45.52,
       "duration": "1:30:12",
-      "trainingLoad": 70
+      "trainingLoad": 70,
+      "activityUrl": "https://intervals.icu/activities/i151070075"
     },
     {
       "date": "2026-05-23",
       "sport": "虚拟骑行",
       "distanceKm": 42.05,
       "duration": "1:57:32",
-      "trainingLoad": 108
+      "trainingLoad": 108,
+      "activityUrl": "https://intervals.icu/activities/i150748886"
     },
     {
       "date": "2026-05-20",
       "sport": "虚拟骑行",
       "distanceKm": 30.27,
       "duration": "1:01:59",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i150005337"
     },
     {
       "date": "2026-05-18",
       "sport": "虚拟骑行",
       "distanceKm": 30.17,
       "duration": "1:00:51",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i149362661"
     },
     {
       "date": "2026-05-16",
       "sport": "骑行",
       "distanceKm": 62.26,
       "duration": "1:57:10",
-      "trainingLoad": 139
+      "trainingLoad": 139,
+      "activityUrl": "https://intervals.icu/activities/i148645935"
     },
     {
       "date": "2026-05-14",
       "sport": "骑行",
       "distanceKm": 30.05,
       "duration": "1:23:36",
-      "trainingLoad": 97
+      "trainingLoad": 97,
+      "activityUrl": "https://intervals.icu/activities/i148005464"
     },
     {
       "date": "2026-05-12",
       "sport": "虚拟骑行",
       "distanceKm": 29.51,
       "duration": "1:00:07",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i147506058"
     },
     {
       "date": "2026-05-10",
       "sport": "骑行",
       "distanceKm": 25.25,
       "duration": "1:10:47",
-      "trainingLoad": 81
+      "trainingLoad": 81,
+      "activityUrl": "https://intervals.icu/activities/i146848137"
     },
     {
       "date": "2026-05-08",
       "sport": "虚拟骑行",
       "distanceKm": 29.18,
       "duration": "0:57:14",
-      "trainingLoad": 54
+      "trainingLoad": 54,
+      "activityUrl": "https://intervals.icu/activities/i146428905"
     },
     {
       "date": "2026-05-06",
       "sport": "虚拟骑行",
       "distanceKm": 27.35,
       "duration": "0:58:12",
-      "trainingLoad": 32
+      "trainingLoad": 32,
+      "activityUrl": "https://intervals.icu/activities/i145887146"
     },
     {
       "date": "2026-05-05",
       "sport": "骑行",
       "distanceKm": 6.19,
       "duration": "0:16:34",
-      "trainingLoad": 5
+      "trainingLoad": 5,
+      "activityUrl": "https://intervals.icu/activities/i145488376"
     },
     {
       "date": "2026-05-05",
       "sport": "骑行",
       "distanceKm": 50.08,
       "duration": "1:29:24",
-      "trainingLoad": 124
+      "trainingLoad": 124,
+      "activityUrl": "https://intervals.icu/activities/i145488492"
     },
     {
       "date": "2026-05-02",
       "sport": "骑行",
       "distanceKm": 6.06,
       "duration": "0:13:26",
-      "trainingLoad": 11
+      "trainingLoad": 11,
+      "activityUrl": "https://intervals.icu/activities/i144683580"
     },
     {
       "date": "2026-05-02",
       "sport": "骑行",
       "distanceKm": 65.11,
       "duration": "1:55:30",
-      "trainingLoad": 162
+      "trainingLoad": 162,
+      "activityUrl": "https://intervals.icu/activities/i144682632"
     },
     {
       "date": "2026-05-01",
       "sport": "骑行",
       "distanceKm": 30.06,
       "duration": "1:00:03",
-      "trainingLoad": 76
+      "trainingLoad": 76,
+      "activityUrl": "https://intervals.icu/activities/i144444960"
     },
     {
       "date": "2026-04-29",
       "sport": "虚拟骑行",
       "distanceKm": 25.82,
       "duration": "0:58:09",
-      "trainingLoad": 70
+      "trainingLoad": 70,
+      "activityUrl": "https://intervals.icu/activities/i144031530"
     },
     {
       "date": "2026-04-27",
       "sport": "虚拟骑行",
       "distanceKm": 22.22,
       "duration": "0:44:00",
-      "trainingLoad": 34
+      "trainingLoad": 34,
+      "activityUrl": "https://intervals.icu/activities/i143385406"
     },
     {
       "date": "2026-04-26",
       "sport": "虚拟骑行",
       "distanceKm": 37.26,
       "duration": "1:30:12",
-      "trainingLoad": 70
+      "trainingLoad": 70,
+      "activityUrl": "https://intervals.icu/activities/i143103243"
     },
     {
       "date": "2026-04-25",
       "sport": "骑行",
       "distanceKm": 6.42,
       "duration": "0:16:33",
-      "trainingLoad": 9
+      "trainingLoad": 9,
+      "activityUrl": "https://intervals.icu/activities/i142700371"
     },
     {
       "date": "2026-04-25",
       "sport": "骑行",
       "distanceKm": 50.16,
       "duration": "1:30:32",
-      "trainingLoad": 133
+      "trainingLoad": 133,
+      "activityUrl": "https://intervals.icu/activities/i142700363"
     },
     {
       "date": "2026-04-22",
       "sport": "虚拟骑行",
       "distanceKm": 27.1,
       "duration": "1:00:00",
-      "trainingLoad": 71
+      "trainingLoad": 71,
+      "activityUrl": "https://intervals.icu/activities/i142004420"
     },
     {
       "date": "2026-04-21",
       "sport": "虚拟骑行",
       "distanceKm": 1.72,
       "duration": "0:04:07",
-      "trainingLoad": 2
+      "trainingLoad": 2,
+      "activityUrl": "https://intervals.icu/activities/i141692143"
     },
     {
       "date": "2026-04-20",
       "sport": "虚拟骑行",
       "distanceKm": 30.07,
       "duration": "0:59:18",
-      "trainingLoad": 45
+      "trainingLoad": 45,
+      "activityUrl": "https://intervals.icu/activities/i141422673"
     },
     {
       "date": "2026-04-18",
       "sport": "骑行",
       "distanceKm": 60.03,
       "duration": "2:00:55",
-      "trainingLoad": 155
+      "trainingLoad": 155,
+      "activityUrl": "https://intervals.icu/activities/i140759165"
     },
     {
       "date": "2026-04-15",
       "sport": "虚拟骑行",
       "distanceKm": 30.09,
       "duration": "1:01:02",
-      "trainingLoad": 46
+      "trainingLoad": 46,
+      "activityUrl": "https://intervals.icu/activities/i140047938"
     },
     {
       "date": "2026-04-14",
       "sport": "虚拟骑行",
       "distanceKm": 27.35,
       "duration": "1:20:12",
-      "trainingLoad": 95
+      "trainingLoad": 95,
+      "activityUrl": "https://intervals.icu/activities/i139744931"
     },
     {
       "date": "2026-04-12",
       "sport": "虚拟骑行",
       "distanceKm": 39.03,
       "duration": "1:24:04",
-      "trainingLoad": 65
+      "trainingLoad": 65,
+      "activityUrl": "https://intervals.icu/activities/i139149889"
     },
     {
       "date": "2026-04-11",
       "sport": "骑行",
       "distanceKm": 55.05,
       "duration": "2:01:27",
-      "trainingLoad": 116
+      "trainingLoad": 116,
+      "activityUrl": "https://intervals.icu/activities/i138796180"
     },
     {
       "date": "2026-04-11",
       "sport": "骑行",
       "distanceKm": 6.24,
       "duration": "0:15:50",
-      "trainingLoad": 8
+      "trainingLoad": 8,
+      "activityUrl": "https://intervals.icu/activities/i138785175"
     },
     {
       "date": "2026-04-09",
       "sport": "虚拟骑行",
       "distanceKm": 21.1,
       "duration": "1:24:10",
-      "trainingLoad": 66
+      "trainingLoad": 66,
+      "activityUrl": "https://intervals.icu/activities/i138347966"
     },
     {
       "date": "2026-04-06",
       "sport": "骑行",
       "distanceKm": 6.57,
       "duration": "0:16:57",
-      "trainingLoad": 9
+      "trainingLoad": 9,
+      "activityUrl": "https://intervals.icu/activities/i137498341"
     },
     {
       "date": "2026-04-06",
       "sport": "骑行",
       "distanceKm": 50.11,
       "duration": "1:31:50",
-      "trainingLoad": 139
+      "trainingLoad": 139,
+      "activityUrl": "https://intervals.icu/activities/i137498326"
     },
     {
       "date": "2026-04-05",
       "sport": "虚拟骑行",
       "distanceKm": 42.26,
       "duration": "1:24:03",
-      "trainingLoad": 65
+      "trainingLoad": 65,
+      "activityUrl": "https://intervals.icu/activities/i137333793"
     },
     {
       "date": "2026-04-04",
       "sport": "虚拟骑行",
       "distanceKm": 21.45,
       "duration": "1:02:06",
-      "trainingLoad": 55
+      "trainingLoad": 55,
+      "activityUrl": "https://intervals.icu/activities/i137130781"
     },
     {
       "date": "2026-04-03",
       "sport": "虚拟骑行",
       "distanceKm": 20.13,
       "duration": "0:52:03",
-      "trainingLoad": 41
+      "trainingLoad": 41,
+      "activityUrl": "https://intervals.icu/activities/i136867834"
     },
     {
       "date": "2026-04-01",
       "sport": "骑行",
       "distanceKm": null,
       "duration": "0:40:00",
-      "trainingLoad": 54
+      "trainingLoad": 54,
+      "activityUrl": "https://intervals.icu/activities/i136442860"
     },
     {
       "date": "2026-04-01",
       "sport": "骑行",
       "distanceKm": 0.05,
       "duration": "0:04:08",
-      "trainingLoad": 5
+      "trainingLoad": 5,
+      "activityUrl": "https://intervals.icu/activities/i136435497"
     },
     {
       "date": "2026-04-01",
       "sport": "虚拟骑行",
       "distanceKm": 2.11,
       "duration": "0:04:38",
-      "trainingLoad": 2
+      "trainingLoad": 2,
+      "activityUrl": "https://intervals.icu/activities/i136432794"
     },
     {
       "date": "2026-04-01",
       "sport": "虚拟骑行",
       "distanceKm": 2.07,
       "duration": "0:04:57",
-      "trainingLoad": 3
+      "trainingLoad": 3,
+      "activityUrl": "https://intervals.icu/activities/i136430833"
     },
     {
       "date": "2026-03-31",
       "sport": "虚拟骑行",
       "distanceKm": 23.5,
       "duration": "1:01:45",
-      "trainingLoad": 47
+      "trainingLoad": 47,
+      "activityUrl": "https://intervals.icu/activities/i136164332"
     },
     {
       "date": "2026-03-30",
       "sport": "虚拟骑行",
       "distanceKm": 20.3,
       "duration": "0:41:22",
-      "trainingLoad": 30
+      "trainingLoad": 30,
+      "activityUrl": "https://intervals.icu/activities/i135903150"
     },
     {
       "date": "2026-03-29",
       "sport": "骑行",
       "distanceKm": 63.5,
       "duration": "2:18:37",
-      "trainingLoad": 146
+      "trainingLoad": 146,
+      "activityUrl": "https://intervals.icu/activities/i135554903"
     },
     {
       "date": "2026-03-27",
       "sport": "虚拟骑行",
       "distanceKm": 25.07,
       "duration": "0:49:17",
-      "trainingLoad": 45
+      "trainingLoad": 45,
+      "activityUrl": "https://intervals.icu/activities/i135139092"
     },
     {
       "date": "2026-03-25",
       "sport": "骑行",
       "distanceKm": 22.1,
       "duration": "0:47:21",
-      "trainingLoad": 58
+      "trainingLoad": 58,
+      "activityUrl": "https://intervals.icu/activities/i134840235"
     },
     {
       "date": "2026-03-25",
       "sport": "划船",
       "distanceKm": null,
       "duration": "0:00:36",
-      "trainingLoad": 0
+      "trainingLoad": 0,
+      "activityUrl": "https://intervals.icu/activities/i134649114"
     },
     {
       "date": "2026-03-24",
       "sport": "虚拟骑行",
       "distanceKm": 35.53,
       "duration": "1:24:13",
-      "trainingLoad": 65
+      "trainingLoad": 65,
+      "activityUrl": "https://intervals.icu/activities/i134438724"
     },
     {
       "date": "2026-03-23",
       "sport": "虚拟骑行",
       "distanceKm": 24.78,
       "duration": "0:50:42",
-      "trainingLoad": 36
+      "trainingLoad": 36,
+      "activityUrl": "https://intervals.icu/activities/i134165519"
     },
     {
       "date": "2026-03-22",
       "sport": "虚拟骑行",
       "distanceKm": 42.28,
       "duration": "1:24:07",
-      "trainingLoad": 65
+      "trainingLoad": 65,
+      "activityUrl": "https://intervals.icu/activities/i133857366"
     },
     {
       "date": "2026-03-20",
       "sport": "骑行",
       "distanceKm": 62.52,
       "duration": "2:01:19",
-      "trainingLoad": 145
+      "trainingLoad": 145,
+      "activityUrl": "https://intervals.icu/activities/i133426487"
     },
     {
       "date": "2026-03-18",
       "sport": "虚拟骑行",
       "distanceKm": 25.29,
       "duration": "1:01:10",
-      "trainingLoad": 78
+      "trainingLoad": 78,
+      "activityUrl": "https://intervals.icu/activities/i132983216"
     },
     {
       "date": "2026-03-17",
       "sport": "虚拟骑行",
       "distanceKm": 12.59,
       "duration": "1:06:52",
-      "trainingLoad": 60
+      "trainingLoad": 60,
+      "activityUrl": "https://intervals.icu/activities/i132716820"
     },
     {
       "date": "2026-03-16",
       "sport": "虚拟骑行",
       "distanceKm": 30.08,
       "duration": "0:57:25",
-      "trainingLoad": 58
+      "trainingLoad": 58,
+      "activityUrl": "https://intervals.icu/activities/i132438153"
     },
     {
       "date": "2026-03-14",
       "sport": "骑行",
       "distanceKm": 61.79,
       "duration": "2:13:00",
-      "trainingLoad": 150
+      "trainingLoad": 150,
+      "activityUrl": "https://intervals.icu/activities/i131866769"
     },
     {
       "date": "2026-03-13",
       "sport": "虚拟骑行",
       "distanceKm": 28.3,
       "duration": "0:57:50",
-      "trainingLoad": 68
+      "trainingLoad": 68,
+      "activityUrl": "https://intervals.icu/activities/i131647483"
     },
     {
       "date": "2026-03-11",
       "sport": "虚拟骑行",
       "distanceKm": 26.91,
       "duration": "1:01:41",
-      "trainingLoad": 90
+      "trainingLoad": 90,
+      "activityUrl": "https://intervals.icu/activities/i131207204"
     },
     {
       "date": "2026-03-08",
       "sport": "骑行",
       "distanceKm": 62.56,
       "duration": "1:59:54",
-      "trainingLoad": 162
+      "trainingLoad": 162,
+      "activityUrl": "https://intervals.icu/activities/i130368418"
     },
     {
       "date": "2026-03-06",
       "sport": "骑行",
       "distanceKm": 6.08,
       "duration": "0:15:37",
-      "trainingLoad": 7
+      "trainingLoad": 7,
+      "activityUrl": "https://intervals.icu/activities/i129904658"
     },
     {
       "date": "2026-03-06",
       "sport": "骑行",
       "distanceKm": 50.04,
       "duration": "1:35:25",
-      "trainingLoad": 136
+      "trainingLoad": 136,
+      "activityUrl": "https://intervals.icu/activities/i129903184"
     },
     {
       "date": "2026-03-04",
       "sport": "虚拟骑行",
       "distanceKm": 25.08,
       "duration": "0:50:06",
-      "trainingLoad": 61
+      "trainingLoad": 61,
+      "activityUrl": "https://intervals.icu/activities/i129437661"
     },
     {
       "date": "2026-03-03",
       "sport": "虚拟骑行",
       "distanceKm": 34.44,
       "duration": "1:02:17",
-      "trainingLoad": 93
+      "trainingLoad": 93,
+      "activityUrl": "https://intervals.icu/activities/i129178391"
     },
     {
       "date": "2026-03-01",
       "sport": "虚拟骑行",
       "distanceKm": 47.05,
       "duration": "1:56:34",
-      "trainingLoad": 112
+      "trainingLoad": 112,
+      "activityUrl": "https://intervals.icu/activities/i128618765"
     },
     {
       "date": "2026-02-28",
       "sport": "虚拟骑行",
       "distanceKm": 17.24,
       "duration": "0:52:03",
-      "trainingLoad": 62
+      "trainingLoad": 62,
+      "activityUrl": "https://intervals.icu/activities/i128431882"
     },
     {
       "date": "2026-02-27",
       "sport": "虚拟骑行",
       "distanceKm": 24.64,
       "duration": "1:01:07",
-      "trainingLoad": 82
+      "trainingLoad": 82,
+      "activityUrl": "https://intervals.icu/activities/i128199559"
     },
     {
       "date": "2026-02-25",
       "sport": "虚拟骑行",
       "distanceKm": 28.12,
       "duration": "0:56:47",
-      "trainingLoad": 50
+      "trainingLoad": 50,
+      "activityUrl": "https://intervals.icu/activities/i127749058"
     },
     {
       "date": "2026-02-24",
       "sport": "虚拟骑行",
       "distanceKm": 30.1,
       "duration": "1:03:15",
-      "trainingLoad": 95
+      "trainingLoad": 95,
+      "activityUrl": "https://intervals.icu/activities/i127494294"
     },
     {
       "date": "2026-02-22",
       "sport": "虚拟骑行",
       "distanceKm": 21.97,
       "duration": "0:59:10",
-      "trainingLoad": 62
+      "trainingLoad": 62,
+      "activityUrl": "https://intervals.icu/activities/i127001137"
     },
     {
       "date": "2026-02-22",
       "sport": "虚拟骑行",
       "distanceKm": 2.83,
       "duration": "0:04:59",
-      "trainingLoad": 5
+      "trainingLoad": 5,
+      "activityUrl": "https://intervals.icu/activities/i129439491"
     },
     {
       "date": "2026-02-22",
       "sport": "虚拟骑行",
       "distanceKm": 11.77,
       "duration": "0:43:59",
-      "trainingLoad": 37
+      "trainingLoad": 37,
+      "activityUrl": "https://intervals.icu/activities/i126980873"
     },
     {
       "date": "2026-02-21",
       "sport": "虚拟骑行",
       "distanceKm": 27.13,
       "duration": "0:57:46",
-      "trainingLoad": 105
+      "trainingLoad": 105,
+      "activityUrl": "https://intervals.icu/activities/i126777509"
     },
     {
       "date": "2026-02-14",
       "sport": "骑行",
       "distanceKm": 62.04,
       "duration": "2:12:00",
-      "trainingLoad": 122
+      "trainingLoad": 122,
+      "activityUrl": "https://intervals.icu/activities/i125073156"
     },
     {
       "date": "2026-02-13",
       "sport": "虚拟骑行",
       "distanceKm": 23.05,
       "duration": "0:48:36",
-      "trainingLoad": 35
+      "trainingLoad": 35,
+      "activityUrl": "https://intervals.icu/activities/i124858621"
     },
     {
       "date": "2026-02-12",
       "sport": "骑行",
       "distanceKm": 6.09,
       "duration": "0:14:59",
-      "trainingLoad": 8
+      "trainingLoad": 8,
+      "activityUrl": "https://intervals.icu/activities/i124621286"
     },
     {
       "date": "2026-02-12",
       "sport": "骑行",
       "distanceKm": 50.23,
       "duration": "1:33:21",
-      "trainingLoad": 138
+      "trainingLoad": 138,
+      "activityUrl": "https://intervals.icu/activities/i124619579"
     },
     {
       "date": "2026-02-11",
       "sport": "虚拟骑行",
       "distanceKm": 25.4,
       "duration": "0:56:20",
-      "trainingLoad": 48
+      "trainingLoad": 48,
+      "activityUrl": "https://intervals.icu/activities/i124423552"
     },
     {
       "date": "2026-02-09",
       "sport": "虚拟骑行",
       "distanceKm": 30.1,
       "duration": "0:58:12",
-      "trainingLoad": 63
+      "trainingLoad": 63,
+      "activityUrl": "https://intervals.icu/activities/i123931881"
     },
     {
       "date": "2026-02-07",
       "sport": "虚拟骑行",
       "distanceKm": 42.06,
       "duration": "1:57:05",
-      "trainingLoad": 114
+      "trainingLoad": 114,
+      "activityUrl": "https://intervals.icu/activities/i123435257"
     },
     {
       "date": "2026-02-05",
       "sport": "虚拟骑行",
       "distanceKm": 23.5,
       "duration": "1:00:04",
-      "trainingLoad": 82
+      "trainingLoad": 82,
+      "activityUrl": "https://intervals.icu/activities/i122974915"
     },
     {
       "date": "2026-02-04",
       "sport": "虚拟骑行",
       "distanceKm": 23.55,
       "duration": "0:52:05",
-      "trainingLoad": 51
+      "trainingLoad": 51,
+      "activityUrl": "https://intervals.icu/activities/i122659458"
     },
     {
       "date": "2026-02-03",
       "sport": "虚拟骑行",
       "distanceKm": 30.1,
       "duration": "1:02:35",
-      "trainingLoad": 89
+      "trainingLoad": 89,
+      "activityUrl": "https://intervals.icu/activities/i122451246"
     },
     {
       "date": "2026-02-02",
       "sport": "虚拟骑行",
       "distanceKm": 30.68,
       "duration": "1:00:09",
-      "trainingLoad": 53
+      "trainingLoad": 53,
+      "activityUrl": "https://intervals.icu/activities/i129439687"
     },
     {
       "date": "2026-01-31",
       "sport": "虚拟骑行",
       "distanceKm": 38.08,
       "duration": "1:57:06",
-      "trainingLoad": 112
+      "trainingLoad": 112,
+      "activityUrl": "https://intervals.icu/activities/i121712782"
     },
     {
       "date": "2026-01-29",
       "sport": "虚拟骑行",
       "distanceKm": 35.07,
       "duration": "1:08:30",
-      "trainingLoad": 73
+      "trainingLoad": 73,
+      "activityUrl": "https://intervals.icu/activities/i121369715"
     },
     {
       "date": "2026-01-28",
       "sport": "虚拟骑行",
       "distanceKm": 20.8,
       "duration": "0:49:28",
-      "trainingLoad": 45
+      "trainingLoad": 45,
+      "activityUrl": "https://intervals.icu/activities/i121153173"
     },
     {
       "date": "2026-01-27",
       "sport": "虚拟骑行",
       "distanceKm": 16.8,
       "duration": "1:05:45",
-      "trainingLoad": 93
+      "trainingLoad": 93,
+      "activityUrl": "https://intervals.icu/activities/i120907879"
     },
     {
       "date": "2026-01-26",
       "sport": "虚拟骑行",
       "distanceKm": 14.04,
       "duration": "0:30:29",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i120622512"
     },
     {
       "date": "2026-01-24",
       "sport": "徒步",
       "distanceKm": 5.32,
       "duration": "1:28:16",
-      "trainingLoad": 27
+      "trainingLoad": 27,
+      "activityUrl": "https://intervals.icu/activities/i120142275"
     },
     {
       "date": "2026-01-24",
       "sport": "虚拟骑行",
       "distanceKm": 56.77,
       "duration": "1:58:03",
-      "trainingLoad": 116
+      "trainingLoad": 116,
+      "activityUrl": "https://intervals.icu/activities/i120111178"
     },
     {
       "date": "2026-01-22",
       "sport": "虚拟骑行",
       "distanceKm": 30.08,
       "duration": "1:10:42",
-      "trainingLoad": 75
+      "trainingLoad": 75,
+      "activityUrl": "https://intervals.icu/activities/i119726030"
     },
     {
       "date": "2026-01-21",
       "sport": "虚拟骑行",
       "distanceKm": 23.64,
       "duration": "0:51:47",
-      "trainingLoad": 41
+      "trainingLoad": 41,
+      "activityUrl": "https://intervals.icu/activities/i119507653"
     },
     {
       "date": "2026-01-20",
       "sport": "虚拟骑行",
       "distanceKm": 28.13,
       "duration": "1:00:29",
-      "trainingLoad": 83
+      "trainingLoad": 83,
+      "activityUrl": "https://intervals.icu/activities/i119206556"
     },
     {
       "date": "2026-01-19",
       "sport": "虚拟骑行",
       "distanceKm": 26.78,
       "duration": "0:55:07",
-      "trainingLoad": 56
+      "trainingLoad": 56,
+      "activityUrl": "https://intervals.icu/activities/i129439730"
     },
     {
       "date": "2026-01-17",
       "sport": "虚拟骑行",
       "distanceKm": 48.18,
       "duration": "1:58:58",
-      "trainingLoad": 104
+      "trainingLoad": 104,
+      "activityUrl": "https://intervals.icu/activities/i118486624"
     },
     {
       "date": "2026-01-15",
       "sport": "虚拟骑行",
       "distanceKm": 23.41,
       "duration": "0:50:02",
-      "trainingLoad": 33
+      "trainingLoad": 33,
+      "activityUrl": "https://intervals.icu/activities/i118092391"
     },
     {
       "date": "2026-01-14",
       "sport": "虚拟骑行",
       "distanceKm": 27.26,
       "duration": "1:00:13",
-      "trainingLoad": 57
+      "trainingLoad": 57,
+      "activityUrl": "https://intervals.icu/activities/i117872134"
     },
     {
       "date": "2026-01-13",
       "sport": "虚拟骑行",
       "distanceKm": 20.57,
       "duration": "1:00:05",
-      "trainingLoad": 54
+      "trainingLoad": 54,
+      "activityUrl": "https://intervals.icu/activities/i117627874"
     },
     {
       "date": "2026-01-10",
       "sport": "骑行",
       "distanceKm": 48.03,
       "duration": "1:50:05",
-      "trainingLoad": 89
+      "trainingLoad": 89,
+      "activityUrl": "https://intervals.icu/activities/i116944163"
     },
     {
       "date": "2026-01-09",
       "sport": "徒步",
       "distanceKm": 4.01,
       "duration": "0:56:14",
-      "trainingLoad": 19
+      "trainingLoad": 19,
+      "activityUrl": "https://intervals.icu/activities/i116749553"
     },
     {
       "date": "2026-01-07",
       "sport": "虚拟骑行",
       "distanceKm": 18.63,
       "duration": "0:39:04",
-      "trainingLoad": 49
+      "trainingLoad": 49,
+      "activityUrl": "https://intervals.icu/activities/i116376063"
     },
     {
       "date": "2026-01-07",
       "sport": "虚拟骑行",
       "distanceKm": 5.15,
       "duration": "0:10:18",
-      "trainingLoad": 12
+      "trainingLoad": 12,
+      "activityUrl": "https://intervals.icu/activities/i116369987"
     },
     {
       "date": "2026-01-05",
       "sport": "虚拟骑行",
       "distanceKm": 20.13,
       "duration": "1:01:02",
-      "trainingLoad": 55
+      "trainingLoad": 55,
+      "activityUrl": "https://intervals.icu/activities/i115926241"
     },
     {
       "date": "2026-01-04",
       "sport": "虚拟骑行",
       "distanceKm": 35.72,
       "duration": "1:30:08",
-      "trainingLoad": 71
+      "trainingLoad": 71,
+      "activityUrl": "https://intervals.icu/activities/i115619851"
     },
     {
       "date": "2026-01-02",
       "sport": "徒步",
       "distanceKm": 7.07,
       "duration": "2:28:37",
-      "trainingLoad": 35
+      "trainingLoad": 35,
+      "activityUrl": "https://intervals.icu/activities/i115190383"
     },
     {
       "date": "2025-12-31",
       "sport": "虚拟骑行",
       "distanceKm": 33.09,
       "duration": "1:04:05",
-      "trainingLoad": 57
+      "trainingLoad": 57,
+      "activityUrl": "https://intervals.icu/activities/i129439628"
     },
     {
       "date": "2025-12-30",
       "sport": "虚拟骑行",
       "distanceKm": 33.43,
       "duration": "1:06:37",
-      "trainingLoad": 88
+      "trainingLoad": 88,
+      "activityUrl": "https://intervals.icu/activities/i114646090"
     },
     {
       "date": "2025-12-30",
       "sport": "虚拟骑行",
       "distanceKm": 33.43,
       "duration": "1:06:38",
-      "trainingLoad": 83
+      "trainingLoad": 83,
+      "activityUrl": "https://intervals.icu/activities/i129439764"
     },
     {
       "date": "2025-12-29",
       "sport": "虚拟骑行",
       "distanceKm": 30.14,
       "duration": "1:01:14",
-      "trainingLoad": 56
+      "trainingLoad": 56,
+      "activityUrl": "https://intervals.icu/activities/i114463014"
     },
     {
       "date": "2025-12-27",
       "sport": "虚拟骑行",
       "distanceKm": 36.25,
       "duration": "2:00:12",
-      "trainingLoad": 101
+      "trainingLoad": 101,
+      "activityUrl": "https://intervals.icu/activities/i114044603"
     },
     {
       "date": "2025-12-25",
       "sport": "虚拟骑行",
       "distanceKm": 32.2,
       "duration": "1:18:42",
-      "trainingLoad": 104
+      "trainingLoad": 104,
+      "activityUrl": "https://intervals.icu/activities/i113749893"
     },
     {
       "date": "2025-12-24",
       "sport": "虚拟骑行",
       "distanceKm": 25.56,
       "duration": "0:50:39",
-      "trainingLoad": 44
+      "trainingLoad": 44,
+      "activityUrl": "https://intervals.icu/activities/i113603217"
     },
     {
       "date": "2025-12-23",
       "sport": "虚拟骑行",
       "distanceKm": 32.18,
       "duration": "1:07:12",
-      "trainingLoad": 92
+      "trainingLoad": 92,
+      "activityUrl": "https://intervals.icu/activities/i113436006"
     },
     {
       "date": "2025-12-22",
       "sport": "虚拟骑行",
       "distanceKm": 27.5,
       "duration": "1:00:23",
-      "trainingLoad": 43
+      "trainingLoad": 43,
+      "activityUrl": "https://intervals.icu/activities/i113269537"
     },
     {
       "date": "2025-12-20",
       "sport": "虚拟骑行",
       "distanceKm": 46.57,
       "duration": "2:00:11",
-      "trainingLoad": 108
+      "trainingLoad": 108,
+      "activityUrl": "https://intervals.icu/activities/i112901184"
     },
     {
       "date": "2025-12-18",
       "sport": "虚拟骑行",
       "distanceKm": 30.21,
       "duration": "1:08:18",
-      "trainingLoad": 87
+      "trainingLoad": 87,
+      "activityUrl": "https://intervals.icu/activities/i112632681"
     },
     {
       "date": "2025-12-18",
       "sport": "虚拟骑行",
       "distanceKm": 30.21,
       "duration": "1:08:18",
-      "trainingLoad": 83
+      "trainingLoad": 83,
+      "activityUrl": "https://intervals.icu/activities/i129439699"
     },
     {
       "date": "2025-12-17",
       "sport": "虚拟骑行",
       "distanceKm": 25.23,
       "duration": "0:54:10",
-      "trainingLoad": 46
+      "trainingLoad": 46,
+      "activityUrl": "https://intervals.icu/activities/i114585942"
     },
     {
       "date": "2025-12-16",
       "sport": "虚拟骑行",
       "distanceKm": 31.99,
       "duration": "1:03:18",
-      "trainingLoad": 80
+      "trainingLoad": 80,
+      "activityUrl": "https://intervals.icu/activities/i112248903"
     },
     {
       "date": "2025-12-15",
       "sport": "虚拟骑行",
       "distanceKm": 24.27,
       "duration": "0:51:31",
-      "trainingLoad": 40
+      "trainingLoad": 40,
+      "activityUrl": "https://intervals.icu/activities/i112067797"
     },
     {
       "date": "2025-12-14",
       "sport": "虚拟骑行",
       "distanceKm": 19.22,
       "duration": "0:45:06",
-      "trainingLoad": 41
+      "trainingLoad": 41,
+      "activityUrl": "https://intervals.icu/activities/i111868059"
     },
     {
       "date": "2025-12-13",
       "sport": "虚拟骑行",
       "distanceKm": 35.64,
       "duration": "1:56:33",
-      "trainingLoad": 107
+      "trainingLoad": 107,
+      "activityUrl": "https://intervals.icu/activities/i111680009"
     },
     {
       "date": "2025-12-11",
       "sport": "虚拟骑行",
       "distanceKm": 23.06,
       "duration": "1:22:44",
-      "trainingLoad": 94
+      "trainingLoad": 94,
+      "activityUrl": "https://intervals.icu/activities/i111398653"
     },
     {
       "date": "2025-12-10",
       "sport": "虚拟骑行",
       "distanceKm": 30.25,
       "duration": "0:57:40",
-      "trainingLoad": 45
+      "trainingLoad": 45,
+      "activityUrl": "https://intervals.icu/activities/i111194303"
     },
     {
       "date": "2025-12-08",
       "sport": "虚拟骑行",
       "distanceKm": 26.22,
       "duration": "1:00:02",
-      "trainingLoad": 73
+      "trainingLoad": 73,
+      "activityUrl": "https://intervals.icu/activities/i110814871"
     },
     {
       "date": "2025-12-06",
       "sport": "虚拟骑行",
       "distanceKm": 43.33,
       "duration": "1:56:12",
-      "trainingLoad": 106
+      "trainingLoad": 106,
+      "activityUrl": "https://intervals.icu/activities/i110438070"
     },
     {
       "date": "2025-12-04",
       "sport": "虚拟骑行",
       "distanceKm": 32.24,
       "duration": "1:05:33",
-      "trainingLoad": 45
+      "trainingLoad": 45,
+      "activityUrl": "https://intervals.icu/activities/i110088040"
     },
     {
       "date": "2025-12-03",
       "sport": "虚拟骑行",
       "distanceKm": 18.52,
       "duration": "0:37:34",
-      "trainingLoad": 49
+      "trainingLoad": 49,
+      "activityUrl": "https://intervals.icu/activities/i109875842"
     },
     {
       "date": "2025-12-03",
       "sport": "虚拟骑行",
       "distanceKm": 4.64,
       "duration": "0:10:02",
-      "trainingLoad": 9
+      "trainingLoad": 9,
+      "activityUrl": "https://intervals.icu/activities/i109873703"
     },
     {
       "date": "2025-12-01",
       "sport": "虚拟骑行",
       "distanceKm": 19.5,
       "duration": "0:45:14",
-      "trainingLoad": 18
+      "trainingLoad": 18,
+      "activityUrl": "https://intervals.icu/activities/i109556859"
     },
     {
       "date": "2025-11-29",
       "sport": "骑行",
       "distanceKm": 5.43,
       "duration": "0:13:53",
-      "trainingLoad": 7
+      "trainingLoad": 7,
+      "activityUrl": "https://intervals.icu/activities/i109218028"
     },
     {
       "date": "2025-11-29",
       "sport": "骑行",
       "distanceKm": 50.78,
       "duration": "1:33:55",
-      "trainingLoad": 127
+      "trainingLoad": 127,
+      "activityUrl": "https://intervals.icu/activities/i109217190"
     },
     {
       "date": "2025-11-27",
       "sport": "虚拟骑行",
       "distanceKm": 33.35,
       "duration": "1:05:54",
-      "trainingLoad": 84
+      "trainingLoad": 84,
+      "activityUrl": "https://intervals.icu/activities/i108952303"
     },
     {
       "date": "2025-11-26",
       "sport": "虚拟骑行",
       "distanceKm": 30.19,
       "duration": "1:01:01",
-      "trainingLoad": 45
+      "trainingLoad": 45,
+      "activityUrl": "https://intervals.icu/activities/i108790566"
     },
     {
       "date": "2025-11-25",
       "sport": "虚拟骑行",
       "distanceKm": 27.16,
       "duration": "1:11:02",
-      "trainingLoad": 87
+      "trainingLoad": 87,
+      "activityUrl": "https://intervals.icu/activities/i108622999"
     },
     {
       "date": "2025-11-24",
       "sport": "虚拟骑行",
       "distanceKm": 30.13,
       "duration": "1:00:26",
-      "trainingLoad": 50
+      "trainingLoad": 50,
+      "activityUrl": "https://intervals.icu/activities/i108416707"
     },
     {
       "date": "2025-11-22",
       "sport": "骑行",
       "distanceKm": 62.13,
       "duration": "1:55:06",
-      "trainingLoad": 175
+      "trainingLoad": 175,
+      "activityUrl": "https://intervals.icu/activities/i108138387"
     },
     {
       "date": "2025-11-20",
       "sport": "虚拟骑行",
       "distanceKm": 23.43,
       "duration": "1:00:35",
-      "trainingLoad": 83
+      "trainingLoad": 83,
+      "activityUrl": "https://intervals.icu/activities/i107874197"
     },
     {
       "date": "2025-11-19",
       "sport": "虚拟骑行",
       "distanceKm": 32.13,
       "duration": "1:03:04",
-      "trainingLoad": 54
+      "trainingLoad": 54,
+      "activityUrl": "https://intervals.icu/activities/i107707814"
     },
     {
       "date": "2025-11-18",
       "sport": "虚拟骑行",
       "distanceKm": 32.17,
       "duration": "1:03:02",
-      "trainingLoad": 77
+      "trainingLoad": 77,
+      "activityUrl": "https://intervals.icu/activities/i107537797"
     },
     {
       "date": "2025-11-17",
       "sport": "虚拟骑行",
       "distanceKm": 31.43,
       "duration": "1:02:01",
-      "trainingLoad": 64
+      "trainingLoad": 64,
+      "activityUrl": "https://intervals.icu/activities/i107365309"
     },
     {
       "date": "2025-11-16",
       "sport": "徒步",
       "distanceKm": 5.02,
       "duration": "1:11:54",
-      "trainingLoad": 12
+      "trainingLoad": 12,
+      "activityUrl": "https://intervals.icu/activities/i107147776"
     },
     {
       "date": "2025-11-16",
       "sport": "虚拟骑行",
       "distanceKm": 9.2,
       "duration": "0:38:25",
-      "trainingLoad": 2
+      "trainingLoad": 2,
+      "activityUrl": "https://intervals.icu/activities/i107178202"
     },
     {
       "date": "2025-11-15",
       "sport": "骑行",
       "distanceKm": 6.3,
       "duration": "0:14:40",
-      "trainingLoad": 12
+      "trainingLoad": 12,
+      "activityUrl": "https://intervals.icu/activities/i106980790"
     },
     {
       "date": "2025-11-15",
       "sport": "骑行",
       "distanceKm": 50.39,
       "duration": "1:32:25",
-      "trainingLoad": 132
+      "trainingLoad": 132,
+      "activityUrl": "https://intervals.icu/activities/i106980767"
     },
     {
       "date": "2025-11-13",
       "sport": "虚拟骑行",
       "distanceKm": 33.36,
       "duration": "1:10:01",
-      "trainingLoad": 84
+      "trainingLoad": 84,
+      "activityUrl": "https://intervals.icu/activities/i106730227"
     },
     {
       "date": "2025-11-12",
       "sport": "虚拟骑行",
       "distanceKm": 30.16,
       "duration": "1:00:03",
-      "trainingLoad": 51
+      "trainingLoad": 51,
+      "activityUrl": "https://intervals.icu/activities/i106536846"
     },
     {
       "date": "2025-11-11",
       "sport": "虚拟骑行",
       "distanceKm": 30.1,
       "duration": "1:00:02",
-      "trainingLoad": 74
+      "trainingLoad": 74,
+      "activityUrl": "https://intervals.icu/activities/i106363314"
     },
     {
       "date": "2025-11-10",
       "sport": "虚拟骑行",
       "distanceKm": 31.16,
       "duration": "1:00:13",
-      "trainingLoad": 66
+      "trainingLoad": 66,
+      "activityUrl": "https://intervals.icu/activities/i106181314"
     },
     {
       "date": "2025-11-09",
       "sport": "虚拟骑行",
       "distanceKm": 4.05,
       "duration": "0:25:34",
-      "trainingLoad": 8
+      "trainingLoad": 8,
+      "activityUrl": "https://intervals.icu/activities/i105949688"
     },
     {
       "date": "2025-11-09",
       "sport": "虚拟骑行",
       "distanceKm": 15.97,
       "duration": "0:37:19",
-      "trainingLoad": 39
+      "trainingLoad": 39,
+      "activityUrl": "https://intervals.icu/activities/i105947780"
     },
     {
       "date": "2025-11-07",
       "sport": "虚拟骑行",
       "distanceKm": 38.15,
       "duration": "1:20:30",
-      "trainingLoad": 97
+      "trainingLoad": 97,
+      "activityUrl": "https://intervals.icu/activities/i105691684"
     },
     {
       "date": "2025-11-05",
       "sport": "虚拟骑行",
       "distanceKm": 37.77,
       "duration": "1:20:03",
-      "trainingLoad": 50
+      "trainingLoad": 50,
+      "activityUrl": "https://intervals.icu/activities/i105421925"
     },
     {
       "date": "2025-11-04",
       "sport": "虚拟骑行",
       "distanceKm": 32.15,
       "duration": "1:03:15",
-      "trainingLoad": 80
+      "trainingLoad": 80,
+      "activityUrl": "https://intervals.icu/activities/i105256502"
     },
     {
       "date": "2025-11-02",
       "sport": "虚拟骑行",
       "distanceKm": 50.59,
       "duration": "2:00:02",
-      "trainingLoad": 111
+      "trainingLoad": 111,
+      "activityUrl": "https://intervals.icu/activities/i104887124"
     },
     {
       "date": "2025-10-31",
       "sport": "虚拟骑行",
       "distanceKm": 36.4,
       "duration": "1:20:04",
-      "trainingLoad": 94
+      "trainingLoad": 94,
+      "activityUrl": "https://intervals.icu/activities/i104610602"
     },
     {
       "date": "2025-10-28",
       "sport": "虚拟骑行",
       "distanceKm": 32.48,
       "duration": "1:20:06",
-      "trainingLoad": 78
+      "trainingLoad": 78,
+      "activityUrl": "https://intervals.icu/activities/i104147467"
     },
     {
       "date": "2025-10-27",
       "sport": "虚拟骑行",
       "distanceKm": 7.24,
       "duration": "0:13:38",
-      "trainingLoad": 19
+      "trainingLoad": 19,
+      "activityUrl": "https://intervals.icu/activities/i103989865"
     },
     {
       "date": "2025-10-27",
       "sport": "虚拟骑行",
       "distanceKm": 30.65,
       "duration": "1:24:08",
-      "trainingLoad": 65
+      "trainingLoad": 65,
+      "activityUrl": "https://intervals.icu/activities/i103986988"
     },
     {
       "date": "2025-10-25",
       "sport": "骑行",
       "distanceKm": 5.01,
       "duration": "0:11:43",
-      "trainingLoad": 10
+      "trainingLoad": 10,
+      "activityUrl": "https://intervals.icu/activities/i103635448"
     },
     {
       "date": "2025-10-25",
       "sport": "骑行",
       "distanceKm": 65.7,
       "duration": "2:01:14",
-      "trainingLoad": 175
+      "trainingLoad": 175,
+      "activityUrl": "https://intervals.icu/activities/i103635446"
     },
     {
       "date": "2025-10-23",
       "sport": "骑行",
       "distanceKm": 20.55,
       "duration": "0:59:53",
-      "trainingLoad": 33
+      "trainingLoad": 33,
+      "activityUrl": "https://intervals.icu/activities/i103325435"
     },
     {
       "date": "2025-10-22",
       "sport": "虚拟骑行",
       "distanceKm": 36.41,
       "duration": "1:20:03",
-      "trainingLoad": 51
+      "trainingLoad": 51,
+      "activityUrl": "https://intervals.icu/activities/i103199870"
     },
     {
       "date": "2025-10-21",
       "sport": "虚拟骑行",
       "distanceKm": 36.44,
       "duration": "1:20:02",
-      "trainingLoad": 74
+      "trainingLoad": 74,
+      "activityUrl": "https://intervals.icu/activities/i103017637"
     },
     {
       "date": "2025-10-19",
       "sport": "虚拟骑行",
       "distanceKm": 21.83,
       "duration": "1:40:02",
-      "trainingLoad": 98
+      "trainingLoad": 98,
+      "activityUrl": "https://intervals.icu/activities/i102649282"
     },
     {
       "date": "2025-10-16",
       "sport": "虚拟骑行",
       "distanceKm": 37.9,
       "duration": "1:20:08",
-      "trainingLoad": 85
+      "trainingLoad": 85,
+      "activityUrl": "https://intervals.icu/activities/i102249019"
     }
   ],
   "unavailableActivities": [

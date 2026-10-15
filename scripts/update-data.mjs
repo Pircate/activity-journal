@@ -20,11 +20,11 @@ export function normalizeActivities(records, period) {
   const ids = new Set();
   return records.map(record => {
     // Strava 空壳与缺失时长不能视为零运动；整次同步失败，保留已发布的数据。
-    if (!record || !record.id || ids.has(record.id) || !record.type || !record.start_date ||
+    if (!record || !/^(?:i)?\d+$/.test(String(record.id)) || ids.has(String(record.id)) || !record.type || !record.start_date ||
         !Number.isInteger(record.moving_time) || record.moving_time < 0) {
       throw new Error('活动不完整或 ID 重复（可能是 API 不提供的 Strava 记录），未更新数据');
     }
-    ids.add(record.id);
+    ids.add(String(record.id));
     const timestamp = /(?:Z|[+-]\d\d:?\d\d)$/.test(record.start_date) ? record.start_date : record.start_date + 'Z';
     const instant = new Date(timestamp);
     if (!Number.isFinite(instant.getTime())) throw new Error('活动开始时间无效');
@@ -40,6 +40,7 @@ export function normalizeActivities(records, period) {
       distanceKm:distance === null ? null : Math.round(distance / 10) / 100,
       duration:formatTime(record.moving_time),
       trainingLoad:number(record.icu_training_load, '训练负荷'),
+      activityUrl:'https://intervals.icu/activities/' + record.id,
     };
   }).filter(a => a.date >= period.start && a.date <= period.end)
     .sort((a,b) => b.date.localeCompare(a.date));

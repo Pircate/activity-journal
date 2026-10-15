@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile, access, mkdtemp, mkdir, writeFile, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {normalizeGear, fetchYear} from './update-data.mjs';
 import {renderGearLibrary, validateData, createJournal} from '../docs/journal.mjs';
@@ -147,7 +148,7 @@ test('装备 API 失败时整次同步失败，CLI 从本地配置取密钥并�
   const bootstrap = `import os from 'node:os'; import {syncBuiltinESMExports} from 'node:module';
     os.homedir = () => ${JSON.stringify(directory)}; syncBuiltinESMExports();
     globalThis.fetch = ${fetchMock.toString()};`;
-  const result = spawnSync(process.execPath,['--import','data:text/javascript,'+encodeURIComponent(bootstrap),new URL('./update-data.mjs',import.meta.url).pathname],{
+  const result = spawnSync(process.execPath,['--import','data:text/javascript,'+encodeURIComponent(bootstrap),fileURLToPath(new URL('./update-data.mjs',import.meta.url))],{
     encoding:'utf8',
   });
   assert.notEqual(result.status,0);
