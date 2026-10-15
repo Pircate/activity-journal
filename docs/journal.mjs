@@ -138,6 +138,21 @@ export function renderYearOptions(data, endDate = data.period.end) {
   return '<option value="recent">最近一年</option>' + availableYears(data, endDate).map(year => `<option value="${year}">${year} 年</option>`).join('');
 }
 
+function renderRecentSummary(recent, data, endDate) {
+  const start = shiftDate(endDate, -6);
+  const distance = recent.reduce((sum, activity) => sum + Math.round((activity.distanceKm ?? 0) * 100), 0) / 100;
+  const duration = recent.reduce((sum, activity) => sum + activity.duration.split(':').reduce((value, part) => value * 60 + Number(part), 0), 0);
+  const missing = recent.filter(activity => activity.distanceKm === null).length;
+  const unavailable = data.unavailableActivities.filter(activity => activity.date >= start && activity.date <= endDate).length;
+  const notes = [];
+  if (missing) notes.push(missing + ' 次运动未提供距离');
+  if (unavailable) notes.push('另有 ' + unavailable + ' 次运动详情无法读取，未计入统计');
+  if (start < data.period.start || endDate > data.period.end) notes.push('部分日期尚未同步，当前为已同步记录');
+  const distanceText = recent.length && missing === recent.length ? '—' : distance.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return `<div class="summary-context"><span class="summary-label">最近 7 天</span><span class="summary-period"><time datetime="${start}">${start.replaceAll('-', '.')}</time> — <time datetime="${endDate}">${endDate.replaceAll('-', '.')}</time></span></div>
+    <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>公里</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}`;
+}
+
 export function createJournal(data, endDate = data.period.end, range = 'recent') {
   if (range !== 'recent' && !availableYears(data, endDate).includes(String(range))) throw new Error('所选年份不在已同步范围内');
   const period = range === 'recent' ? {start:shiftDate(endDate, -364), end:endDate} : {start:range + '-01-01', end:range + '-12-31'};
@@ -175,5 +190,5 @@ export function createJournal(data, endDate = data.period.end, range = 'recent')
   const monthLabels = months.map((m,i) => '<span style="grid-column:' + m.column + '/' + (months[i+1]?.column ?? columns+1) + '">' + m.label + '</span>').join('');
   const cards = recent.length ? recent.map(recordCard).join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
   const initialDate = daily.findLast(d => d.count > 0)?.date ?? daily.findLast(d => !d.pending)?.date ?? period.end;
-  return {activities, recent, unavailableCount, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
+  return {activities, recent, recentSummary:renderRecentSummary(recent, data, endDate), unavailableCount, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
 }

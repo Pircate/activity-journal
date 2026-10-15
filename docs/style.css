@@ -35,6 +35,17 @@ footer{border-top:1px solid var(--line);margin-top:8px;padding:7px 0 7px;display
 
 /* 年度概览与热力图共用统计范围 */
 .hero{padding:18px 0 12px}
+.recent-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px 32px;margin-top:18px;padding:16px 20px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.summary-context{display:flex;flex-direction:column;gap:4px}
+.summary-label{font-size:.875rem;font-weight:600}
+.summary-period{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.summary-stats{display:flex;gap:40px;margin:0;font-variant-numeric:tabular-nums}
+.summary-stats dt{font-size:.75rem;color:var(--muted);margin-bottom:4px}
+.summary-stats dd{margin:0;font-size:1.5rem;font-weight:600;line-height:1.3;white-space:nowrap}
+.summary-stats small{margin-left:5px;font-size:.75rem;font-weight:400;color:var(--muted)}
+.summary-note{width:100%;margin:0;color:var(--muted);font-size:.75rem}
+@media(max-width:600px){.recent-summary{padding:14px;gap:16px}.summary-context{width:100%;gap:3px}.summary-stats{display:grid;grid-template-columns:auto auto auto;justify-content:space-between;gap:10px;width:100%}.summary-stats dd{font-size:1.125rem}.summary-stats small{margin-left:3px;font-size:.6875rem}}
+@media print{.recent-summary{background:white}.summary-stats dd{color:#111}}
 .annual-overview{padding:4px 8px 16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
 .overview-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
 .overview-range{margin:0 0 2px;font-size:.8125rem;font-weight:600}

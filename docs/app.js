@@ -95,6 +95,7 @@ function renderJournal() {
   yearSelect.innerHTML = renderYearOptions(data, today);
   yearSelect.value = range;
   const journal = createJournal(data, today, range);
+  document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
   const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');
   const rangeLabel = range === 'recent' ? '最近一年' : range + ' 年';

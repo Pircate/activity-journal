@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 const data=JSON.parse(await readFile(new URL('../docs/activities.json',import.meta.url),'utf8'));
 import {createJournal, formatTime as time, escapeHtml as esc, validateData, renderGearLibrary, renderDayRecords, renderYearOptions} from '../docs/journal.mjs';
 validateData(data);
-const {activities,recent,period,syncedAt,daily,distance,duration,activeDays,missingDistance,missingLoad,unavailableCount,sports,columns,cells,monthLabels,cards,initialDate}=createJournal(data);
+const {activities,recent,recentSummary,period,syncedAt,daily,distance,duration,activeDays,missingDistance,missingLoad,unavailableCount,sports,columns,cells,monthLabels,cards,initialDate}=createJournal(data);
 const pretty=d=>d.replaceAll('-','.');
 const initialRecords=daily.find(day=>day.date===initialDate).records;
 assert.equal(daily.length,365);
@@ -20,7 +20,7 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <title>我的运动记录 · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css?v=${assetVersion}"><script type="module" src="app.js?v=${assetVersion}"></script></head>
 <body><a class="skip" href="#main">跳转到运动概览</a><div class="wrap">
 <header><a class="brand" href="#main" aria-label="我的运动记录，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>我的运动记录</a><nav aria-label="页面导航"><a href="#records">运动记录</a><a href="#rhythm">全年活动</a><a href="#gear">运动装备库</a></nav></header>
-<main id="main"><section class="hero" aria-labelledby="title"><p class="eyebrow">个人运动日志</p><h1 id="title">我的运动记录</h1></section>
+<main id="main"><section class="hero" aria-labelledby="title"><p class="eyebrow">个人运动日志</p><h1 id="title">我的运动记录</h1><div class="recent-summary" aria-label="最近七天运动摘要">${recentSummary}</div></section>
 <section class="records-section" id="records" aria-labelledby="records-title"><div class="section-head"><h2 id="records-title"><span class="section-number">01</span>最近一周的运动记录</h2><p>${recent.length?'共 '+recent.length+' 条 · 最新记录在前':'最近一周还没有运动记录'}</p></div><div class="records-grid">${cards}</div></section>
 <section class="chart-section" id="rhythm" aria-labelledby="rhythm-title"><div class="section-head"><h2 id="rhythm-title"><span class="section-number">02</span>全年活动</h2><div class="activity-controls"><div class="year-filter"><label for="activity-year">查看范围</label><select id="activity-year">${renderYearOptions(data)}</select></div><div class="metric-switch" role="group" aria-label="热力图统计指标"><button type="button" data-metric="distanceKm" aria-pressed="true">距离</button><button type="button" data-metric="durationSeconds" aria-pressed="false">时长</button><button type="button" data-metric="trainingLoad" aria-pressed="false">负荷</button></div></div></div>
 <div class="heatmap-card"><div class="annual-overview"><div class="overview-heading"><div><p class="overview-range">最近一年</p><p class="period"><time datetime="${period.start}">${pretty(period.start)}</time> — <time datetime="${period.end}">${pretty(period.end)}</time></p></div><div class="year-aside"><span class="year-number">365</span><span class="year-label">天的运动历程</span></div></div>
