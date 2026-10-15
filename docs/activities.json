@@ -3,8 +3,15 @@
     "start": "2025-10-16",
     "end": "2026-10-15"
   },
-  "syncedAt": "2026-10-15 16:34:44 +08:00",
+  "syncedAt": "2026-10-15 22:13:39 +08:00",
   "activities": [
+    {
+      "date": "2026-10-15",
+      "sport": "虚拟骑行",
+      "distanceKm": 14.69,
+      "duration": "1:00:15",
+      "trainingLoad": 49
+    },
     {
       "date": "2026-10-14",
       "sport": "虚拟骑行",
@@ -1843,36 +1850,36 @@
     {
       "name": "CYCPLUS R200",
       "type": "Bike",
-      "distanceKm": 4871.336,
+      "distanceKm": 4886.0265,
       "components": [
         {
           "name": "青野链条",
           "type": "Chain",
-          "distanceKm": 4896.9425,
+          "distanceKm": 4911.633,
           "replacement": {
             "status": "available",
             "date": "2025-10-12",
-            "distanceKm": 4896.9425
+            "distanceKm": 4911.633
           }
         },
         {
           "name": "青野牙盘",
           "type": "Chainrings",
-          "distanceKm": 4896.94,
+          "distanceKm": 4911.6305,
           "replacement": {
             "status": "available",
             "date": "2025-10-12",
-            "distanceKm": 4896.94
+            "distanceKm": 4911.6305
           }
         },
         {
           "name": "R200 飞轮",
           "type": "Cassette",
-          "distanceKm": 4871.336,
+          "distanceKm": 4886.0265,
           "replacement": {
             "status": "available",
             "date": "2025-09-29",
-            "distanceKm": 4871.336
+            "distanceKm": 4886.0265
           }
         }
       ]
@@ -1905,21 +1912,21 @@
         {
           "name": "青野链条",
           "type": "Chain",
-          "distanceKm": 4896.9425,
+          "distanceKm": 4911.633,
           "replacement": {
             "status": "available",
             "date": "2025-10-12",
-            "distanceKm": 4896.9425
+            "distanceKm": 4911.633
           }
         },
         {
           "name": "青野牙盘",
           "type": "Chainrings",
-          "distanceKm": 4896.94,
+          "distanceKm": 4911.6305,
           "replacement": {
             "status": "available",
             "date": "2025-10-12",
-            "distanceKm": 4896.94
+            "distanceKm": 4911.6305
           }
         },
         {
