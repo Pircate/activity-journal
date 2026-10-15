@@ -31,15 +31,15 @@ export function renderDayRecords(records) {
     const seconds = duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
     const speed = distanceKm !== null && seconds > 0 ? (distanceKm * 3600 / seconds).toFixed(1) + '<small>km/h</small>' : '未提供';
     const name = sportIcon(sport) + '<span>' + escapeHtml(sport) + '</span>';
-    return `<tr class="activity-row${sport === '徒步' ? ' hike' : ''}">
-      <td><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日<small>${date.slice(0, 4)}</small></time></td>
-      <td>${activityUrl ? `<a class="activity-link activity-name" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + ' ' + duration)}，在 Intervals.icu 查看（新标签页）">${name}<span class="activity-open" aria-hidden="true">↗</span></a>` : `<span class="activity-name">${name}</span>`}</td>
-      <td>${distanceKm === null ? '未提供' : distanceKm.toFixed(2) + '<small>km</small>'}</td>
-      <td>${escapeHtml(duration)}</td><td>${speed}</td><td>${trainingLoad ?? '未提供'}</td>
+    return `<tr class="activity-row${sport === '徒步' ? ' hike' : ''}" role="row">
+      <td role="cell"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日<small>${date.slice(0, 4)}</small></time></td>
+      <td role="cell">${activityUrl ? `<a class="activity-link activity-name" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + ' ' + duration)}，在 Intervals.icu 查看（新标签页）">${name}<span class="activity-open" aria-hidden="true">↗</span></a>` : `<span class="activity-name">${name}</span>`}</td>
+      <td role="cell" data-label="距离">${distanceKm === null ? '未提供' : distanceKm.toFixed(2) + '<small>km</small>'}</td>
+      <td role="cell" data-label="运动时间">${escapeHtml(duration)}</td><td role="cell" data-label="平均速度">${speed}</td><td role="cell" data-label="训练负荷">${trainingLoad ?? '未提供'}</td>
     </tr>`;
   }).join('');
   return `<div class="day-records-heading"><span>当天运动记录</span><span>${records.length} 条活动</span></div>
-    <div class="activity-table-scroll" tabindex="0" role="region" aria-label="当天运动记录表格，可横向滚动"><table class="activity-table"><caption class="sr-only">当天的运动记录，点击运动可在新标签页打开 Intervals.icu 详情</caption><thead><tr><th scope="col">日期</th><th scope="col">运动</th><th scope="col">距离</th><th scope="col">运动时间</th><th scope="col">平均速度</th><th scope="col">训练负荷</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    <div class="activity-table-scroll" tabindex="0" role="region" aria-label="当天运动记录"><table class="activity-table" role="table"><caption class="sr-only">当天的运动记录，点击运动可在新标签页打开 Intervals.icu 详情</caption><thead role="rowgroup"><tr role="row"><th scope="col">日期</th><th scope="col">运动</th><th scope="col">距离</th><th scope="col">运动时间</th><th scope="col">平均速度</th><th scope="col">训练负荷</th></tr></thead><tbody role="rowgroup">${rows}</tbody></table></div>`;
 }
 export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit'}).format(date);
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));

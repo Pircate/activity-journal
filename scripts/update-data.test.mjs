@@ -50,7 +50,7 @@ test('全年日期保留当天全部记录及各自链接，空日期和不可�
   for (const id of ['i1', 'i2']) assert.ok(cards.includes(`href="https://intervals.icu/activities/${id}"`));
   assert.doesNotMatch(cards, /activities\/i3/);
   assert.match(cards, /未提供/);
-  assert.match(cards, /<table class="activity-table">/);
+  assert.match(cards, /<table class="activity-table" role="table">/);
   assert.equal((cards.match(/<tr class="activity-row/g) ?? []).length, 2);
   assert.equal(renderDayRecords([]), '');
   const {activityUrl, ...legacy} = day.records[0];
