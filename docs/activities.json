@@ -12278,7 +12278,11 @@
             "status": "available",
             "date": "2025-10-12",
             "distanceKm": 4911.633
-          }
+          },
+          "sharedBy": [
+            "CYCPLUS R200",
+            "青野"
+          ]
         },
         {
           "name": "青野牙盘",
@@ -12288,7 +12292,11 @@
             "status": "available",
             "date": "2025-10-12",
             "distanceKm": 4911.6305
-          }
+          },
+          "sharedBy": [
+            "CYCPLUS R200",
+            "青野"
+          ]
         },
         {
           "name": "R200 飞轮",
@@ -12335,7 +12343,11 @@
             "status": "available",
             "date": "2025-10-12",
             "distanceKm": 4911.633
-          }
+          },
+          "sharedBy": [
+            "CYCPLUS R200",
+            "青野"
+          ]
         },
         {
           "name": "青野牙盘",
@@ -12345,7 +12357,11 @@
             "status": "available",
             "date": "2025-10-12",
             "distanceKm": 4911.6305
-          }
+          },
+          "sharedBy": [
+            "CYCPLUS R200",
+            "青野"
+          ]
         },
         {
           "name": "青野飞轮",

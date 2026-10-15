@@ -55,8 +55,10 @@ function validateGearLibrary(library) {
     if (!bike || Object.keys(bike).sort().join(',') !== 'components,distanceKm,name,type' || bike.type !== 'Bike' ||
         typeof bike.name !== 'string' || !bike.name.trim() || !isDistance(bike.distanceKm) || !Array.isArray(bike.components)) throw new Error('自行车信息无效');
     for (const part of bike.components) {
-      if (!part || Object.keys(part).sort().join(',') !== 'distanceKm,name,replacement,type' ||
+      if (!part || Object.keys(part).filter(key => key !== 'sharedBy').sort().join(',') !== 'distanceKm,name,replacement,type' ||
           typeof part.name !== 'string' || !part.name.trim() || typeof part.type !== 'string' || !part.type || !isDistance(part.distanceKm)) throw new Error('配件信息无效');
+      if (Object.hasOwn(part, 'sharedBy') && (!Array.isArray(part.sharedBy) || part.sharedBy.length < 2 ||
+          !part.sharedBy.includes(bike.name) || part.sharedBy.some(name => typeof name !== 'string' || !name.trim() || !library.some(owner => owner.name === name)))) throw new Error('配件共享关系无效');
       const replacement = part.replacement;
       if (!Object.hasOwn(replacementTargets, part.type)) {
         if (replacement !== null) throw new Error('普通配件不应包含更换提醒');
@@ -84,21 +86,32 @@ const gearType = part => part.type === 'Tyre'
   : Object.hasOwn(gearTypes, part.type) ? gearTypes[part.type] : part.type;
 const kilometers = value => value.toLocaleString('zh-CN', {maximumFractionDigits:2});
 const gearDistance = value => value === null ? '未提供' : kilometers(value) + ' km';
+const componentState = part => !part.replacement ? 'untracked' : part.replacement.distanceKm === null ? 'unknown'
+  : part.replacement.distanceKm >= replacementTargets[part.type] ? 'due'
+  : part.replacement.distanceKm >= replacementTargets[part.type] * .8 ? 'soon' : 'normal';
+const componentPriority = part => ({due:0, soon:1, unknown:2, normal:3, untracked:4})[componentState(part)];
+
+function gearAlerts(components) {
+  return [['due', '已达建议更换里程'], ['soon', '接近建议更换里程'], ['unknown', '信息待完善']].map(([state, label]) => {
+    const count = components.filter(part => componentState(part) === state).length;
+    return count ? `<span class="gear-alert" data-state="${state}">${count} 项${label}</span>` : '';
+  }).join('');
+}
 
 function componentCard(part, bikeName) {
   const type = gearType(part);
   const positionNote = part.type === 'Tyre' && type === '外胎' ? '<p class="gear-note">未标记前后位置</p>' : '';
-  const heading = `<div class="gear-part-heading"><span class="gear-type">${escapeHtml(type)}</span><h4>${escapeHtml(part.name)}</h4></div>`;
+  const heading = `<div class="gear-part-heading"><span class="gear-type">${escapeHtml(type)}</span><h4>${escapeHtml(part.name)}</h4></div>${part.sharedBy ? '<p class="gear-shared">共享配件 · ' + part.sharedBy.map(escapeHtml).join(' / ') + '</p>' : ''}`;
   const total = `<p class="gear-note">累计里程 ${gearDistance(part.distanceKm)}</p>`;
   if (part.replacement === null) return `<article class="gear-part">${heading}${total}</article>`;
   const {status, date, distanceKm} = part.replacement;
   const target = replacementTargets[part.type];
   const warning = status === 'missing-reminder' ? '未设置更换提醒' : status === 'duplicate-reminder' ? '“更换”提醒重名，请保留一个' : null;
-  const state = distanceKm === null ? 'unknown' : distanceKm >= target ? 'due' : distanceKm >= target * .8 ? 'soon' : 'normal';
-  const label = warning ?? (state === 'unknown' ? '更换后里程未提供' : state === 'due' ? '建议更换' : state === 'soon' ? '即将到期' : '使用中');
-  const remaining = distanceKm === null ? '目标 ' + kilometers(target) + ' km'
-    : distanceKm > target ? '已超出 ' + gearDistance(distanceKm - target) : '剩余 ' + gearDistance(target - distanceKm);
-  const progress = distanceKm === null ? '' : `<div class="gear-progress" role="progressbar" aria-label="${escapeHtml(bikeName + ' · ' + type + ' · ' + part.name + '更换里程')}" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(distanceKm,target)}" aria-valuetext="已使用 ${gearDistance(distanceKm)}，目标 ${kilometers(target)} km，${remaining}"><span style="width:${Math.min(distanceKm / target * 100,100)}%"></span></div>`;
+  const state = componentState(part);
+  const label = warning ?? (state === 'unknown' ? '更换后里程未提供' : state === 'due' ? '已达建议更换里程' : state === 'soon' ? '接近建议更换里程' : '使用中');
+  const remaining = distanceKm === null ? '建议更换里程 ' + kilometers(target) + ' km'
+    : distanceKm > target ? '已超出建议里程 ' + gearDistance(distanceKm - target) : '距建议里程 ' + gearDistance(target - distanceKm);
+  const progress = distanceKm === null ? '' : `<div class="gear-progress" role="progressbar" aria-label="${escapeHtml(bikeName + ' · ' + type + ' · ' + part.name + '更换里程')}" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(distanceKm,target)}" aria-valuetext="已使用 ${gearDistance(distanceKm)}，建议更换里程 ${kilometers(target)} km，${remaining}"><span style="width:${Math.min(distanceKm / target * 100,100)}%"></span></div>`;
   return `<article class="gear-part gear-part-tracked" data-state="${state}">${heading}
     <p class="gear-replaced">最近更换 ${date === null ? '<span>未记录</span>' : '<time datetime="' + date + '">' + date.replaceAll('-','.') + '</time>'}</p>
     <p class="gear-used"><strong>${gearDistance(distanceKm)}</strong><span> / ${kilometers(target)} km</span></p>
@@ -110,8 +123,8 @@ export function renderGearLibrary(library) {
   validateGearLibrary(library);
   if (library === null) return '<p class="gear-empty">装备尚未同步。完成 Intervals.icu 装备同步后，将在这里显示自行车和配件使用情况。</p>';
   if (!library.length) return '<p class="gear-empty">还没有在用的自行车。在 Intervals.icu 添加自行车并关联配件后，会随每日同步显示。</p>';
-  return library.map(bike => `<details class="gear-bike"><summary class="gear-bike-heading"><div><span class="gear-type">自行车 · ${bike.components.length} 件配件</span><h3>${escapeHtml(bike.name)}</h3></div><p><span>累计使用</span><strong>${gearDistance(bike.distanceKm)}</strong></p><svg class="gear-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-    ${bike.components.length ? '<div class="gear-parts">' + bike.components.map(part => componentCard(part,bike.name)).join('') + '</div>' : '<p class="gear-note">尚未关联在用配件。</p>'}</details>`).join('');
+  return library.map(bike => `<details class="gear-bike"><summary class="gear-bike-heading"><div><span class="gear-type">自行车 · ${bike.components.length} 件配件</span><h3>${escapeHtml(bike.name)}</h3><span class="gear-alerts">${gearAlerts(bike.components)}</span></div><p><span>累计使用</span><strong>${gearDistance(bike.distanceKm)}</strong></p><svg class="gear-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+    ${bike.components.length ? '<div class="gear-parts">' + [...bike.components].sort((a,b) => componentPriority(a) - componentPriority(b)).map(part => componentCard(part,bike.name)).join('') + '</div>' : '<p class="gear-note">尚未关联在用配件。</p>'}</details>`).join('');
 }
 
 export function validateData(data) {

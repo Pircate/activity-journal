@@ -91,7 +91,8 @@ export function normalizeGear(records) {
     }
     return {status:'available', date, distanceKm:distanceKm(reminder.distance_used)};
   };
-  return records.filter(gear => gear.type === 'Bike' && !gear.component && !gear.retired).map(bike => {
+  const owners = new Map();
+  const library = records.filter(gear => gear.type === 'Bike' && !gear.component && !gear.retired).map(bike => {
     const components = [];
     const visited = new Set();
     const visit = (id, ancestors) => {
@@ -101,13 +102,22 @@ export function normalizeGear(records) {
       if (!part) throw new Error('装备关联的配件缺失');
       if (part.retired) return;
       visited.add(id);
-      if (id !== bike.id) components.push({name:part.name, type:part.type, distanceKm:distanceKm(part.distance), replacement:replacementFor(part)});
+      if (id !== bike.id) {
+        const component = {name:part.name, type:part.type, distanceKm:distanceKm(part.distance), replacement:replacementFor(part)};
+        components.push(component);
+        if (!owners.has(id)) owners.set(id, []);
+        owners.get(id).push({bike:bike.name, component});
+      }
       const path = new Set([...ancestors,id]);
       for (const childId of part.component_ids ?? []) visit(childId,path);
     };
     visit(bike.id,new Set());
     return {name:bike.name, type:'Bike', distanceKm:distanceKm(bike.distance), components};
   });
+  for (const entries of owners.values()) {
+    if (entries.length > 1) for (const entry of entries) entry.component.sharedBy = entries.map(owner => owner.bike);
+  }
+  return library;
 }
 
 export async function readConfig(configPath = join(homedir(), '.config/interval-icu/config.json')) {

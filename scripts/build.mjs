@@ -33,7 +33,7 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <p class="chart-caption">每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供。负荷为 Intervals.icu 的活动训练负荷。${missingLoad?' '+missingLoad+' 次运动未提供负荷，统计时保留缺失标记。':''}${unavailableCount?' 另有 '+unavailableCount+' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。':''}</p><noscript><p>启用 JavaScript 后可查看热力图和切换指标；上方为最近一周的运动记录。</p></noscript></div></section>
 <section class="gear-section" id="gear" aria-labelledby="gear-title"><div class="section-head"><h2 id="gear-title"><span class="section-number">03</span>运动装备库</h2><p>累计使用 · 独立于年度统计</p></div>
 <div class="gear-library">${renderGearLibrary(data.gearLibrary)}</div>
-<p class="gear-caption">链条、前后胎的更换目标为 5000 km，飞轮为 10000 km。更换后，在 Intervals.icu 重置配件的“更换”提醒；日期和里程随每日同步更新。</p></section>
+<p class="gear-caption">建议更换里程：链条、前后胎 5000 km，飞轮 10000 km，牙盘 30000 km。以上里程仅为维护参考，不代表实际磨损程度。更换后，在 Intervals.icu 重置配件的“更换”提醒；日期和里程随每日同步更新。</p></section>
 </main>
 <footer><div><p class="footer-title">每一程，都是记录。</p><p>数据来自 Intervals.icu · 日期按北京时间展示</p></div><div class="footer-right"><p>同步于 <time id="sync-time">${syncedAt.replace(' +08:00','').replaceAll('-','.')}</time>（北京时间）</p><p class="footer-note">每天 22:00 同步后更新 · 打开时读取最新数据</p><p id="sync-status" role="status" aria-live="polite"></p></div></footer></div>
 <script type="application/json" id="journal-data">${JSON.stringify(data).replaceAll('<','\\u003c')}</script></body></html>`;

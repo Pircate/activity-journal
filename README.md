@@ -6,7 +6,7 @@
 
 拉取并保存 Intervals.icu 的全部历史运动记录。页面默认展示截至北京时间当天最近 365 天的累计距离、运动时长、运动次数和活动热力图；“全年活动”的“查看范围”可选择最近一年或任一已同步年份，切换时同步更新概览和热力图。自然年显示 1 月 1 日至 12 月 31 日，闰年含 366 天；当前年份尚未同步的日期标注为未知。最近一周的运动记录始终按北京时间当天回看 7 天，不随年份切换。可切换距离、时长和 Intervals.icu 训练负荷，也可用日期选择器或方向键查看每天的指标；选中日期后，下方列出当天全部可读取的运动记录，包括日期、运动类型、距离、运动时间、平均速度和训练负荷，无记录时隐藏列表。桌面以表格展示，宽度不超过 600px 时按活动显示纵向卡片，四项指标完整展示，无需横向滚动；全年热力图仍可横向滑动。点击最近一周的活动卡片或当天列表中的运动行或卡片，会在新标签页打开 Intervals.icu 对应运动记录；也支持 Tab 聚焦、Enter 打开，查看权限由 Intervals.icu 控制。
 
-全年活动下方的运动装备库按自行车展示在用配件和累计里程，不受最近 365 天范围限制。配件列表默认折叠，点击自行车标题栏可独立展开或折叠，也支持键盘操作。链条、前胎、后胎按 5000 km，飞轮按 10000 km，牙盘按 30000 km 显示更换进度；达到 80% 提示“即将到期”，达到目标提示“建议更换”，超期保留实际里程。
+全年活动下方的运动装备库按自行车展示在用配件和累计里程，不受最近 365 天范围限制。配件列表默认折叠，点击自行车标题栏可独立展开或折叠，也支持键盘操作。链条、前胎、后胎按 5000 km，飞轮按 10000 km，牙盘按 30000 km 显示更换进度；达到 80% 提示“接近建议更换里程”，达到建议里程提示“已达建议更换里程”，超出后保留实际里程。该里程仅为维护参考，不代表实际磨损程度。折叠标题直接显示已达建议更换里程、接近建议更换里程及更换里程或提醒信息待完善的配件数量，展开后优先展示需要关注的配件。共享配件标注所属车辆名称，关系由平台配件标识解析，不按名称推断。
 
 ## 装备维护
 
@@ -58,7 +58,7 @@ API 不提供部分 Strava 来源活动的完整内容；这些记录仅在 `una
 
 `period.start` 为最早记录所在年的元旦（至少覆盖最近一年），`period.end` 为同步时的北京时间当天；年份选项包含此范围内的所有年份，空年也可查看。
 
-`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。活动的 `activityUrl` 只接受 `https://intervals.icu/activities/` 加平台活动 ID；兼容尚无链接的旧活动快照，这些卡片不提供跳转。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件仅含 `name`、`type`、`distanceKm`、`replacement`。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
+`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。活动的 `activityUrl` 只接受 `https://intervals.icu/activities/` 加平台活动 ID；兼容尚无链接的旧活动快照，这些卡片不提供跳转。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件含 `name`、`type`、`distanceKm`、`replacement`；共享配件额外含 `sharedBy` 车辆名称数组，不公开装备标识。兼容没有共享字段的旧快照，不推断共享关系。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
 
 同步与构建成功后，将更新文件提交并推送到 `main`，GitHub Pages 从 `docs/` 自动发布。网页只读取同源公开 JSON，凭据仅在本机脚本运行时使用。
 
