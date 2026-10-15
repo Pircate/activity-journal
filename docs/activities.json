@@ -3,7 +3,7 @@
     "start": "2025-10-16",
     "end": "2026-10-15"
   },
-  "syncedAt": "2026-10-15 14:46:29 +08:00",
+  "syncedAt": "2026-10-15 16:34:44 +08:00",
   "activities": [
     {
       "date": "2026-10-14",
@@ -1424,14 +1424,14 @@
       "sport": "虚拟骑行",
       "distanceKm": 30.21,
       "duration": "1:08:18",
-      "trainingLoad": 83
+      "trainingLoad": 87
     },
     {
       "date": "2025-12-18",
       "sport": "虚拟骑行",
       "distanceKm": 30.21,
       "duration": "1:08:18",
-      "trainingLoad": 87
+      "trainingLoad": 83
     },
     {
       "date": "2025-12-17",
@@ -1786,7 +1786,7 @@
     {
       "name": "TCR Pro Max",
       "type": "Bike",
-      "distanceKm": 10138.33,
+      "distanceKm": 10138.334,
       "components": [
         {
           "name": "TCR 链条",
@@ -1843,7 +1843,7 @@
     {
       "name": "CYCPLUS R200",
       "type": "Bike",
-      "distanceKm": 4871.33,
+      "distanceKm": 4871.336,
       "components": [
         {
           "name": "青野链条",
@@ -1864,13 +1864,23 @@
             "date": "2025-10-12",
             "distanceKm": 4896.94
           }
+        },
+        {
+          "name": "R200 飞轮",
+          "type": "Cassette",
+          "distanceKm": 4871.336,
+          "replacement": {
+            "status": "available",
+            "date": "2025-09-29",
+            "distanceKm": 4871.336
+          }
         }
       ]
     },
     {
       "name": "青野",
       "type": "Bike",
-      "distanceKm": 96.11,
+      "distanceKm": 96.113,
       "components": [
         {
           "name": "前胎 · 青野",
@@ -1910,6 +1920,16 @@
             "status": "available",
             "date": "2025-10-12",
             "distanceKm": 4896.94
+          }
+        },
+        {
+          "name": "青野飞轮",
+          "type": "Cassette",
+          "distanceKm": 7170.388,
+          "replacement": {
+            "status": "available",
+            "date": "2024-03-30",
+            "distanceKm": 7170.388
           }
         }
       ]
