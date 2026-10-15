@@ -98,12 +98,12 @@ function renderJournal() {
   const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');
   const rangeLabel = range === 'recent' ? '最近一年' : range + ' 年';
-  document.querySelector('.eyebrow span').textContent = rangeLabel;
+  document.querySelector('.overview-range').textContent = rangeLabel;
   document.querySelector('.year-number').textContent = journal.daily.length;
   document.querySelector('.metrics').setAttribute('aria-label', rangeLabel + '运动概览');
   document.title = '我的运动记录 · ' + rangeLabel;
   document.querySelector('.period').innerHTML = '<time datetime="' + period.start + '">' + pretty(period.start) + '</time> — <time datetime="' + period.end + '">' + pretty(period.end) + '</time>';
-  document.querySelector('.legend').innerHTML = journal.sports.map(s => '<span class="legend-item">' + escapeHtml(s.sport) + ' ' + s.count + ' 次</span>').join('');
+  document.querySelector('.legend').innerHTML = journal.sports.map(s => '<span class="legend-item">' + escapeHtml(s.sport) + ' <strong>' + s.count + '</strong> 次</span>').join('');
   const values = document.querySelectorAll('.metric-value');
   values[0].innerHTML = distance.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2}) + '<small>公里</small>';
   values[1].innerHTML = Math.floor(duration / 3600) + '<small>小时</small>';
