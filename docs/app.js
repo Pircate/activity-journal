@@ -21,7 +21,7 @@ function display(day, key) {
 }
 function sentence(day) {
   if (day.pending) return day.date + ' · 尚未同步该日期的运动记录';
-  return day.date + ' · ' + day.count + ' 次运动 · ' + display(day, 'distanceKm') + ' · ' + display(day, 'durationSeconds') + ' · 负荷 ' + display(day, 'trainingLoad');
+  return day.date + ' · ' + day.count + ' 次运动 · ' + display(day, 'distanceKm') + ' · ' + display(day, 'durationSeconds') + ' · 负荷 ' + display(day, 'trainingLoad') + (day.unavailable ? ' · 另有 ' + day.unavailable + ' 次运动详情无法读取（日期为平台当地日期），未计入统计' : '');
 }
 function selectDay(date, focus = false) {
   if (!byDate.has(date)) return;
@@ -42,9 +42,9 @@ function render() {
     const value = day[metric];
     const missing = spec.missing && day[spec.missing];
     const entirelyMissing = day.count > 0 && (value === null || missing === day.count);
-    button.dataset.level = day.pending || entirelyMissing ? 'missing' : day.count === 0 || value === 0 ? '0' : String(1 + spec.thresholds.filter(threshold => value >= threshold).length);
-    button.dataset.missing = String(Boolean(missing && !entirelyMissing));
-    button.setAttribute('aria-label', day.pending ? day.date + '，尚未同步' : day.date + '，' + day.count + ' 次运动，' + spec.label + ' ' + display(day, metric));
+    button.dataset.level = day.pending || entirelyMissing || day.unavailable && day.count === 0 ? 'missing' : day.count === 0 || value === 0 ? '0' : String(1 + spec.thresholds.filter(threshold => value >= threshold).length);
+    button.dataset.missing = String(Boolean(day.unavailable || missing && !entirelyMissing));
+    button.setAttribute('aria-label', day.unavailable ? sentence(day) : day.pending ? day.date + '，尚未同步' : day.date + '，' + day.count + ' 次运动，' + spec.label + ' ' + display(day, metric));
     button.title = sentence(day);
   }
   for (const button of document.querySelectorAll('[data-metric]')) button.setAttribute('aria-pressed', String(button.dataset.metric === metric));
@@ -82,7 +82,7 @@ dateInput.addEventListener('change', () => {
 function renderJournal() {
   const focusedDate = document.activeElement?.matches('.day-cell[data-date]') ? document.activeElement.dataset.date : null;
   const journal = createJournal(data, beijingDate());
-  const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad} = journal;
+  const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');
   document.querySelector('.period').innerHTML = '<time datetime="' + period.start + '">' + pretty(period.start) + '</time> — <time datetime="' + period.end + '">' + pretty(period.end) + '</time>';
   document.querySelector('.legend').innerHTML = journal.sports.map(s => '<span class="legend-item">' + escapeHtml(s.sport) + ' ' + s.count + ' 次</span>').join('');
@@ -92,15 +92,15 @@ function renderJournal() {
   values[1].setAttribute('aria-label', Math.floor(duration / 3600) + ' 小时 ' + Math.floor(duration % 3600 / 60) + ' 分 ' + duration % 60 + ' 秒');
   values[2].innerHTML = activities.length + '<small>次</small>';
   const notes = document.querySelectorAll('.metric-note');
-  notes[0].textContent = missingDistance ? '已记录距离 · ' + missingDistance + ' 次运动未提供距离' : '全部运动的总距离';
+  notes[0].textContent = missingDistance ? '已记录距离 · ' + missingDistance + ' 次运动未提供距离' : '可读取运动的总距离';
   notes[1].textContent = '精确时长 ' + formatTime(duration);
-  notes[2].textContent = activeDays + ' 天记录了运动';
+  notes[2].textContent = activeDays + ' 天记录了运动' + (unavailableCount ? ' · 另有 ' + unavailableCount + ' 次详情无法读取' : '');
   grid.innerHTML = journal.cells;
   document.querySelector('.heatmap').style.setProperty('--columns', journal.columns);
   document.querySelector('.month-labels').innerHTML = journal.monthLabels;
   document.querySelector('.records-grid').innerHTML = journal.cards;
   document.querySelector('.records-section .section-head p').textContent = recent.length ? '共 ' + recent.length + ' 条 · 最新记录在前' : '最近一周还没有运动记录';
-  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。负荷为 COROS 的活动训练负荷。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '');
+  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。负荷为 Intervals.icu 的活动训练负荷。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '') + (unavailableCount ? ' 另有 ' + unavailableCount + ' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。' : '');
   dateInput.min = period.start;
   dateInput.max = period.end;
   daily = journal.daily;

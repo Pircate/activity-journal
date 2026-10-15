@@ -28,7 +28,8 @@ export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));
 export function validateData(data) {
   const isDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10) === value;
-  if (!data || Object.keys(data).sort().join(',') !== 'activities,period,syncedAt' || !isDate(data.period?.start) || !isDate(data.period?.end) || Object.keys(data.period).sort().join(',') !== 'end,start' || data.period.start > data.period.end || !Array.isArray(data.activities) || typeof data.syncedAt !== 'string' || !/^\d{4}-\d{2}-\d{2} [0-2]\d:[0-5]\d:[0-5]\d \+08:00$/.test(data.syncedAt) || !Number.isFinite(syncTimestamp(data.syncedAt))) throw new Error('运动数据格式无效');
+  if (!data || Object.keys(data).sort().join(',') !== 'activities,period,syncedAt,unavailableActivities' || !isDate(data.period?.start) || !isDate(data.period?.end) || Object.keys(data.period).sort().join(',') !== 'end,start' || data.period.start > data.period.end || !Array.isArray(data.activities) || typeof data.syncedAt !== 'string' || !/^\d{4}-\d{2}-\d{2} [0-2]\d:[0-5]\d:[0-5]\d \+08:00$/.test(data.syncedAt) || !Number.isFinite(syncTimestamp(data.syncedAt))) throw new Error('运动数据格式无效');
+  if (!Array.isArray(data.unavailableActivities) || data.unavailableActivities.some(a => !a || Object.keys(a).join(',') !== 'date' || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end)) throw new Error('无法读取的活动日期无效');
   for (const a of data.activities) {
     if (!a || Object.keys(a).sort().join(',') !== 'date,distanceKm,duration,sport,trainingLoad' || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !a.sport || typeof a.duration !== 'string' || !/^\d+(?::[0-5]\d){1,2}$/.test(a.duration) || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0)) throw new Error('运动记录格式无效');
   }
@@ -42,11 +43,13 @@ export function shiftDate(date, days) {
 export function createJournal(data, endDate = data.period.end) {
   const period = {start:shiftDate(endDate, -364), end:endDate};
   const activities = data.activities.filter(a => a.date >= period.start && a.date <= period.end).slice().sort((a,b) => b.date.localeCompare(a.date));
+  const unavailableActivities = data.unavailableActivities.filter(a => a.date >= period.start && a.date <= period.end);
+  const unavailableCount = unavailableActivities.length;
   const recent = activities.filter(a => a.date >= shiftDate(period.end, -6));
   const daily = [];
   for (let date = period.start; date <= period.end; date = shiftDate(date, 1)) {
     const records = activities.filter(a => a.date === date);
-    daily.push({date, count:records.length, pending:date > data.period.end,
+    daily.push({date, count:records.length, unavailable:unavailableActivities.filter(a => a.date === date).length, pending:date > data.period.end,
       distanceKm:records.reduce((s,a) => s + Math.round((a.distanceKm ?? 0) * 100), 0) / 100,
       durationSeconds:records.reduce((s,a) => s + a.duration.split(':').reduce((v,n) => v * 60 + Number(n), 0), 0),
       trainingLoad:records.length && records.every(a => a.trainingLoad === null) ? null : records.reduce((s,a) => s + (a.trainingLoad ?? 0), 0),
@@ -73,5 +76,5 @@ export function createJournal(data, endDate = data.period.end) {
   const monthLabels = months.map((m,i) => '<span style="grid-column:' + m.column + '/' + (months[i+1]?.column ?? columns+1) + '">' + m.label + '</span>').join('');
   const cards = recent.length ? recent.map(recordCard).join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
   const initialDate = daily.findLast(d => d.count > 0)?.date ?? period.end;
-  return {activities, recent, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
+  return {activities, recent, unavailableCount, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
 }

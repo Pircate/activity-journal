@@ -13,30 +13,28 @@
 - 目录不存在时，先从上面的仓库地址恢复到该路径。
 - 更新前先读 README.md 和 docs/activities.json，检查 git status；仅在工作区干净且可 fast-forward 时更新 origin/main，保留他人修改，禁止 reset --hard、禁止强制推送。
 
-## 取数
+## 取数与构建
 
-用当前可用的 COROS querySportRecords 连接器查询活动：sportTypeCodes=[65535]；timezone 支持时用 Asia/Shanghai；范围从现有数据 period.end 往前 6 天到北京时间今天，离线较久时补齐整个缺口。limit 要足够大，达到上限或疑似截断时分日期查询。只有查询明确成功且范围完整才继续；异常、未授权、超时或无法确认完整时不要改动网站并说明原因，不得把错误当成零条记录。
+数据源为 Intervals.icu，网站更新不再从 COROS 连接器取数，也不再接收手工规范化 JSON。
 
-## 规范化与构建
+确保本机运行环境已设置 `INTERVALS_ICU_API_KEY` 或 `INTERVALS_ICU_TOKEN`，凭据只在仓库外保存；禁止写入仓库、公开文件或日志。缺少授权时停止网站更新并报告，不得切回 COROS。
 
-生成 JSON：顶层仅含 period:{start,end}、syncedAt、activities。syncedAt 为本次查询成功的北京时间，格式 YYYY-MM-DD HH:mm:ss +08:00。每条 activities 仅含：
-
-- date：YYYY-MM-DD
-- sport：准确中文运动类型
-- distanceKm：数字或 null
-- duration：分钟:秒或小时:分钟:秒
-- trainingLoad：数字或 null
-
-使用运动时长（Workout/Duration），不要用 Total Time 或起止时间差。新增、变化或负荷缺失的活动用 getActivityDetail 取 Training Load，未提供则保留 null；完全相同的已有活动可复用此前负荷；同一天多条活动保留实际条数，不得按日期去重。不得写入 labelId、账号信息、坐标、心率、FIT 链接、token 或凭据。
-
-把 JSON 写到网站仓库之外的目录（例如本任务目录下的 work/sync/latest.json），然后执行：
+执行：
 
 ```sh
-node scripts/update-data.mjs <该 JSON 的绝对路径>
+node scripts/update-data.mjs
 node scripts/build.mjs
 ```
 
-再检查 git diff，改动应仅限 docs/activities.json 与 docs/index.html 且数据合理；出现异常删除先复核查询完整性。
+脚本先通过 `/athlete/0` 解析账号，再查询截至北京时间今天最近 365 天的完整活动并整体替换。API 字段为 `distance`（米）、`moving_time`（运动秒数）、`icu_training_load`；日期由 UTC 开始时间转换为北京时间。查询前后各扩大一天，再裁剪到最近 365 天，以覆盖时区边界。
+
+只有查询成功、列表未达到上限、所有记录有效时才写入。API 失败、授权过期、超时、缺失运动时长、重复 ID 或疑似截断时保留旧文件并报告；不得把失败当作零条记录，不得复用 COROS 负荷补缺。同一天多次运动保留实际条数。
+
+Strava API 明确返回的受限空壳只保留当地日期，在页面标注详情缺失，不计入总量；不得猜测详情或把它当成没有运动。
+
+公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）；每条活动仅含 date、sport、distanceKm、duration、trainingLoad。缺失距离和负荷保留为 null。不发布活动标识、账号信息、坐标、心率、原始文件链接或凭据。
+
+检查 git diff，日常数据更新应仅涉及 docs/activities.json 与 docs/index.html；出现异常删除先复核查询完整性。
 
 ## 提交与发布
 

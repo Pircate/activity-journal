@@ -1,1738 +1,1785 @@
 {
   "period": {
-    "start": "2025-10-15",
-    "end": "2026-10-14"
+    "start": "2025-10-16",
+    "end": "2026-10-15"
   },
-  "syncedAt": "2026-10-14 22:06:34 +08:00",
+  "syncedAt": "2026-10-15 12:08:01 +08:00",
   "activities": [
     {
       "date": "2026-10-14",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 20.07,
-      "duration": "56:10",
-      "trainingLoad": null
+      "duration": "0:56:10",
+      "trainingLoad": 44
     },
     {
       "date": "2026-10-13",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.06,
-      "duration": "50:01",
-      "trainingLoad": 77
+      "duration": "0:50:01",
+      "trainingLoad": 53
     },
     {
       "date": "2026-10-11",
       "sport": "骑行",
       "distanceKm": 24.55,
-      "duration": "1:00:04",
-      "trainingLoad": 79
+      "duration": "1:00:01",
+      "trainingLoad": 49
     },
     {
       "date": "2026-10-11",
       "sport": "徒步",
       "distanceKm": 2.81,
-      "duration": "1:07:41",
-      "trainingLoad": 1
+      "duration": "0:41:55",
+      "trainingLoad": 6
     },
     {
       "date": "2026-10-09",
       "sport": "骑行",
       "distanceKm": 6.12,
-      "duration": "15:00",
-      "trainingLoad": 14
+      "duration": "0:15:02",
+      "trainingLoad": 9
     },
     {
       "date": "2026-10-09",
       "sport": "骑行",
       "distanceKm": 66,
-      "duration": "2:06:48",
-      "trainingLoad": 290
+      "duration": "2:06:58",
+      "trainingLoad": 164
     },
     {
       "date": "2026-10-07",
       "sport": "骑行",
       "distanceKm": 67.89,
-      "duration": "2:11:09",
-      "trainingLoad": 370
+      "duration": "2:11:13",
+      "trainingLoad": 203
     },
     {
       "date": "2026-10-05",
       "sport": "骑行",
       "distanceKm": 24.03,
-      "duration": "1:02:40",
-      "trainingLoad": 68
+      "duration": "1:02:37",
+      "trainingLoad": 43
     },
     {
       "date": "2026-10-04",
       "sport": "骑行",
       "distanceKm": 5.03,
-      "duration": "12:04",
-      "trainingLoad": 9
+      "duration": "0:12:08",
+      "trainingLoad": 6
     },
     {
       "date": "2026-10-04",
       "sport": "骑行",
       "distanceKm": 55.49,
-      "duration": "1:44:58",
-      "trainingLoad": 265
+      "duration": "1:45:04",
+      "trainingLoad": 148
     },
     {
       "date": "2026-10-02",
       "sport": "骑行",
       "distanceKm": 73.52,
-      "duration": "1:58:50",
-      "trainingLoad": 421
+      "duration": "1:58:54",
+      "trainingLoad": 190
     },
     {
       "date": "2026-10-01",
       "sport": "骑行",
       "distanceKm": 26.98,
-      "duration": "1:03:55",
-      "trainingLoad": 99
+      "duration": "1:03:53",
+      "trainingLoad": 58
     },
     {
       "date": "2026-09-29",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 26.05,
       "duration": "1:00:24",
-      "trainingLoad": 89
+      "trainingLoad": 55
     },
     {
       "date": "2026-09-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.17,
       "duration": "1:00:20",
-      "trainingLoad": 61
+      "trainingLoad": 43
     },
     {
       "date": "2026-09-26",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 13.89,
-      "duration": "56:33",
-      "trainingLoad": 76
+      "duration": "0:56:33",
+      "trainingLoad": 48
     },
     {
       "date": "2026-09-24",
       "sport": "骑行",
       "distanceKm": 62.45,
-      "duration": "2:00:06",
-      "trainingLoad": 315
+      "duration": "2:00:11",
+      "trainingLoad": 165
     },
     {
       "date": "2026-09-22",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 40.83,
       "duration": "1:24:07",
-      "trainingLoad": 101
+      "trainingLoad": 65
     },
     {
       "date": "2026-09-19",
       "sport": "骑行",
       "distanceKm": 47.63,
-      "duration": "1:34:03",
-      "trainingLoad": 221
+      "duration": "1:34:09",
+      "trainingLoad": 122
     },
     {
       "date": "2026-09-17",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 15.05,
-      "duration": "59:07",
-      "trainingLoad": 86
+      "duration": "0:59:07",
+      "trainingLoad": 51
     },
     {
       "date": "2026-09-16",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.09,
       "duration": "1:03:01",
-      "trainingLoad": 129
+      "trainingLoad": 68
     },
     {
       "date": "2026-09-14",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 12.45,
       "duration": "1:00:50",
-      "trainingLoad": 65
+      "trainingLoad": 43
     },
     {
       "date": "2026-09-13",
       "sport": "徒步",
       "distanceKm": 4.56,
-      "duration": "1:38:46",
-      "trainingLoad": 4
+      "duration": "1:13:32",
+      "trainingLoad": 9
     },
     {
       "date": "2026-09-12",
       "sport": "骑行",
       "distanceKm": 63.98,
-      "duration": "2:02:23",
-      "trainingLoad": 331
+      "duration": "2:02:36",
+      "trainingLoad": 182
     },
     {
       "date": "2026-09-10",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 31.07,
-      "duration": "58:41",
-      "trainingLoad": 108
+      "duration": "0:58:41",
+      "trainingLoad": 62
     },
     {
       "date": "2026-09-09",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.12,
       "duration": "1:01:09",
-      "trainingLoad": 59
+      "trainingLoad": 43
     },
     {
       "date": "2026-09-09",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 1.62,
-      "duration": "1:59",
+      "duration": "0:01:59",
       "trainingLoad": 1
     },
     {
       "date": "2026-09-06",
       "sport": "骑行",
       "distanceKm": 100.28,
-      "duration": "3:16:08",
-      "trainingLoad": 420
+      "duration": "3:16:27",
+      "trainingLoad": 212
     },
     {
       "date": "2026-09-05",
       "sport": "徒步",
       "distanceKm": 4.8,
-      "duration": "1:04:26",
-      "trainingLoad": 3
+      "duration": "1:04:20",
+      "trainingLoad": 9
     },
     {
       "date": "2026-09-04",
       "sport": "骑行",
       "distanceKm": 46.35,
-      "duration": "1:37:45",
-      "trainingLoad": 166
+      "duration": "1:38:03",
+      "trainingLoad": 92
     },
     {
       "date": "2026-09-02",
-      "sport": "骑行",
-      "distanceKm": 19.44,
-      "duration": "53:12",
-      "trainingLoad": 54
+      "sport": "虚拟骑行",
+      "distanceKm": 21.06,
+      "duration": "0:53:28",
+      "trainingLoad": 44
     },
     {
       "date": "2026-09-01",
       "sport": "骑行",
       "distanceKm": 60.58,
-      "duration": "1:53:04",
-      "trainingLoad": 338
+      "duration": "1:53:15",
+      "trainingLoad": 157
     },
     {
       "date": "2026-08-30",
       "sport": "骑行",
       "distanceKm": 5.69,
-      "duration": "17:17",
+      "duration": "0:17:20",
       "trainingLoad": 4
     },
     {
       "date": "2026-08-30",
       "sport": "骑行",
       "distanceKm": 50.04,
-      "duration": "1:34:36",
-      "trainingLoad": 252
+      "duration": "1:34:41",
+      "trainingLoad": 125
     },
     {
       "date": "2026-08-26",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.58,
       "duration": "1:04:02",
-      "trainingLoad": 29
+      "trainingLoad": 28
     },
     {
       "date": "2026-08-25",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.61,
       "duration": "1:02:53",
-      "trainingLoad": 51
+      "trainingLoad": 38
     },
     {
       "date": "2026-08-23",
       "sport": "骑行",
       "distanceKm": 51.54,
-      "duration": "1:36:28",
-      "trainingLoad": 288
+      "duration": "1:36:34",
+      "trainingLoad": 141
     },
     {
       "date": "2026-08-22",
       "sport": "骑行",
       "distanceKm": 40.11,
-      "duration": "1:22:47",
-      "trainingLoad": 165
+      "duration": "1:22:51",
+      "trainingLoad": 102
     },
     {
       "date": "2026-08-20",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 21.8,
       "duration": "1:00:02",
-      "trainingLoad": 108
+      "trainingLoad": 61
     },
     {
       "date": "2026-08-18",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.22,
       "duration": "1:01:02",
-      "trainingLoad": 60
+      "trainingLoad": 43
     },
     {
       "date": "2026-08-16",
       "sport": "骑行",
       "distanceKm": 35.02,
-      "duration": "1:07:20",
-      "trainingLoad": 171
+      "duration": "1:07:23",
+      "trainingLoad": 105
     },
     {
       "date": "2026-08-15",
       "sport": "骑行",
       "distanceKm": 45.02,
-      "duration": "1:32:11",
-      "trainingLoad": 185
+      "duration": "1:32:09",
+      "trainingLoad": 114
     },
     {
       "date": "2026-08-12",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 28.87,
       "duration": "1:02:04",
-      "trainingLoad": 60
+      "trainingLoad": 44
     },
     {
       "date": "2026-08-11",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 32.13,
       "duration": "1:10:11",
-      "trainingLoad": 75
+      "trainingLoad": 53
     },
     {
       "date": "2026-08-07",
       "sport": "骑行",
       "distanceKm": 46.13,
-      "duration": "1:35:39",
-      "trainingLoad": 185
+      "duration": "1:35:52",
+      "trainingLoad": 104
     },
     {
       "date": "2026-08-05",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 32.73,
       "duration": "1:00:08",
-      "trainingLoad": 136
+      "trainingLoad": 72
     },
     {
       "date": "2026-08-04",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 31.77,
       "duration": "1:10:07",
-      "trainingLoad": 74
+      "trainingLoad": 53
     },
     {
       "date": "2026-08-02",
       "sport": "骑行",
       "distanceKm": 55.89,
-      "duration": "1:45:02",
-      "trainingLoad": 276
+      "duration": "1:45:04",
+      "trainingLoad": 150
     },
     {
       "date": "2026-08-02",
       "sport": "徒步",
       "distanceKm": 4.34,
-      "duration": "1:55:23",
-      "trainingLoad": 6
+      "duration": "0:58:14",
+      "trainingLoad": 11
     },
     {
       "date": "2026-07-30",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.06,
       "duration": "1:06:07",
-      "trainingLoad": 68
+      "trainingLoad": 49
     },
     {
       "date": "2026-07-29",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.21,
       "duration": "1:40:02",
-      "trainingLoad": 98
+      "trainingLoad": 73
     },
     {
       "date": "2026-07-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 28.15,
       "duration": "1:00:05",
-      "trainingLoad": 58
+      "trainingLoad": 43
     },
     {
       "date": "2026-07-25",
       "sport": "骑行",
       "distanceKm": 41.37,
-      "duration": "1:27:01",
-      "trainingLoad": 147
+      "duration": "1:27:05",
+      "trainingLoad": 95
     },
     {
       "date": "2026-07-23",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 40.17,
       "duration": "1:26:31",
-      "trainingLoad": 91
+      "trainingLoad": 66
     },
     {
       "date": "2026-07-21",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 19.52,
       "duration": "1:00:06",
-      "trainingLoad": 58
+      "trainingLoad": 43
     },
     {
       "date": "2026-07-19",
       "sport": "骑行",
       "distanceKm": 45.05,
-      "duration": "1:28:41",
-      "trainingLoad": 1
+      "duration": "1:28:44",
+      "trainingLoad": 117
     },
     {
       "date": "2026-07-18",
       "sport": "骑行",
       "distanceKm": 40.14,
       "duration": "1:19:02",
-      "trainingLoad": 192
+      "trainingLoad": 116
     },
     {
       "date": "2026-07-15",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 33.33,
       "duration": "1:13:04",
-      "trainingLoad": 82
+      "trainingLoad": 55
     },
     {
       "date": "2026-07-14",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 45.63,
       "duration": "1:31:00",
-      "trainingLoad": 106
+      "trainingLoad": 70
     },
     {
       "date": "2026-07-11",
       "sport": "骑行",
       "distanceKm": 60.59,
-      "duration": "1:54:18",
-      "trainingLoad": 304
+      "duration": "1:54:23",
+      "trainingLoad": 121
     },
     {
       "date": "2026-07-08",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 46.11,
       "duration": "1:30:36",
-      "trainingLoad": 109
+      "trainingLoad": 69
     },
     {
       "date": "2026-07-07",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 33.14,
       "duration": "1:11:03",
-      "trainingLoad": 82
+      "trainingLoad": 54
     },
     {
       "date": "2026-07-05",
       "sport": "骑行",
       "distanceKm": 40.61,
-      "duration": "1:19:58",
-      "trainingLoad": 215
+      "duration": "1:20:01",
+      "trainingLoad": 120
     },
     {
       "date": "2026-07-04",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 60.14,
       "duration": "2:02:16",
-      "trainingLoad": 184
+      "trainingLoad": 109
     },
     {
       "date": "2026-07-01",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 35.14,
       "duration": "1:10:04",
-      "trainingLoad": 82
+      "trainingLoad": 53
     },
     {
       "date": "2026-06-30",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 24.62,
-      "duration": "50:14",
-      "trainingLoad": 54
+      "duration": "0:50:14",
+      "trainingLoad": 36
     },
     {
       "date": "2026-06-28",
       "sport": "骑行",
       "distanceKm": 71.06,
-      "duration": "2:02:34",
-      "trainingLoad": 365
+      "duration": "2:02:41",
+      "trainingLoad": 167
     },
     {
       "date": "2026-06-27",
       "sport": "骑行",
       "distanceKm": 6.65,
-      "duration": "19:07",
-      "trainingLoad": 8
+      "duration": "0:19:07",
+      "trainingLoad": 6
     },
     {
       "date": "2026-06-27",
       "sport": "骑行",
-      "distanceKm": 51.51,
-      "duration": "1:38:34",
-      "trainingLoad": 236
+      "distanceKm": 51.52,
+      "duration": "1:38:29",
+      "trainingLoad": 119
     },
     {
       "date": "2026-06-26",
-      "sport": "骑行",
-      "distanceKm": 28.16,
+      "sport": "虚拟骑行",
+      "distanceKm": 28.17,
       "duration": "1:00:15",
-      "trainingLoad": 65
+      "trainingLoad": 43
     },
     {
       "date": "2026-06-23",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.06,
       "duration": "1:03:28",
-      "trainingLoad": 65
+      "trainingLoad": 45
     },
     {
       "date": "2026-06-21",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 60.91,
       "duration": "1:57:20",
-      "trainingLoad": 179
+      "trainingLoad": 107
     },
     {
       "date": "2026-06-19",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 60.18,
       "duration": "1:56:10",
-      "trainingLoad": 176
+      "trainingLoad": 105
     },
     {
       "date": "2026-06-17",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 29.49,
       "duration": "1:00:11",
-      "trainingLoad": 65
+      "trainingLoad": 43
     },
     {
       "date": "2026-06-16",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 33.32,
       "duration": "1:19:15",
-      "trainingLoad": 97
+      "trainingLoad": 62
     },
     {
       "date": "2026-06-14",
       "sport": "骑行",
       "distanceKm": 25.24,
-      "duration": "1:02:30",
-      "trainingLoad": 45
+      "duration": "1:02:32",
+      "trainingLoad": 31
     },
     {
       "date": "2026-06-13",
       "sport": "骑行",
-      "distanceKm": 6.02,
-      "duration": "16:39",
-      "trainingLoad": 6
+      "distanceKm": 6.03,
+      "duration": "0:16:22",
+      "trainingLoad": 5
     },
     {
       "date": "2026-06-13",
       "sport": "骑行",
-      "distanceKm": 50.17,
-      "duration": "1:26:21",
-      "trainingLoad": 278
+      "distanceKm": 50.18,
+      "duration": "1:26:24",
+      "trainingLoad": 134
     },
     {
       "date": "2026-06-10",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.35,
       "duration": "1:22:26",
-      "trainingLoad": 84
+      "trainingLoad": 65
     },
     {
       "date": "2026-06-09",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.03,
       "duration": "1:01:05",
-      "trainingLoad": 55
+      "trainingLoad": 44
     },
     {
       "date": "2026-06-07",
       "sport": "骑行",
       "distanceKm": 55.21,
-      "duration": "1:49:29",
-      "trainingLoad": 167
+      "duration": "1:49:25",
+      "trainingLoad": 123
     },
     {
       "date": "2026-06-06",
       "sport": "骑行",
       "distanceKm": 6.11,
-      "duration": "15:20",
-      "trainingLoad": 9
+      "duration": "0:15:23",
+      "trainingLoad": 6
     },
     {
       "date": "2026-06-06",
       "sport": "骑行",
       "distanceKm": 50.06,
-      "duration": "1:32:56",
-      "trainingLoad": 221
+      "duration": "1:33:00",
+      "trainingLoad": 126
     },
     {
       "date": "2026-06-05",
       "sport": "骑行",
-      "distanceKm": 27.99,
-      "duration": "1:03:24",
-      "trainingLoad": 75
+      "distanceKm": 28,
+      "duration": "1:03:19",
+      "trainingLoad": 45
     },
     {
       "date": "2026-06-03",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.09,
       "duration": "1:00:57",
-      "trainingLoad": 54
+      "trainingLoad": 44
     },
     {
       "date": "2026-06-02",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 31.39,
       "duration": "1:00:13",
-      "trainingLoad": 128
+      "trainingLoad": 73
     },
     {
       "date": "2026-05-31",
-      "sport": "骑行",
-      "distanceKm": 34.61,
+      "sport": "虚拟骑行",
+      "distanceKm": 34.62,
       "duration": "1:10:02",
-      "trainingLoad": 61
+      "trainingLoad": 49
     },
     {
       "date": "2026-05-30",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 38.85,
       "duration": "2:00:02",
-      "trainingLoad": 150
+      "trainingLoad": 107
     },
     {
       "date": "2026-05-29",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.26,
       "duration": "1:01:01",
-      "trainingLoad": 55
+      "trainingLoad": 44
     },
     {
       "date": "2026-05-27",
       "sport": "骑行",
       "distanceKm": 24.35,
-      "duration": "1:08:45",
-      "trainingLoad": 109
+      "duration": "1:07:59",
+      "trainingLoad": 73
     },
     {
       "date": "2026-05-25",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 1.11,
-      "duration": "8:36",
-      "trainingLoad": 1
+      "duration": "0:08:36",
+      "trainingLoad": 2
     },
     {
       "date": "2026-05-24",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 45.52,
       "duration": "1:30:12",
-      "trainingLoad": 80
+      "trainingLoad": 70
     },
     {
       "date": "2026-05-23",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 42.05,
       "duration": "1:57:32",
-      "trainingLoad": 137
+      "trainingLoad": 108
     },
     {
       "date": "2026-05-20",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.27,
       "duration": "1:01:59",
-      "trainingLoad": 49
+      "trainingLoad": 44
     },
     {
       "date": "2026-05-18",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.17,
       "duration": "1:00:51",
-      "trainingLoad": 49
+      "trainingLoad": 43
     },
     {
       "date": "2026-05-16",
       "sport": "骑行",
       "distanceKm": 62.26,
-      "duration": "1:57:08",
-      "trainingLoad": 227
+      "duration": "1:57:10",
+      "trainingLoad": 139
     },
     {
       "date": "2026-05-14",
       "sport": "骑行",
       "distanceKm": 30.05,
-      "duration": "1:23:42",
-      "trainingLoad": 210
+      "duration": "1:23:36",
+      "trainingLoad": 97
     },
     {
       "date": "2026-05-12",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 29.51,
       "duration": "1:00:07",
-      "trainingLoad": 85
+      "trainingLoad": 43
     },
     {
       "date": "2026-05-10",
       "sport": "骑行",
       "distanceKm": 25.25,
-      "duration": "1:11:40",
-      "trainingLoad": 166
+      "duration": "1:10:47",
+      "trainingLoad": 81
     },
     {
       "date": "2026-05-08",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 29.18,
-      "duration": "57:14",
-      "trainingLoad": 130
+      "duration": "0:57:14",
+      "trainingLoad": 54
     },
     {
       "date": "2026-05-06",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.35,
-      "duration": "58:12",
-      "trainingLoad": 55
+      "duration": "0:58:12",
+      "trainingLoad": 32
     },
     {
       "date": "2026-05-05",
       "sport": "骑行",
-      "distanceKm": 6.18,
-      "duration": "16:38",
-      "trainingLoad": 8
+      "distanceKm": 6.19,
+      "duration": "0:16:34",
+      "trainingLoad": 5
     },
     {
       "date": "2026-05-05",
       "sport": "骑行",
       "distanceKm": 50.08,
-      "duration": "1:29:20",
-      "trainingLoad": 354
+      "duration": "1:29:24",
+      "trainingLoad": 124
     },
     {
       "date": "2026-05-02",
       "sport": "骑行",
-      "distanceKm": 6.05,
-      "duration": "13:33",
-      "trainingLoad": null
+      "distanceKm": 6.06,
+      "duration": "0:13:26",
+      "trainingLoad": 11
     },
     {
       "date": "2026-05-02",
       "sport": "骑行",
       "distanceKm": 65.11,
-      "duration": "1:55:27",
-      "trainingLoad": null
+      "duration": "1:55:30",
+      "trainingLoad": 162
     },
     {
       "date": "2026-05-01",
       "sport": "骑行",
       "distanceKm": 30.06,
       "duration": "1:00:03",
-      "trainingLoad": null
+      "trainingLoad": 76
     },
     {
       "date": "2026-04-29",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.82,
-      "duration": "58:09",
-      "trainingLoad": null
+      "duration": "0:58:09",
+      "trainingLoad": 70
     },
     {
       "date": "2026-04-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 22.22,
-      "duration": "44:00",
-      "trainingLoad": null
+      "duration": "0:44:00",
+      "trainingLoad": 34
     },
     {
       "date": "2026-04-26",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 37.26,
       "duration": "1:30:12",
-      "trainingLoad": null
+      "trainingLoad": 70
     },
     {
       "date": "2026-04-25",
       "sport": "骑行",
-      "distanceKm": 6.41,
-      "duration": "16:38",
-      "trainingLoad": null
+      "distanceKm": 6.42,
+      "duration": "0:16:33",
+      "trainingLoad": 9
     },
     {
       "date": "2026-04-25",
       "sport": "骑行",
       "distanceKm": 50.16,
-      "duration": "1:30:35",
-      "trainingLoad": null
+      "duration": "1:30:32",
+      "trainingLoad": 133
     },
     {
       "date": "2026-04-22",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.1,
       "duration": "1:00:00",
-      "trainingLoad": null
+      "trainingLoad": 71
     },
     {
       "date": "2026-04-21",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 1.72,
-      "duration": "4:07",
-      "trainingLoad": null
+      "duration": "0:04:07",
+      "trainingLoad": 2
     },
     {
       "date": "2026-04-20",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.07,
-      "duration": "59:18",
-      "trainingLoad": null
+      "duration": "0:59:18",
+      "trainingLoad": 45
     },
     {
       "date": "2026-04-18",
       "sport": "骑行",
-      "distanceKm": 60.02,
-      "duration": "2:01:07",
-      "trainingLoad": null
+      "distanceKm": 60.03,
+      "duration": "2:00:55",
+      "trainingLoad": 155
     },
     {
       "date": "2026-04-15",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.09,
       "duration": "1:01:02",
-      "trainingLoad": null
+      "trainingLoad": 46
     },
     {
       "date": "2026-04-14",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.35,
       "duration": "1:20:12",
-      "trainingLoad": null
+      "trainingLoad": 95
     },
     {
       "date": "2026-04-12",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 39.03,
       "duration": "1:24:04",
-      "trainingLoad": null
+      "trainingLoad": 65
     },
     {
       "date": "2026-04-11",
       "sport": "骑行",
       "distanceKm": 55.05,
-      "duration": "2:02:00",
-      "trainingLoad": null
+      "duration": "2:01:27",
+      "trainingLoad": 116
     },
     {
       "date": "2026-04-11",
       "sport": "骑行",
       "distanceKm": 6.24,
-      "duration": "16:06",
-      "trainingLoad": null
+      "duration": "0:15:50",
+      "trainingLoad": 8
     },
     {
       "date": "2026-04-09",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 21.1,
       "duration": "1:24:10",
-      "trainingLoad": null
+      "trainingLoad": 66
     },
     {
       "date": "2026-04-06",
       "sport": "骑行",
       "distanceKm": 6.57,
-      "duration": "16:57",
-      "trainingLoad": null
+      "duration": "0:16:57",
+      "trainingLoad": 9
     },
     {
       "date": "2026-04-06",
       "sport": "骑行",
       "distanceKm": 50.11,
-      "duration": "1:32:03",
-      "trainingLoad": null
+      "duration": "1:31:50",
+      "trainingLoad": 139
     },
     {
       "date": "2026-04-05",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 42.26,
       "duration": "1:24:03",
-      "trainingLoad": null
+      "trainingLoad": 65
     },
     {
       "date": "2026-04-04",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 21.45,
       "duration": "1:02:06",
-      "trainingLoad": null
+      "trainingLoad": 55
     },
     {
       "date": "2026-04-03",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 20.13,
-      "duration": "52:03",
-      "trainingLoad": null
-    },
-    {
-      "date": "2026-04-01",
-      "sport": "室内骑行",
-      "distanceKm": null,
-      "duration": "40:00",
-      "trainingLoad": 143
+      "duration": "0:52:03",
+      "trainingLoad": 41
     },
     {
       "date": "2026-04-01",
       "sport": "骑行",
       "distanceKm": null,
-      "duration": "40:05",
-      "trainingLoad": null
-    },
-    {
-      "date": "2026-04-01",
-      "sport": "室内骑行",
-      "distanceKm": 50,
-      "duration": "4:15",
-      "trainingLoad": 16
+      "duration": "0:40:00",
+      "trainingLoad": 54
     },
     {
       "date": "2026-04-01",
       "sport": "骑行",
-      "distanceKm": 50,
-      "duration": "4:15",
-      "trainingLoad": null
+      "distanceKm": 0.05,
+      "duration": "0:04:08",
+      "trainingLoad": 5
     },
     {
       "date": "2026-04-01",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 2.11,
-      "duration": "4:38",
-      "trainingLoad": null
+      "duration": "0:04:38",
+      "trainingLoad": 2
     },
     {
       "date": "2026-04-01",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 2.07,
-      "duration": "4:57",
-      "trainingLoad": null
+      "duration": "0:04:57",
+      "trainingLoad": 3
     },
     {
       "date": "2026-03-31",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 23.5,
       "duration": "1:01:45",
-      "trainingLoad": 107
+      "trainingLoad": 47
     },
     {
       "date": "2026-03-30",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 20.3,
-      "duration": "41:23",
-      "trainingLoad": 66
+      "duration": "0:41:22",
+      "trainingLoad": 30
     },
     {
       "date": "2026-03-29",
       "sport": "骑行",
       "distanceKm": 63.5,
-      "duration": "2:19:51",
-      "trainingLoad": 349
+      "duration": "2:18:37",
+      "trainingLoad": 146
     },
     {
       "date": "2026-03-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.07,
-      "duration": "49:18",
-      "trainingLoad": 109
+      "duration": "0:49:17",
+      "trainingLoad": 45
     },
     {
       "date": "2026-03-25",
-      "sport": "室内骑行",
+      "sport": "骑行",
       "distanceKm": 22.1,
-      "duration": "47:20",
-      "trainingLoad": 92
+      "duration": "0:47:21",
+      "trainingLoad": 58
+    },
+    {
+      "date": "2026-03-25",
+      "sport": "划船",
+      "distanceKm": null,
+      "duration": "0:00:36",
+      "trainingLoad": 0
     },
     {
       "date": "2026-03-24",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 35.53,
-      "duration": "1:24:14",
-      "trainingLoad": 93
+      "duration": "1:24:13",
+      "trainingLoad": 65
     },
     {
       "date": "2026-03-23",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 24.78,
-      "duration": "50:43",
-      "trainingLoad": 48
+      "duration": "0:50:42",
+      "trainingLoad": 36
     },
     {
       "date": "2026-03-22",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 42.28,
-      "duration": "1:24:08",
-      "trainingLoad": 94
+      "duration": "1:24:07",
+      "trainingLoad": 65
     },
     {
       "date": "2026-03-20",
       "sport": "骑行",
       "distanceKm": 62.52,
-      "duration": "2:01:09",
-      "trainingLoad": 290
+      "duration": "2:01:19",
+      "trainingLoad": 145
     },
     {
       "date": "2026-03-18",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.29,
-      "duration": "1:01:11",
-      "trainingLoad": 161
+      "duration": "1:01:10",
+      "trainingLoad": 78
     },
     {
       "date": "2026-03-17",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 12.59,
-      "duration": "1:06:53",
-      "trainingLoad": 85
+      "duration": "1:06:52",
+      "trainingLoad": 60
     },
     {
       "date": "2026-03-16",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.08,
-      "duration": "57:26",
-      "trainingLoad": 95
+      "duration": "0:57:25",
+      "trainingLoad": 58
     },
     {
       "date": "2026-03-14",
       "sport": "骑行",
       "distanceKm": 61.79,
-      "duration": "2:12:46",
-      "trainingLoad": 265
+      "duration": "2:13:00",
+      "trainingLoad": 150
     },
     {
       "date": "2026-03-13",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 28.3,
-      "duration": "57:51",
-      "trainingLoad": 102
+      "duration": "0:57:50",
+      "trainingLoad": 68
     },
     {
       "date": "2026-03-11",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 26.91,
-      "duration": "1:01:42",
-      "trainingLoad": 178
+      "duration": "1:01:41",
+      "trainingLoad": 90
     },
     {
       "date": "2026-03-08",
       "sport": "骑行",
       "distanceKm": 62.56,
-      "duration": "1:59:48",
-      "trainingLoad": 342
+      "duration": "1:59:54",
+      "trainingLoad": 162
     },
     {
       "date": "2026-03-06",
       "sport": "骑行",
       "distanceKm": 6.08,
-      "duration": "15:32",
-      "trainingLoad": 14
+      "duration": "0:15:37",
+      "trainingLoad": 7
     },
     {
       "date": "2026-03-06",
       "sport": "骑行",
       "distanceKm": 50.04,
-      "duration": "1:35:19",
-      "trainingLoad": 118
+      "duration": "1:35:25",
+      "trainingLoad": 136
     },
     {
       "date": "2026-03-04",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.08,
-      "duration": "50:07",
-      "trainingLoad": 92
+      "duration": "0:50:06",
+      "trainingLoad": 61
     },
     {
       "date": "2026-03-03",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 34.44,
-      "duration": "1:02:18",
-      "trainingLoad": 183
+      "duration": "1:02:17",
+      "trainingLoad": 93
     },
     {
       "date": "2026-03-01",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 47.05,
-      "duration": "1:56:35",
-      "trainingLoad": 182
+      "duration": "1:56:34",
+      "trainingLoad": 112
     },
     {
       "date": "2026-02-28",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 17.24,
-      "duration": "52:04",
-      "trainingLoad": 95
+      "duration": "0:52:03",
+      "trainingLoad": 62
     },
     {
       "date": "2026-02-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 24.64,
-      "duration": "1:01:08",
-      "trainingLoad": 180
+      "duration": "1:01:07",
+      "trainingLoad": 82
     },
     {
       "date": "2026-02-25",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 28.12,
-      "duration": "56:48",
-      "trainingLoad": 81
+      "duration": "0:56:47",
+      "trainingLoad": 50
     },
     {
       "date": "2026-02-24",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.1,
-      "duration": "1:03:16",
-      "trainingLoad": 188
+      "duration": "1:03:15",
+      "trainingLoad": 95
     },
     {
       "date": "2026-02-22",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 21.97,
-      "duration": "59:11",
-      "trainingLoad": 109
+      "duration": "0:59:10",
+      "trainingLoad": 62
     },
     {
       "date": "2026-02-22",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 2.83,
-      "duration": "5:00",
-      "trainingLoad": null
+      "duration": "0:04:59",
+      "trainingLoad": 5
     },
     {
       "date": "2026-02-22",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 11.77,
-      "duration": "44:00",
-      "trainingLoad": 58
+      "duration": "0:43:59",
+      "trainingLoad": 37
     },
     {
       "date": "2026-02-21",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.13,
-      "duration": "57:47",
-      "trainingLoad": 106
+      "duration": "0:57:46",
+      "trainingLoad": 105
     },
     {
       "date": "2026-02-14",
       "sport": "骑行",
       "distanceKm": 62.04,
-      "duration": "2:11:50",
-      "trainingLoad": 216
+      "duration": "2:12:00",
+      "trainingLoad": 122
     },
     {
       "date": "2026-02-13",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 23.05,
-      "duration": "48:37",
-      "trainingLoad": 49
+      "duration": "0:48:36",
+      "trainingLoad": 35
     },
     {
       "date": "2026-02-12",
       "sport": "骑行",
       "distanceKm": 6.09,
-      "duration": "14:59",
-      "trainingLoad": 14
+      "duration": "0:14:59",
+      "trainingLoad": 8
     },
     {
       "date": "2026-02-12",
       "sport": "骑行",
       "distanceKm": 50.23,
-      "duration": "1:33:16",
-      "trainingLoad": 334
+      "duration": "1:33:21",
+      "trainingLoad": 138
     },
     {
       "date": "2026-02-11",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.4,
-      "duration": "56:21",
-      "trainingLoad": 73
+      "duration": "0:56:20",
+      "trainingLoad": 48
     },
     {
       "date": "2026-02-09",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.1,
-      "duration": "58:13",
-      "trainingLoad": 125
+      "duration": "0:58:12",
+      "trainingLoad": 63
     },
     {
       "date": "2026-02-07",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 42.06,
-      "duration": "1:57:06",
-      "trainingLoad": 216
+      "duration": "1:57:05",
+      "trainingLoad": 114
     },
     {
       "date": "2026-02-05",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 23.5,
-      "duration": "1:00:05",
-      "trainingLoad": 195
+      "duration": "1:00:04",
+      "trainingLoad": 82
     },
     {
       "date": "2026-02-04",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 23.55,
-      "duration": "52:06",
-      "trainingLoad": 94
+      "duration": "0:52:05",
+      "trainingLoad": 51
     },
     {
       "date": "2026-02-03",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.1,
-      "duration": "1:02:36",
-      "trainingLoad": 193
+      "duration": "1:02:35",
+      "trainingLoad": 89
     },
     {
       "date": "2026-02-02",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.68,
-      "duration": "1:00:10",
-      "trainingLoad": 98
+      "duration": "1:00:09",
+      "trainingLoad": 53
     },
     {
       "date": "2026-01-31",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 38.08,
-      "duration": "1:57:07",
-      "trainingLoad": 213
+      "duration": "1:57:06",
+      "trainingLoad": 112
     },
     {
       "date": "2026-01-29",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 35.07,
-      "duration": "1:08:31",
-      "trainingLoad": 150
+      "duration": "1:08:30",
+      "trainingLoad": 73
     },
     {
       "date": "2026-01-28",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 20.8,
-      "duration": "49:29",
-      "trainingLoad": 78
+      "duration": "0:49:28",
+      "trainingLoad": 45
     },
     {
       "date": "2026-01-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 16.8,
-      "duration": "1:05:46",
-      "trainingLoad": 197
+      "duration": "1:05:45",
+      "trainingLoad": 93
     },
     {
       "date": "2026-01-26",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 14.04,
-      "duration": "30:30",
-      "trainingLoad": 61
+      "duration": "0:30:29",
+      "trainingLoad": 44
     },
     {
       "date": "2026-01-24",
       "sport": "徒步",
       "distanceKm": 5.32,
-      "duration": "2:50:11",
-      "trainingLoad": 40
+      "duration": "1:28:16",
+      "trainingLoad": 27
     },
     {
       "date": "2026-01-24",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 56.77,
-      "duration": "1:58:04",
-      "trainingLoad": 222
-    },
-    {
-      "date": "2026-01-22",
-      "sport": "骑行",
-      "distanceKm": 30.08,
-      "duration": "1:10:43",
-      "trainingLoad": 148
-    },
-    {
-      "date": "2026-01-21",
-      "sport": "骑行",
-      "distanceKm": 23.64,
-      "duration": "51:48",
-      "trainingLoad": 68
-    },
-    {
-      "date": "2026-01-20",
-      "sport": "骑行",
-      "distanceKm": 28.13,
-      "duration": "1:00:30",
-      "trainingLoad": 184
-    },
-    {
-      "date": "2026-01-19",
-      "sport": "骑行",
-      "distanceKm": 26.78,
-      "duration": "55:08",
-      "trainingLoad": 118
-    },
-    {
-      "date": "2026-01-17",
-      "sport": "骑行",
-      "distanceKm": 48.18,
-      "duration": "1:58:59",
-      "trainingLoad": 198
-    },
-    {
-      "date": "2026-01-15",
-      "sport": "骑行",
-      "distanceKm": 23.41,
-      "duration": "50:03",
-      "trainingLoad": 54
-    },
-    {
-      "date": "2026-01-14",
-      "sport": "骑行",
-      "distanceKm": 27.26,
-      "duration": "1:00:14",
+      "duration": "1:58:03",
       "trainingLoad": 116
     },
     {
+      "date": "2026-01-22",
+      "sport": "虚拟骑行",
+      "distanceKm": 30.08,
+      "duration": "1:10:42",
+      "trainingLoad": 75
+    },
+    {
+      "date": "2026-01-21",
+      "sport": "虚拟骑行",
+      "distanceKm": 23.64,
+      "duration": "0:51:47",
+      "trainingLoad": 41
+    },
+    {
+      "date": "2026-01-20",
+      "sport": "虚拟骑行",
+      "distanceKm": 28.13,
+      "duration": "1:00:29",
+      "trainingLoad": 83
+    },
+    {
+      "date": "2026-01-19",
+      "sport": "虚拟骑行",
+      "distanceKm": 26.78,
+      "duration": "0:55:07",
+      "trainingLoad": 56
+    },
+    {
+      "date": "2026-01-17",
+      "sport": "虚拟骑行",
+      "distanceKm": 48.18,
+      "duration": "1:58:58",
+      "trainingLoad": 104
+    },
+    {
+      "date": "2026-01-15",
+      "sport": "虚拟骑行",
+      "distanceKm": 23.41,
+      "duration": "0:50:02",
+      "trainingLoad": 33
+    },
+    {
+      "date": "2026-01-14",
+      "sport": "虚拟骑行",
+      "distanceKm": 27.26,
+      "duration": "1:00:13",
+      "trainingLoad": 57
+    },
+    {
       "date": "2026-01-13",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 20.57,
-      "duration": "1:00:06",
-      "trainingLoad": 105
+      "duration": "1:00:05",
+      "trainingLoad": 54
     },
     {
       "date": "2026-01-10",
       "sport": "骑行",
       "distanceKm": 48.03,
-      "duration": "1:50:00",
-      "trainingLoad": 165
+      "duration": "1:50:05",
+      "trainingLoad": 89
     },
     {
       "date": "2026-01-09",
       "sport": "徒步",
       "distanceKm": 4.01,
-      "duration": "1:04:42",
-      "trainingLoad": 23
+      "duration": "0:56:14",
+      "trainingLoad": 19
     },
     {
       "date": "2026-01-07",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 18.63,
-      "duration": "39:05",
-      "trainingLoad": 72
+      "duration": "0:39:04",
+      "trainingLoad": 49
     },
     {
       "date": "2026-01-07",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 5.15,
-      "duration": "10:19",
-      "trainingLoad": 22
+      "duration": "0:10:18",
+      "trainingLoad": 12
     },
     {
       "date": "2026-01-05",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 20.13,
-      "duration": "1:01:03",
-      "trainingLoad": 91
+      "duration": "1:01:02",
+      "trainingLoad": 55
     },
     {
       "date": "2026-01-04",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 35.72,
-      "duration": "1:30:09",
-      "trainingLoad": 104
+      "duration": "1:30:08",
+      "trainingLoad": 71
     },
     {
       "date": "2026-01-02",
       "sport": "徒步",
       "distanceKm": 7.07,
-      "duration": "5:05:17",
-      "trainingLoad": 44
+      "duration": "2:28:37",
+      "trainingLoad": 35
     },
     {
       "date": "2025-12-31",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 33.09,
-      "duration": "1:04:06",
-      "trainingLoad": 93
+      "duration": "1:04:05",
+      "trainingLoad": 57
     },
     {
       "date": "2025-12-30",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 33.43,
-      "duration": "1:06:39",
-      "trainingLoad": 158
+      "duration": "1:06:37",
+      "trainingLoad": 88
+    },
+    {
+      "date": "2025-12-30",
+      "sport": "虚拟骑行",
+      "distanceKm": 33.43,
+      "duration": "1:06:38",
+      "trainingLoad": 83
     },
     {
       "date": "2025-12-29",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.14,
-      "duration": "1:01:15",
-      "trainingLoad": 91
+      "duration": "1:01:14",
+      "trainingLoad": 56
     },
     {
       "date": "2025-12-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 36.25,
-      "duration": "2:00:13",
-      "trainingLoad": 155
+      "duration": "2:00:12",
+      "trainingLoad": 101
     },
     {
       "date": "2025-12-25",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 32.2,
-      "duration": "1:18:43",
-      "trainingLoad": 220
+      "duration": "1:18:42",
+      "trainingLoad": 104
     },
     {
       "date": "2025-12-24",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.56,
-      "duration": "50:40",
-      "trainingLoad": 70
+      "duration": "0:50:39",
+      "trainingLoad": 44
     },
     {
       "date": "2025-12-23",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 32.18,
-      "duration": "1:07:13",
-      "trainingLoad": 161
+      "duration": "1:07:12",
+      "trainingLoad": 92
     },
     {
       "date": "2025-12-22",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.5,
-      "duration": "1:00:24",
-      "trainingLoad": 63
+      "duration": "1:00:23",
+      "trainingLoad": 43
     },
     {
       "date": "2025-12-20",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 46.57,
-      "duration": "2:00:12",
-      "trainingLoad": 181
+      "duration": "2:00:11",
+      "trainingLoad": 108
     },
     {
       "date": "2025-12-18",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.21,
-      "duration": "1:08:19",
-      "trainingLoad": 181
+      "duration": "1:08:18",
+      "trainingLoad": 83
+    },
+    {
+      "date": "2025-12-18",
+      "sport": "虚拟骑行",
+      "distanceKm": 30.21,
+      "duration": "1:08:18",
+      "trainingLoad": 87
     },
     {
       "date": "2025-12-17",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 25.23,
-      "duration": "54:11",
-      "trainingLoad": 75
+      "duration": "0:54:10",
+      "trainingLoad": 46
     },
     {
       "date": "2025-12-16",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 31.99,
-      "duration": "1:03:19",
-      "trainingLoad": 136
+      "duration": "1:03:18",
+      "trainingLoad": 80
     },
     {
       "date": "2025-12-15",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 24.27,
-      "duration": "51:32",
-      "trainingLoad": 59
+      "duration": "0:51:31",
+      "trainingLoad": 40
     },
     {
       "date": "2025-12-14",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 19.22,
-      "duration": "45:07",
-      "trainingLoad": 61
+      "duration": "0:45:06",
+      "trainingLoad": 41
     },
     {
       "date": "2025-12-13",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 35.64,
-      "duration": "1:56:34",
-      "trainingLoad": 164
+      "duration": "1:56:33",
+      "trainingLoad": 107
     },
     {
       "date": "2025-12-11",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 23.06,
-      "duration": "1:22:45",
-      "trainingLoad": 165
+      "duration": "1:22:44",
+      "trainingLoad": 94
     },
     {
       "date": "2025-12-10",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.25,
-      "duration": "57:41",
-      "trainingLoad": 65
+      "duration": "0:57:40",
+      "trainingLoad": 45
     },
     {
       "date": "2025-12-08",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 26.22,
-      "duration": "1:00:03",
-      "trainingLoad": 119
+      "duration": "1:00:02",
+      "trainingLoad": 73
     },
     {
       "date": "2025-12-06",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 43.33,
-      "duration": "1:56:13",
-      "trainingLoad": 173
+      "duration": "1:56:12",
+      "trainingLoad": 106
     },
     {
       "date": "2025-12-04",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 32.24,
-      "duration": "1:05:34",
-      "trainingLoad": 64
+      "duration": "1:05:33",
+      "trainingLoad": 45
     },
     {
       "date": "2025-12-03",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 18.52,
-      "duration": "37:35",
-      "trainingLoad": 75
+      "duration": "0:37:34",
+      "trainingLoad": 49
     },
     {
       "date": "2025-12-03",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 4.64,
-      "duration": "10:03",
-      "trainingLoad": 14
+      "duration": "0:10:02",
+      "trainingLoad": 9
     },
     {
       "date": "2025-12-01",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 19.5,
-      "duration": "45:15",
-      "trainingLoad": 19
+      "duration": "0:45:14",
+      "trainingLoad": 18
     },
     {
       "date": "2025-11-29",
       "sport": "骑行",
       "distanceKm": 5.43,
-      "duration": "13:47",
-      "trainingLoad": 15
+      "duration": "0:13:53",
+      "trainingLoad": 7
     },
     {
       "date": "2025-11-29",
       "sport": "骑行",
       "distanceKm": 50.78,
-      "duration": "1:33:50",
-      "trainingLoad": 295
+      "duration": "1:33:55",
+      "trainingLoad": 127
     },
     {
       "date": "2025-11-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 33.35,
-      "duration": "1:05:55",
-      "trainingLoad": 173
+      "duration": "1:05:54",
+      "trainingLoad": 84
     },
     {
       "date": "2025-11-26",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.19,
-      "duration": "1:01:02",
-      "trainingLoad": 60
+      "duration": "1:01:01",
+      "trainingLoad": 45
     },
     {
       "date": "2025-11-25",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 27.16,
-      "duration": "1:11:03",
-      "trainingLoad": 148
+      "duration": "1:11:02",
+      "trainingLoad": 87
     },
     {
       "date": "2025-11-24",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.13,
-      "duration": "1:00:27",
-      "trainingLoad": 76
+      "duration": "1:00:26",
+      "trainingLoad": 50
     },
     {
       "date": "2025-11-22",
       "sport": "骑行",
       "distanceKm": 62.13,
-      "duration": "1:55:00",
-      "trainingLoad": 425
+      "duration": "1:55:06",
+      "trainingLoad": 175
     },
     {
       "date": "2025-11-20",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 23.43,
-      "duration": "1:00:36",
-      "trainingLoad": 166
-    },
-    {
-      "date": "2025-11-19",
-      "sport": "骑行",
-      "distanceKm": 32.13,
-      "duration": "1:03:05",
+      "duration": "1:00:35",
       "trainingLoad": 83
     },
     {
+      "date": "2025-11-19",
+      "sport": "虚拟骑行",
+      "distanceKm": 32.13,
+      "duration": "1:03:04",
+      "trainingLoad": 54
+    },
+    {
       "date": "2025-11-18",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 32.17,
-      "duration": "1:03:03",
-      "trainingLoad": 129
+      "duration": "1:03:02",
+      "trainingLoad": 77
     },
     {
       "date": "2025-11-17",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 31.43,
-      "duration": "1:02:02",
-      "trainingLoad": 104
+      "duration": "1:02:01",
+      "trainingLoad": 64
     },
     {
       "date": "2025-11-16",
       "sport": "徒步",
       "distanceKm": 5.02,
-      "duration": "1:41:43",
-      "trainingLoad": 6
+      "duration": "1:11:54",
+      "trainingLoad": 12
+    },
+    {
+      "date": "2025-11-16",
+      "sport": "虚拟骑行",
+      "distanceKm": 9.2,
+      "duration": "0:38:25",
+      "trainingLoad": 2
+    },
+    {
+      "date": "2025-11-15",
+      "sport": "骑行",
+      "distanceKm": 6.3,
+      "duration": "0:14:40",
+      "trainingLoad": 12
     },
     {
       "date": "2025-11-15",
       "sport": "骑行",
       "distanceKm": 50.39,
-      "duration": "1:32:19",
-      "trainingLoad": 329
+      "duration": "1:32:25",
+      "trainingLoad": 132
     },
     {
       "date": "2025-11-13",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 33.36,
-      "duration": "1:10:02",
-      "trainingLoad": 163
+      "duration": "1:10:01",
+      "trainingLoad": 84
     },
     {
       "date": "2025-11-12",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.16,
-      "duration": "1:00:04",
-      "trainingLoad": 76
-    },
-    {
-      "date": "2025-11-11",
-      "sport": "骑行",
-      "distanceKm": 30.1,
       "duration": "1:00:03",
-      "trainingLoad": 115
-    },
-    {
-      "date": "2025-11-10",
-      "sport": "骑行",
-      "distanceKm": 31.16,
-      "duration": "1:00:14",
-      "trainingLoad": 102
-    },
-    {
-      "date": "2025-11-09",
-      "sport": "骑行",
-      "distanceKm": 4.05,
-      "duration": "25:35",
-      "trainingLoad": 6
-    },
-    {
-      "date": "2025-11-09",
-      "sport": "骑行",
-      "distanceKm": 15.97,
-      "duration": "37:20",
       "trainingLoad": 51
     },
     {
+      "date": "2025-11-11",
+      "sport": "虚拟骑行",
+      "distanceKm": 30.1,
+      "duration": "1:00:02",
+      "trainingLoad": 74
+    },
+    {
+      "date": "2025-11-10",
+      "sport": "虚拟骑行",
+      "distanceKm": 31.16,
+      "duration": "1:00:13",
+      "trainingLoad": 66
+    },
+    {
+      "date": "2025-11-09",
+      "sport": "虚拟骑行",
+      "distanceKm": 4.05,
+      "duration": "0:25:34",
+      "trainingLoad": 8
+    },
+    {
+      "date": "2025-11-09",
+      "sport": "虚拟骑行",
+      "distanceKm": 15.97,
+      "duration": "0:37:19",
+      "trainingLoad": 39
+    },
+    {
       "date": "2025-11-07",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 38.15,
-      "duration": "1:20:31",
-      "trainingLoad": 117
+      "duration": "1:20:30",
+      "trainingLoad": 97
     },
     {
       "date": "2025-11-05",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 37.77,
-      "duration": "1:20:04",
-      "trainingLoad": 56
+      "duration": "1:20:03",
+      "trainingLoad": 50
     },
     {
       "date": "2025-11-04",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 32.15,
-      "duration": "1:03:16",
-      "trainingLoad": 119
+      "duration": "1:03:15",
+      "trainingLoad": 80
     },
     {
       "date": "2025-11-02",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 50.59,
-      "duration": "2:00:03",
-      "trainingLoad": 149
+      "duration": "2:00:02",
+      "trainingLoad": 111
     },
     {
       "date": "2025-10-31",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 36.4,
-      "duration": "1:20:05",
-      "trainingLoad": 133
+      "duration": "1:20:04",
+      "trainingLoad": 94
     },
     {
       "date": "2025-10-28",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 32.48,
-      "duration": "1:20:07",
-      "trainingLoad": 114
+      "duration": "1:20:06",
+      "trainingLoad": 78
     },
     {
       "date": "2025-10-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 7.24,
-      "duration": "13:39",
-      "trainingLoad": 33
+      "duration": "0:13:38",
+      "trainingLoad": 19
     },
     {
       "date": "2025-10-27",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 30.65,
-      "duration": "1:24:09",
-      "trainingLoad": 68
+      "duration": "1:24:08",
+      "trainingLoad": 65
+    },
+    {
+      "date": "2025-10-25",
+      "sport": "骑行",
+      "distanceKm": 5.01,
+      "duration": "0:11:43",
+      "trainingLoad": 10
     },
     {
       "date": "2025-10-25",
       "sport": "骑行",
       "distanceKm": 65.7,
-      "duration": "2:01:08",
-      "trainingLoad": 230
+      "duration": "2:01:14",
+      "trainingLoad": 175
+    },
+    {
+      "date": "2025-10-23",
+      "sport": "骑行",
+      "distanceKm": 20.55,
+      "duration": "0:59:53",
+      "trainingLoad": 33
+    },
+    {
+      "date": "2025-10-22",
+      "sport": "虚拟骑行",
+      "distanceKm": 36.41,
+      "duration": "1:20:03",
+      "trainingLoad": 51
     },
     {
       "date": "2025-10-21",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 36.44,
-      "duration": "1:20:03",
-      "trainingLoad": 97
+      "duration": "1:20:02",
+      "trainingLoad": 74
     },
     {
       "date": "2025-10-19",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 21.83,
-      "duration": "1:40:03",
-      "trainingLoad": 118
+      "duration": "1:40:02",
+      "trainingLoad": 98
     },
     {
       "date": "2025-10-16",
-      "sport": "骑行",
+      "sport": "虚拟骑行",
       "distanceKm": 37.9,
-      "duration": "1:20:09",
-      "trainingLoad": 114
+      "duration": "1:20:08",
+      "trainingLoad": 85
+    }
+  ],
+  "unavailableActivities": [
+    {
+      "date": "2026-03-25"
     }
   ]
 }

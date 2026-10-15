@@ -1,0 +1,67 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {fetchYear, normalizeActivities} from './update-data.mjs';
+import {createJournal, validateData} from '../docs/journal.mjs';
+const period = {start:'2025-10-16', end:'2026-10-15'};
+const record = {id:'i1', type:'Ride', start_date:'2026-10-14T16:30:00', moving_time:3601, distance:20070, icu_training_load:0};
+
+test('北京时间边界、米到公里、零负荷、缺失值及同日多次活动', () => {
+  const activities = normalizeActivities([record, {...record, id:'i2', distance:null, icu_training_load:null},
+    {...record, id:'i3', start_date:'2025-10-15T15:59:59Z'},
+    {...record, id:'i4', start_date:'2026-10-15T16:00:00Z'}], period);
+  assert.deepEqual(activities, [
+    {date:'2026-10-15', sport:'骑行', distanceKm:20.07, duration:'1:00:01', trainingLoad:0},
+    {date:'2026-10-15', sport:'骑行', distanceKm:null, duration:'1:00:01', trainingLoad:null},
+  ]);
+});
+
+test('拒绝 Strava 空壳、重复 ID、缺失时长与无效数值', () => {
+  for (const records of [[{id:'strava'}], [record, record], [{...record, moving_time:null}],
+    [{...record, distance:-1}], [{...record, icu_training_load:'12'}]]) {
+    assert.throws(() => normalizeActivities(records, period));
+  }
+});
+
+test('使用账号 ID 查询完整一年，包含时区边界且只输出公开字段', async () => {
+  const calls = [];
+  const data = await fetchYear({env:{INTERVALS_ICU_API_KEY:'test-key'}, now:new Date('2026-10-15T04:00:00Z'),
+    fetchImpl:async (url, options) => {
+      calls.push({url:new URL(url), options});
+      return {ok:true, json:async () => calls.length === 1 ? {id:'i123'} : [record]};
+    }});
+  assert.deepEqual(data.period, period);
+  assert.equal(calls[0].options.headers.Authorization, 'Basic ' + Buffer.from('API_KEY:test-key').toString('base64'));
+  assert.equal(calls[1].url.pathname, '/api/v1/athlete/i123/activities');
+  assert.equal(calls[1].url.searchParams.get('oldest'), '2025-10-15');
+  assert.equal(calls[1].url.searchParams.get('newest'), '2026-10-16T23:59:59');
+  assert.equal(data.activities.length, 1);
+  assert.equal(JSON.stringify(data).includes('i123'), false);
+  assert.equal(JSON.stringify(data).includes('test-key'), false);
+});
+
+test('授权缺失、HTTP 失败、列表截断均拒绝更新', async () => {
+  await assert.rejects(fetchYear({env:{}}), /请配置/);
+  await assert.rejects(fetchYear({env:{INTERVALS_ICU_TOKEN:'test'}, fetchImpl:async () => ({ok:false, status:401})}), /HTTP 401/);
+  let count = 0;
+  await assert.rejects(fetchYear({env:{INTERVALS_ICU_TOKEN:'test'}, fetchImpl:async () => ({ok:true,
+    json:async () => ++count === 1 ? {id:'i123'} : Array(10000).fill(record)})}), /查询上限/);
+});
+
+test('受限 Strava 记录在日期上标注缺失，并排除在距离、时长、次数之外', async () => {
+  let count = 0;
+  const restricted = {id:'s1', source:'STRAVA', start_date_local:'2026-10-15T20:00:00', _note:'STRAVA activities are not available via the API'};
+  const data = await fetchYear({env:{INTERVALS_ICU_TOKEN:'test'}, now:new Date('2026-10-15T04:00:00Z'),
+    fetchImpl:async () => ({ok:true, json:async () => ++count === 1 ? {id:'i123'} : [record, restricted]})});
+  validateData(data);
+  assert.deepEqual(data.unavailableActivities, [{date:'2026-10-15'}]);
+  const journal = createJournal(data);
+  assert.equal(journal.unavailableCount, 1);
+  assert.equal(journal.activities.length, 1);
+  assert.equal(journal.distance, 20.07);
+  assert.equal(journal.duration, 3601);
+  assert.equal(journal.daily.at(-1).unavailable, 1);
+  assert.equal(journal.daily.at(-1).count, 1);
+  const withoutDetails = createJournal({...data, activities:[]});
+  assert.equal(withoutDetails.daily.at(-1).unavailable, 1);
+  assert.equal(withoutDetails.activities.length, 0);
+});

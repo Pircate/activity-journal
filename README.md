@@ -1,45 +1,39 @@
 # 我的运动记录
 
-使用 COROS 真实记录的中文运动日志：[访问网站](https://pircate.github.io/movement-journal/)。
+使用 Intervals.icu 真实记录的中文运动日志：[访问网站](https://pircate.github.io/movement-journal/)。
 
 ## 页面内容
 
-展示截至北京时间当天最近 365 天的累计距离、运动时长、运动次数、每日活动热力图和最近一周的运动记录。可切换距离、时长和 COROS 训练负荷，也可用日期选择器或方向键查看每天的指标。
+展示截至北京时间当天最近 365 天的累计距离、运动时长、运动次数、每日活动热力图和最近一周的运动记录。可切换距离、时长和 Intervals.icu 训练负荷，也可用日期选择器或方向键查看每天的指标。
 
 ## 自动更新
 
-每天北京时间 22:00 的「每日同步 Strava/Garmin/COROS 运动数据」任务完成三端同步后，会查询 COROS 的最新记录、更新本仓库并触发 GitHub Pages 发布。网站只在这次每日同步完整成功（没有需要用户介入的阻塞或未处理失败）时更新；当天同步未完成时保持上一版数据，并在页面显示最近成功同步的时间。
+每天北京时间 22:00 的「每日同步 Strava/Garmin/COROS 运动数据」任务完成三端同步后，按 [网站更新说明](docs/SITE-SYNC.md) 从 Intervals.icu 获取最近 365 天完整记录、更新本仓库并触发 GitHub Pages 发布。同步存在阻塞或失败、Intervals.icu 查询失败或返回无效记录时保留上一版数据。任务在本机 Codex 中执行，需要本机与 Codex 可运行、网络畅通且 Intervals.icu 与 GitHub 授权有效。
 
-任务在本机 Codex 中执行，需要本机与 Codex 可运行、网络畅通且 COROS 与 GitHub 授权有效。页面打开、从后台返回时都会绕过浏览器缓存读取 `docs/activities.json`，页面保持打开时每 5 分钟再检查一次。热力图每日自动滚动，尚未同步的日期不算作已确认没有运动的日期。
+页面打开、从后台返回时都会绕过浏览器缓存读取 `docs/activities.json`，页面保持打开时每 5 分钟再检查一次。热力图每日自动滚动，尚未同步的日期不算作已确认没有运动的日期。
 
-每条公开记录仅含日期、运动类型、距离、运动时长和训练负荷。缺失值保留为 `null`；不发布坐标、心率、账号信息、原始活动标识或凭据。
+每条公开记录仅含北京时间日期、中文运动类型、距离、运动时长和训练负荷。缺失距离或负荷保留为 `null`；不发布坐标、心率、账号信息、原始活动标识或凭据。
 
 ## 同步脚本
 
-每日同步任务在导入完成后将 COROS 结果规范化为 JSON 文件，保存在仓库外的工作目录，格式为：
+使用 Node.js 22 或更新版本。先在仓库外配置环境变量：
 
-```json
-{
-  "period": {"start": "2026-10-08", "end": "2026-10-13"},
-  "syncedAt": "2026-10-13 15:44:58 +08:00",
-  "activities": [
-    {"date": "2026-10-11", "sport": "骑行", "distanceKm": 24.55, "duration": "1:00:04", "trainingLoad": 79}
-  ]
-}
-```
+- `INTERVALS_ICU_API_KEY`：从 [Intervals.icu 设置](https://intervals.icu/settings) 底部 Developer Settings 获取的个人 API Key。
+- 或 `INTERVALS_ICU_TOKEN`：具有活动读取权限的现有 OAuth Token；同时配置时优先使用此项。
 
-此文件必须包含查询日期范围内的完整记录，包括同一天的多次运动。查询失败或截断时不得导入。`duration` 使用 COROS 的运动时长，不能用总时间或起止时间差替代。
-
-使用 Node.js 22 或更新版本执行：
+不要将凭据写入代码、公开 JSON 或 Git。脚本先解析当前账号，再查询最近 365 天的完整活动，每次整体替换，重复运行不会累积重复记录，也不会混入此前 COROS 来源的数据。
 
 ```sh
-node scripts/update-data.mjs /绝对路径/latest.json
+node scripts/update-data.mjs
 node scripts/build.mjs
+node --test scripts/update-data.test.mjs
 ```
 
-`update-data.mjs` 校验数据、拒绝过期或存在日期缺口的输入，按完整日期范围替换已有记录，并保留最近 365 天。重复同步不会追加重复记录。`build.mjs` 与浏览器共享 `docs/journal.mjs` 的日期和汇总逻辑。
+字段来自 [官方 API 文档](https://intervals.icu/api-docs.html)：`distance` 从米转为公里，`moving_time` 为运动秒数，`icu_training_load` 为活动训练负荷。使用 UTC 开始时间 `start_date` 转换北京时间日期；API 查询范围两端各扩大一天，以覆盖跨时区活动。保留同一天的多次运动，不按日期去重。
 
-将更新后的 `docs/activities.json` 与 `docs/index.html` 一起提交并推送到 `main`。GitHub Pages 从 `docs/` 自动发布。网页直接读取同源 JSON，不依赖 Cloudflare 或 COROS 浏览器登录。
+API 不提供部分 Strava 来源活动的完整内容；这些记录仅在 `unavailableActivities` 中保留平台提供的当地日期，页面明确标注缺失，不计入距离、时长和次数。其他缺失运动时长、重复活动 ID、无效记录或达到查询上限的情况会让整次同步失败并保留旧文件。不使用旧来源的数据补齐；可读取活动缺失的距离和负荷保留为空。
+
+同步与构建成功后，将更新文件提交并推送到 `main`，GitHub Pages 从 `docs/` 自动发布。网页只读取同源公开 JSON，凭据仅在本机脚本运行时使用。
 
 ## 本地预览
 
