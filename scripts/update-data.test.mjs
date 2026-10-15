@@ -27,14 +27,16 @@ test('使用账号 ID 查询完整一年，包含时区边界且只输出公开�
   const data = await fetchYear({env:{INTERVALS_ICU_API_KEY:'test-key'}, now:new Date('2026-10-15T04:00:00Z'),
     fetchImpl:async (url, options) => {
       calls.push({url:new URL(url), options});
-      return {ok:true, json:async () => calls.length === 1 ? {id:'i123'} : [record]};
+      return {ok:true, json:async () => calls.length === 1 ? {id:'i123'} : calls.length === 2 ? [record] : []};
     }});
   assert.deepEqual(data.period, period);
   assert.equal(calls[0].options.headers.Authorization, 'Basic ' + Buffer.from('API_KEY:test-key').toString('base64'));
   assert.equal(calls[1].url.pathname, '/api/v1/athlete/i123/activities');
+  assert.equal(calls[2].url.pathname, '/api/v1/athlete/i123/gear');
   assert.equal(calls[1].url.searchParams.get('oldest'), '2025-10-15');
   assert.equal(calls[1].url.searchParams.get('newest'), '2026-10-16T23:59:59');
   assert.equal(data.activities.length, 1);
+  assert.deepEqual(data.gearLibrary, []);
   assert.equal(JSON.stringify(data).includes('i123'), false);
   assert.equal(JSON.stringify(data).includes('test-key'), false);
 });
@@ -51,7 +53,7 @@ test('受限 Strava 记录在日期上标注缺失，并排除在距离、时长
   let count = 0;
   const restricted = {id:'s1', source:'STRAVA', start_date_local:'2026-10-15T20:00:00', _note:'STRAVA activities are not available via the API'};
   const data = await fetchYear({env:{INTERVALS_ICU_TOKEN:'test'}, now:new Date('2026-10-15T04:00:00Z'),
-    fetchImpl:async () => ({ok:true, json:async () => ++count === 1 ? {id:'i123'} : [record, restricted]})});
+    fetchImpl:async () => ({ok:true, json:async () => ++count === 1 ? {id:'i123'} : count === 2 ? [record, restricted] : []})});
   validateData(data);
   assert.deepEqual(data.unavailableActivities, [{date:'2026-10-15'}]);
   const journal = createJournal(data);

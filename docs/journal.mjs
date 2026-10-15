@@ -26,9 +26,80 @@ function recordCard(activity) {
 }
 export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit'}).format(date);
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));
+export const replacementTargets = {Chain:5000, Cassette:10000, Tyre:5000, Chainrings:30000};
+export const isDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10) === value;
+const isDistance = value => value === null || typeof value === 'number' && Number.isFinite(value) && value >= 0;
+
+function validateGearLibrary(library) {
+  // null 只表示尚未完成首次装备同步；成功查询的空列表用 [] 表示。
+  if (library === null) return;
+  if (!Array.isArray(library)) throw new Error('装备库格式无效');
+  for (const bike of library) {
+    if (!bike || Object.keys(bike).sort().join(',') !== 'components,distanceKm,name,type' || bike.type !== 'Bike' ||
+        typeof bike.name !== 'string' || !bike.name.trim() || !isDistance(bike.distanceKm) || !Array.isArray(bike.components)) throw new Error('自行车信息无效');
+    for (const part of bike.components) {
+      if (!part || Object.keys(part).sort().join(',') !== 'distanceKm,name,replacement,type' ||
+          typeof part.name !== 'string' || !part.name.trim() || typeof part.type !== 'string' || !part.type || !isDistance(part.distanceKm)) throw new Error('配件信息无效');
+      const replacement = part.replacement;
+      if (!Object.hasOwn(replacementTargets, part.type)) {
+        if (replacement !== null) throw new Error('普通配件不应包含更换提醒');
+        continue;
+      }
+      if (!replacement || Object.keys(replacement).sort().join(',') !== 'date,distanceKm,status' ||
+          !['available','missing-reminder','duplicate-reminder'].includes(replacement.status) ||
+          replacement.date !== null && !isDate(replacement.date) || !isDistance(replacement.distanceKm) ||
+          replacement.status !== 'available' && (replacement.date !== null || replacement.distanceKm !== null)) throw new Error('配件更换记录无效');
+    }
+  }
+}
+
+const gearTypes = {
+  Bike:'自行车', Chain:'链条', Cassette:'飞轮', Tyre:'外胎', Wheel:'车轮', Wheelset:'轮组', Tube:'内胎',
+  Frame:'车架', Fork:'前叉', Handlebar:'车把', Headset:'碗组', Saddle:'坐垫', Seatpost:'座管', Stem:'把立',
+  Crankset:'曲柄组', Chainrings:'牙盘', Drivetrain:'传动系统', Derailleur:'变速器', BottomBracket:'中轴',
+  Pedals:'脚踏', Lever:'手变', Cable:'线管', Brake:'刹车', BrakePads:'刹车片', Rotor:'碟片',
+  Hub:'花鼓', Axel:'车轴', Shock:'避震器', Trainer:'骑行台', PowerMeter:'功率计', Computer:'码表',
+  Light:'车灯', Battery:'电池', Cleats:'锁片', CyclingShoes:'锁鞋', Shoes:'鞋', Accessories:'附件',
+  Apparel:'服装', Equipment:'装备',
+};
+const gearType = part => part.type === 'Tyre'
+  ? part.name.startsWith('前胎') ? '前胎' : part.name.startsWith('后胎') ? '后胎' : '外胎'
+  : Object.hasOwn(gearTypes, part.type) ? gearTypes[part.type] : part.type;
+const kilometers = value => value.toLocaleString('zh-CN', {maximumFractionDigits:2});
+const gearDistance = value => value === null ? '未提供' : kilometers(value) + ' km';
+
+function componentCard(part, bikeName) {
+  const type = gearType(part);
+  const positionNote = part.type === 'Tyre' && type === '外胎' ? '<p class="gear-note">未标记前后位置</p>' : '';
+  const heading = `<div class="gear-part-heading"><span class="gear-type">${escapeHtml(type)}</span><h4>${escapeHtml(part.name)}</h4></div>`;
+  const total = `<p class="gear-note">累计里程 ${gearDistance(part.distanceKm)}</p>`;
+  if (part.replacement === null) return `<article class="gear-part">${heading}${total}</article>`;
+  const {status, date, distanceKm} = part.replacement;
+  const target = replacementTargets[part.type];
+  const warning = status === 'missing-reminder' ? '未设置更换提醒' : status === 'duplicate-reminder' ? '“更换”提醒重名，请保留一个' : null;
+  const state = distanceKm === null ? 'unknown' : distanceKm >= target ? 'due' : distanceKm >= target * .8 ? 'soon' : 'normal';
+  const label = warning ?? (state === 'unknown' ? '更换后里程未提供' : state === 'due' ? '建议更换' : state === 'soon' ? '即将到期' : '使用中');
+  const remaining = distanceKm === null ? '目标 ' + kilometers(target) + ' km'
+    : distanceKm > target ? '已超出 ' + gearDistance(distanceKm - target) : '剩余 ' + gearDistance(target - distanceKm);
+  const progress = distanceKm === null ? '' : `<div class="gear-progress" role="progressbar" aria-label="${escapeHtml(bikeName + ' · ' + type + ' · ' + part.name + '更换里程')}" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(distanceKm,target)}" aria-valuetext="已使用 ${gearDistance(distanceKm)}，目标 ${kilometers(target)} km，${remaining}"><span style="width:${Math.min(distanceKm / target * 100,100)}%"></span></div>`;
+  return `<article class="gear-part gear-part-tracked" data-state="${state}">${heading}
+    <p class="gear-replaced">最近更换 ${date === null ? '<span>未记录</span>' : '<time datetime="' + date + '">' + date.replaceAll('-','.') + '</time>'}</p>
+    <p class="gear-used"><strong>${gearDistance(distanceKm)}</strong><span> / ${kilometers(target)} km</span></p>
+    ${progress}<div class="gear-progress-caption"><span>${remaining}</span>${distanceKm === null ? '' : '<span>' + Math.floor(distanceKm / target * 100) + '%</span>'}</div>
+    <p class="gear-state">${label}</p>${positionNote}${total}</article>`;
+}
+
+export function renderGearLibrary(library) {
+  validateGearLibrary(library);
+  if (library === null) return '<p class="gear-empty">装备尚未同步。完成 Intervals.icu 装备同步后，将在这里显示自行车和配件使用情况。</p>';
+  if (!library.length) return '<p class="gear-empty">还没有在用的自行车。在 Intervals.icu 添加自行车并关联配件后，会随每日同步显示。</p>';
+  return library.map(bike => `<article class="gear-bike"><div class="gear-bike-heading"><div><span class="gear-type">自行车</span><h3>${escapeHtml(bike.name)}</h3></div><p><span>累计使用</span><strong>${gearDistance(bike.distanceKm)}</strong></p></div>
+    ${bike.components.length ? '<div class="gear-parts">' + bike.components.map(part => componentCard(part,bike.name)).join('') + '</div>' : '<p class="gear-note">尚未关联在用配件。</p>'}</article>`).join('');
+}
+
 export function validateData(data) {
-  const isDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10) === value;
-  if (!data || Object.keys(data).sort().join(',') !== 'activities,period,syncedAt,unavailableActivities' || !isDate(data.period?.start) || !isDate(data.period?.end) || Object.keys(data.period).sort().join(',') !== 'end,start' || data.period.start > data.period.end || !Array.isArray(data.activities) || typeof data.syncedAt !== 'string' || !/^\d{4}-\d{2}-\d{2} [0-2]\d:[0-5]\d:[0-5]\d \+08:00$/.test(data.syncedAt) || !Number.isFinite(syncTimestamp(data.syncedAt))) throw new Error('运动数据格式无效');
+  if (!data || Object.keys(data).sort().join(',') !== 'activities,gearLibrary,period,syncedAt,unavailableActivities' || !isDate(data.period?.start) || !isDate(data.period?.end) || Object.keys(data.period).sort().join(',') !== 'end,start' || data.period.start > data.period.end || !Array.isArray(data.activities) || typeof data.syncedAt !== 'string' || !/^\d{4}-\d{2}-\d{2} [0-2]\d:[0-5]\d:[0-5]\d \+08:00$/.test(data.syncedAt) || !Number.isFinite(syncTimestamp(data.syncedAt))) throw new Error('运动数据格式无效');
+  validateGearLibrary(data.gearLibrary);
   if (!Array.isArray(data.unavailableActivities) || data.unavailableActivities.some(a => !a || Object.keys(a).join(',') !== 'date' || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end)) throw new Error('无法读取的活动日期无效');
   for (const a of data.activities) {
     if (!a || Object.keys(a).sort().join(',') !== 'date,distanceKm,duration,sport,trainingLoad' || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !a.sport || typeof a.duration !== 'string' || !/^\d+(?::[0-5]\d){1,2}$/.test(a.duration) || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0)) throw new Error('运动记录格式无效');

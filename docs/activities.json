@@ -3,7 +3,7 @@
     "start": "2025-10-16",
     "end": "2026-10-15"
   },
-  "syncedAt": "2026-10-15 12:08:01 +08:00",
+  "syncedAt": "2026-10-15 14:46:29 +08:00",
   "activities": [
     {
       "date": "2026-10-14",
@@ -1780,6 +1780,139 @@
   "unavailableActivities": [
     {
       "date": "2026-03-25"
+    }
+  ],
+  "gearLibrary": [
+    {
+      "name": "TCR Pro Max",
+      "type": "Bike",
+      "distanceKm": 10138.33,
+      "components": [
+        {
+          "name": "TCR 链条",
+          "type": "Chain",
+          "distanceKm": 3064.059,
+          "replacement": {
+            "status": "available",
+            "date": "2025-10-07",
+            "distanceKm": 3064.059
+          }
+        },
+        {
+          "name": "TCR 飞轮",
+          "type": "Cassette",
+          "distanceKm": 3064.059,
+          "replacement": {
+            "status": "available",
+            "date": "2025-10-07",
+            "distanceKm": 3064.059
+          }
+        },
+        {
+          "name": "前胎 · TCR",
+          "type": "Tyre",
+          "distanceKm": 1498.7641,
+          "replacement": {
+            "status": "available",
+            "date": "2026-06-10",
+            "distanceKm": 1498.7641
+          }
+        },
+        {
+          "name": "后胎 · TCR",
+          "type": "Tyre",
+          "distanceKm": 1498.7641,
+          "replacement": {
+            "status": "available",
+            "date": "2026-06-10",
+            "distanceKm": 1498.7641
+          }
+        },
+        {
+          "name": "TCR 牙盘",
+          "type": "Chainrings",
+          "distanceKm": 10138.33,
+          "replacement": {
+            "status": "available",
+            "date": "2024-03-30",
+            "distanceKm": 10138.33
+          }
+        }
+      ]
+    },
+    {
+      "name": "CYCPLUS R200",
+      "type": "Bike",
+      "distanceKm": 4871.33,
+      "components": [
+        {
+          "name": "青野链条",
+          "type": "Chain",
+          "distanceKm": 4896.9425,
+          "replacement": {
+            "status": "available",
+            "date": "2025-10-12",
+            "distanceKm": 4896.9425
+          }
+        },
+        {
+          "name": "青野牙盘",
+          "type": "Chainrings",
+          "distanceKm": 4896.94,
+          "replacement": {
+            "status": "available",
+            "date": "2025-10-12",
+            "distanceKm": 4896.94
+          }
+        }
+      ]
+    },
+    {
+      "name": "青野",
+      "type": "Bike",
+      "distanceKm": 96.11,
+      "components": [
+        {
+          "name": "前胎 · 青野",
+          "type": "Tyre",
+          "distanceKm": 96.113,
+          "replacement": {
+            "status": "available",
+            "date": "2025-11-01",
+            "distanceKm": 96.113
+          }
+        },
+        {
+          "name": "后胎 · 青野",
+          "type": "Tyre",
+          "distanceKm": 96.113,
+          "replacement": {
+            "status": "available",
+            "date": "2025-11-01",
+            "distanceKm": 96.113
+          }
+        },
+        {
+          "name": "青野链条",
+          "type": "Chain",
+          "distanceKm": 4896.9425,
+          "replacement": {
+            "status": "available",
+            "date": "2025-10-12",
+            "distanceKm": 4896.9425
+          }
+        },
+        {
+          "name": "青野牙盘",
+          "type": "Chainrings",
+          "distanceKm": 4896.94,
+          "replacement": {
+            "status": "available",
+            "date": "2025-10-12",
+            "distanceKm": 4896.94
+          }
+        }
+      ]
     }
   ]
 }

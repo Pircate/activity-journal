@@ -1,6 +1,6 @@
 import {writeFile, rename, unlink} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
-import {beijingDate, validateData, shiftDate, formatTime} from '../docs/journal.mjs';
+import {beijingDate, validateData, shiftDate, formatTime, replacementTargets, isDate} from '../docs/journal.mjs';
 
 const sports = {
   Ride:'骑行', VirtualRide:'虚拟骑行', EBikeRide:'电助力骑行', EMountainBikeRide:'电助力山地骑行',
@@ -43,6 +43,70 @@ export function normalizeActivities(records, period) {
     .sort((a,b) => b.date.localeCompare(a.date));
 }
 
+export function normalizeGear(records) {
+  if (!Array.isArray(records)) throw new Error('Intervals.icu 返回的装备列表无效');
+  const byId = new Map();
+  const distanceKm = value => {
+    if (value == null) return null;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new Error('装备里程无效');
+    return value / 1000;
+  };
+  for (const gear of records) {
+    if (!gear || typeof gear.id !== 'string' || !gear.id || byId.has(gear.id) ||
+        typeof gear.name !== 'string' || !gear.name.trim() || typeof gear.type !== 'string' || !gear.type ||
+        gear.component != null && typeof gear.component !== 'boolean' ||
+        gear.component_ids != null && (!Array.isArray(gear.component_ids) || gear.component_ids.some(id => typeof id !== 'string' || !id)) ||
+        gear.retired != null && typeof gear.retired !== 'string' || gear.reminders != null && !Array.isArray(gear.reminders)) throw new Error('装备信息无效或 ID 重复');
+    byId.set(gear.id, gear);
+  }
+  const replacementFor = gear => {
+    if (!Object.hasOwn(replacementTargets, gear.type)) return null;
+    const reminders = (gear.reminders ?? []).filter(reminder => reminder?.name === '更换');
+    if (reminders.length !== 1) return {status:reminders.length ? 'duplicate-reminder' : 'missing-reminder', date:null, distanceKm:null};
+    const reminder = reminders[0];
+    let date = null;
+    if (reminder.last_reset != null) {
+      // 提醒的时间必须带时区，避免运行机器的时区影响最近更换日期。
+      if (typeof reminder.last_reset !== 'string' || !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(reminder.last_reset) ||
+          !Number.isFinite(Date.parse(reminder.last_reset)) || !isDate(reminder.last_reset.slice(0,10))) throw new Error('更换提醒重置时间无效');
+      date = beijingDate(new Date(reminder.last_reset));
+    }
+    // 平台不允许回填 last_reset。历史补录绑定初始提醒和计数基准，后续重置后自动失效。
+    const prefix = '运动装备库更换记录：';
+    const historical = (gear.notes ?? '').split('\n').filter(line => line.startsWith(prefix));
+    if (historical.length > 1) throw new Error('配件历史更换记录重复');
+    if (historical.length) {
+      let entry;
+      try { entry = JSON.parse(historical[0].slice(prefix.length)); }
+      catch { throw new Error('配件历史更换记录无效'); }
+      if (!entry || entry.date !== null && !isDate(entry.date) || !Number.isInteger(entry.reminderId) || typeof entry.resetAt !== 'string' ||
+          !Number.isFinite(Date.parse(entry.resetAt)) || !Array.isArray(entry.baseline) || entry.baseline.length !== 3 ||
+          entry.baseline.some(n => typeof n !== 'number' || !Number.isFinite(n) || n < 0)) throw new Error('配件历史更换记录无效');
+      const baseline = [reminder.starting_distance ?? 0, reminder.starting_time ?? 0, reminder.starting_activities ?? 0];
+      if (entry.reminderId === reminder.id && Date.parse(entry.resetAt) === Date.parse(reminder.last_reset) &&
+          entry.baseline.every((n,i) => n === baseline[i])) date = entry.date;
+    }
+    return {status:'available', date, distanceKm:distanceKm(reminder.distance_used)};
+  };
+  return records.filter(gear => gear.type === 'Bike' && !gear.component && !gear.retired).map(bike => {
+    const components = [];
+    const visited = new Set();
+    const visit = (id, ancestors) => {
+      if (ancestors.has(id)) throw new Error('装备配件关联存在循环');
+      if (visited.has(id)) return;
+      const part = byId.get(id);
+      if (!part) throw new Error('装备关联的配件缺失');
+      if (part.retired) return;
+      visited.add(id);
+      if (id !== bike.id) components.push({name:part.name, type:part.type, distanceKm:distanceKm(part.distance), replacement:replacementFor(part)});
+      const path = new Set([...ancestors,id]);
+      for (const childId of part.component_ids ?? []) visit(childId,path);
+    };
+    visit(bike.id,new Set());
+    return {name:bike.name, type:'Bike', distanceKm:distanceKm(bike.distance), components};
+  });
+}
+
 export async function fetchYear({env = process.env, fetchImpl = fetch, now = new Date()} = {}) {
   const authorization = env.INTERVALS_ICU_TOKEN ? `Bearer ${env.INTERVALS_ICU_TOKEN}`
     : env.INTERVALS_ICU_API_KEY ? 'Basic ' + Buffer.from('API_KEY:' + env.INTERVALS_ICU_API_KEY).toString('base64') : null;
@@ -65,7 +129,8 @@ export async function fetchYear({env = process.env, fetchImpl = fetch, now = new
   const records = await get(`athlete/${encodeURIComponent(athlete.id)}/activities?${params}`);
   if (!Array.isArray(records) || records.length >= 10000) throw new Error('活动列表无效或达到查询上限，无法确认完整性，未更新数据');
   if (records.some(a => !a?.id) || new Set(records.map(a => a.id)).size !== records.length) throw new Error('活动 ID 缺失或重复，未更新数据');
-  const syncedAt = new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'}).format(new Date()) + ' +08:00';
+  const gearLibrary = normalizeGear(await get(`athlete/${encodeURIComponent(athlete.id)}/gear`));
+  const syncedAt = new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'}).format(now) + ' +08:00';
   const unavailable = records.filter(a => a.source === 'STRAVA' && !a.type && !a.start_date && a._note === 'STRAVA activities are not available via the API');
   const unavailableActivities = unavailable.map(a => ({date:a.start_date_local?.slice(0,10)}))
     .filter(a => a.date >= period.start && a.date <= period.end);
@@ -73,7 +138,7 @@ export async function fetchYear({env = process.env, fetchImpl = fetch, now = new
   for (const a of unavailable) {
     if (!/^\d{4}-\d{2}-\d{2}T/.test(a.start_date_local ?? '')) throw new Error('无法读取的活动缺少有效日期');
   }
-  const data = {period, syncedAt, activities:normalizeActivities(records.filter(a => !unavailable.includes(a)), period), unavailableActivities};
+  const data = {period, syncedAt, activities:normalizeActivities(records.filter(a => !unavailable.includes(a)), period), unavailableActivities, gearLibrary};
   validateData(data);
   return data;
 }
@@ -89,5 +154,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   } finally {
     await unlink(temporary).catch(error => {if (error.code !== 'ENOENT') throw error;});
   }
-  console.log(JSON.stringify({period:data.period, records:data.activities.length, unavailable:data.unavailableActivities.length, source:'Intervals.icu'}));
+  console.log(JSON.stringify({period:data.period, records:data.activities.length, unavailable:data.unavailableActivities.length, bikes:data.gearLibrary.length, source:'Intervals.icu'}));
 }
