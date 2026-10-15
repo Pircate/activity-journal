@@ -2,10 +2,11 @@ import {readFile,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 const data=JSON.parse(await readFile(new URL('../docs/activities.json',import.meta.url),'utf8'));
-import {createJournal, formatTime as time, escapeHtml as esc, validateData, renderGearLibrary} from '../docs/journal.mjs';
+import {createJournal, formatTime as time, escapeHtml as esc, validateData, renderGearLibrary, renderDayRecords} from '../docs/journal.mjs';
 validateData(data);
 const {activities,recent,period,syncedAt,daily,distance,duration,activeDays,missingDistance,missingLoad,unavailableCount,sports,columns,cells,monthLabels,cards,initialDate}=createJournal(data);
 const pretty=d=>d.replaceAll('-','.');
+const initialRecords=daily.find(day=>day.date===initialDate).records;
 assert.equal(daily.length,365);
 assert.equal(Math.round(daily.reduce((s,d)=>s+d.distanceKm,0)*100),Math.round(distance*100));
 // 用内容哈希做缓存失效：改样式或脚本后，浏览器一定会重新拉取。
@@ -26,6 +27,7 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <div class="heatmap-card"><div class="heatmap-scroll" tabindex="0" aria-label="全年活动热力图，可横向滚动"><div class="heatmap" style="--columns:${columns}"><div class="month-labels" aria-hidden="true">${monthLabels}</div><div class="weekday-labels" aria-hidden="true"><span>周一</span><span></span><span>周三</span><span></span><span>周五</span><span></span><span></span></div><div class="day-grid" role="group" aria-label="全年每日活动，使用方向键选择日期">${cells}</div><div class="weekday-labels weekday-labels-right" aria-hidden="true"><span></span><span>周二</span><span></span><span>周四</span><span></span><span>周六</span><span></span></div></div></div>
 <div class="heatmap-bottom"><p id="metric-explanation">颜色越亮，代表当天累计距离越多。</p><div class="heatmap-scale" aria-label="活动强度从少到多"><span>少</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i><span>多</span></div></div><p class="mobile-hint">可横向滑动查看全年记录。</p>
 <div class="day-inspector"><label for="selected-date">查看某一天</label><input id="selected-date" type="date" min="${period.start}" max="${period.end}" value="${initialDate}"><p id="day-description" aria-live="polite"></p></div>
+<div id="day-records"${initialRecords.length ? '' : ' hidden'}>${renderDayRecords(initialRecords)}</div>
 <p class="chart-caption">每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供。负荷为 Intervals.icu 的活动训练负荷。${missingLoad?' '+missingLoad+' 次运动未提供负荷，统计时保留缺失标记。':''}${unavailableCount?' 另有 '+unavailableCount+' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。':''}</p><noscript><p>启用 JavaScript 后可查看热力图和切换指标；上方为最近一周的运动记录。</p></noscript></div></section>
 <section class="gear-section" id="gear" aria-labelledby="gear-title"><div class="section-head"><h2 id="gear-title"><span class="section-number">03</span>运动装备库</h2><p>累计使用 · 独立于年度统计</p></div>
 <div class="gear-library">${renderGearLibrary(data.gearLibrary)}</div>

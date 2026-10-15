@@ -1,10 +1,11 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
-const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
 const dateInput = document.getElementById('selected-date');
 const description = document.getElementById('day-description');
+const dayRecords = document.getElementById('day-records');
 const explanation = document.getElementById('metric-explanation');
 const metrics = {
   distanceKm: { label: '距离', thresholds: [10, 30, 60], format: value => value.toFixed(2) + ' 公里', missing: 'missingDistance' },
@@ -32,7 +33,10 @@ function selectDay(date, focus = false) {
     button.tabIndex = active ? 0 : -1;
     button.setAttribute('aria-current', String(active));
   }
-  description.textContent = sentence(byDate.get(date));
+  const day = byDate.get(date);
+  description.textContent = sentence(day);
+  dayRecords.innerHTML = renderDayRecords(day.records);
+  dayRecords.hidden = day.records.length === 0;
   if (focus) buttonByDate.get(date).focus();
 }
 function render() {

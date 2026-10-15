@@ -4,7 +4,7 @@ import {mkdtemp, writeFile, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fetchYear, normalizeActivities, readConfig} from './update-data.mjs';
-import {createJournal, validateData} from '../docs/journal.mjs';
+import {createJournal, validateData, renderDayRecords} from '../docs/journal.mjs';
 const period = {start:'2025-10-16', end:'2026-10-15'};
 const record = {id:'i1', type:'Ride', start_date:'2026-10-14T16:30:00', moving_time:3601, distance:20070, icu_training_load:0};
 
@@ -32,6 +32,34 @@ test('活动链接精确区分同日运动，兼容旧快照并拒绝非平台�
   validateData({...data, activities:[legacy]});
   assert.doesNotMatch(createJournal({...data, activities:[legacy]}).cards, /record-link/);
   for (const id of ['../settings', {}, 'i1" onclick="alert(1)', null]) assert.throws(() => normalizeActivities([{...record, id}], period));
+});
+
+test('全年日期保留当天全部记录及各自链接，空日期和不可读取记录不生成卡片', () => {
+  const activities = normalizeActivities([
+    {...record, start_date:'2026-06-01T02:00:00Z'},
+    {...record, id:'i2', start_date:'2026-06-01T10:00:00Z', distance:null, icu_training_load:null},
+    {...record, id:'i3'},
+  ], period);
+  const data = {period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[{date:'2026-06-02'}], gearLibrary:[]};
+  const journal = createJournal(data);
+  const day = journal.daily.find(day => day.date === '2026-06-01');
+  assert.equal(day.count, 2);
+  assert.deepEqual(day.records, activities.filter(activity => activity.date === day.date));
+  assert.equal(journal.recent.length, 1);
+  const cards = renderDayRecords(day.records);
+  for (const id of ['i1', 'i2']) assert.ok(cards.includes(`href="https://intervals.icu/activities/${id}"`));
+  assert.doesNotMatch(cards, /activities\/i3/);
+  assert.match(cards, /未提供/);
+  assert.match(cards, /<table class="activity-table">/);
+  assert.equal((cards.match(/<tr class="activity-row/g) ?? []).length, 2);
+  assert.equal(renderDayRecords([]), '');
+  const {activityUrl, ...legacy} = day.records[0];
+  assert.doesNotMatch(renderDayRecords([legacy]), /activity-link/);
+  assert.match(renderDayRecords([{...legacy, sport:'<script>骑行</script>'}]), /&lt;script&gt;/);
+  for (const date of ['2026-06-02', '2026-06-03']) assert.deepEqual(journal.daily.find(day => day.date === date).records, []);
+  const pending = createJournal(data, '2026-10-16').daily.at(-1);
+  assert.equal(pending.pending, true);
+  assert.deepEqual(pending.records, []);
 });
 
 test('拒绝 Strava 空壳、重复 ID、缺失时长与无效数值', () => {
