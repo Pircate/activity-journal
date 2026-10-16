@@ -3,6 +3,7 @@ const version = new URL(import.meta.url).searchParams.get('v');
 const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, availableYears} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
+let renderedData, renderedDate, renderedGear;
 const dateInput = document.getElementById('selected-date');
 const description = document.getElementById('day-description');
 const dayRecords = document.getElementById('day-records');
@@ -95,7 +96,9 @@ function renderJournal() {
   yearSelect.innerHTML = renderYearOptions(data, today);
   yearSelect.value = range;
   const journal = createJournal(data, today, range);
-  document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
+  const snapshot = JSON.stringify(data);
+  const updateRecent = snapshot !== renderedData || today !== renderedDate;
+  if (updateRecent) document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
   const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');
   const rangeLabel = range === 'recent' ? '最近一年' : range + ' 年';
@@ -117,9 +120,14 @@ function renderJournal() {
   grid.innerHTML = journal.cells;
   document.querySelector('.heatmap').style.setProperty('--columns', journal.columns);
   document.querySelector('.month-labels').innerHTML = journal.monthLabels;
-  document.querySelector('.records-grid').innerHTML = journal.cards;
-  document.querySelector('.gear-library').innerHTML = renderGearLibrary(data.gearLibrary);
-  document.querySelector('.records-section .section-head p').textContent = recent.length ? '共 ' + recent.length + ' 条 · 最新记录在前' : '最近一周还没有运动记录';
+  if (updateRecent) document.querySelector('.records-grid').innerHTML = journal.cards;
+  // 装备独立于年度统计，内容未变化时保留节点、展开状态和焦点。
+  const gear = renderGearLibrary(data.gearLibrary);
+  if (gear !== renderedGear) {
+    document.querySelector('.gear-library').innerHTML = gear;
+    renderedGear = gear;
+  }
+  if (updateRecent) document.querySelector('.records-section .section-head p').textContent = recent.length ? '共 ' + recent.length + ' 条 · 最新记录在前' : '最近一周还没有运动记录';
   document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。负荷为 Intervals.icu 的活动训练负荷。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '') + (unavailableCount ? ' 另有 ' + unavailableCount + ' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。' : '');
   dateInput.min = period.start;
   dateInput.max = period.end;
@@ -133,6 +141,8 @@ function renderJournal() {
   syncTime.dateTime = data.syncedAt.replace(' ', 'T').replace(' +08:00', '+08:00');
   render();
   if (focusedDate) buttonByDate.get(focusedDate)?.focus({preventScroll:true});
+  renderedData = snapshot;
+  renderedDate = today;
 }
 
 const status = document.getElementById('sync-status');
@@ -142,19 +152,19 @@ async function refreshData() {
   refreshing = true;
   status.textContent = '正在读取最新数据…';
   try {
-    const response = await fetch(new URL('activities.json', import.meta.url), {cache:'no-store', signal:AbortSignal.timeout(15000)});
+    const response = await fetch(new URL('activities.json', import.meta.url), {cache:'no-cache', signal:AbortSignal.timeout(15000)});
     if (!response.ok) throw new Error('数据请求失败');
     const latest = await response.json();
     validateData(latest);
     if (syncTimestamp(latest.syncedAt) < syncTimestamp(data.syncedAt)) throw new Error('服务器数据尚未更新');
     data = latest;
-    renderJournal();
     const age = Date.now() - syncTimestamp(data.syncedAt);
     const upToDate = data.period.end >= beijingDate() && age <= 26 * 3600000;
     status.textContent = upToDate ? '已读取最新已同步数据' : '显示最近成功同步的数据，每天 22:00 随运动同步任务更新。';
   } catch {
     status.textContent = '暂时无法读取最新数据，当前显示最近成功同步的记录。';
   } finally {
+    if (JSON.stringify(data) !== renderedData || beijingDate() !== renderedDate) renderJournal();
     refreshing = false;
   }
 }

@@ -7,7 +7,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   const initial = {
     period:{start:'2025-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00',
     activities:[{date:'2026-10-09', sport:'骑行', distanceKm:20, duration:'1:00:00', trainingLoad:30}],
-    unavailableActivities:[], gearLibrary:[],
+    unavailableActivities:[], gearLibrary:[{name:'公路车', type:'Bike', distanceKm:100, components:[]}, {name:'通勤车', type:'Bike', distanceKm:200, components:[]}],
   };
   let latest = structuredClone(initial);
   let respond = async () => ({ok:true, json:async () => structuredClone(latest)});
@@ -140,4 +140,40 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   windowEvents.get('pageshow')({persisted:true});
   await setImmediate();
   assert.equal(requests.length, count + 3, '返回前台和 bfcache 恢复继续检查');
+
+  await t.test('切换年度仅更新年度内容，保留装备节点及区域内焦点', () => {
+    const year = element('#activity-year');
+    const gearWrites = gear.writes;
+    const recent = element('.records-grid');
+    const recentWrites = recent.writes;
+    const summaryWrites = element('.recent-summary').writes;
+    const summary = element('装备标题');
+    summary.focus();
+    for (const range of ['2025', '2026', 'recent']) {
+      const previousGridWrites = grid.writes;
+      year.value = range;
+      year.events.get('change')();
+      assert.equal(gear.writes, gearWrites, '不替换装备节点，保留原有展开状态');
+      assert.equal(recent.writes, recentWrites, '年度筛选不重建最近一周记录');
+      assert.equal(element('.recent-summary').writes, summaryWrites, '年度筛选不重建最近七天摘要');
+      assert.equal(document.activeElement, summary, '不移除装备区域内的焦点');
+      assert.equal(grid.writes, previousGridWrites + 1, '年度热力图正常更新');
+      assert.equal(element('.overview-range').textContent, range === 'recent' ? '最近一年' : range + ' 年');
+      assert.equal(element('#selected-date').min, range === 'recent' ? '2025-10-19' : range + '-01-01');
+      assert.equal(element('#selected-date').max, range === 'recent' ? '2026-10-18' : range + '-12-31');
+      assert.match(groups.get('.metric-value')[0].innerHTML, range === '2025' ? /0\.00/ : /25\.00/);
+      assert.match(element('#day-description').textContent, range === '2025' ? /2025-12-31/ : /2026-10-09/);
+      assert.equal(element('#day-records').hidden, range === '2025');
+    }
+  });
+
+  await t.test('装备内容变化时正常更新装备区域', async () => {
+    const gearWrites = gear.writes;
+    latest.gearLibrary[0].distanceKm = 123;
+    respond = async () => ({ok:true, json:async () => structuredClone(latest)});
+    await refresh();
+    assert.equal(gear.writes, gearWrites + 1);
+    assert.match(gear.innerHTML, /<strong>123 km<\/strong>/);
+    assert.match(gear.innerHTML, /公路车/);
+  });
 });
