@@ -1,12 +1,11 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml, formatTime, beijingDate, renderDayRecords, renderYearOptions, availableYears, dayStateLabels, dayStateNotes} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml, formatTime, beijingDate, renderYearOptions, availableYears, dayStateLabels, dayStateNotes} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const shift = (date, days) => new Date(Date.parse(date + 'T00:00:00Z') + days * 86400000).toISOString().slice(0, 10);
 const monthStart = date => date.slice(0, 7) + '-01';
 const nextMonth = date => new Date(Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)), 1)).toISOString().slice(0, 10);
 const weekStart = date => shift(date, -((new Date(date + 'T00:00:00Z').getUTCDay() + 6) % 7));
 const daysBetween = (start, end) => Math.round((Date.parse(end) - Date.parse(start)) / 86400000);
 const pretty = date => date.replaceAll('-', '.');
-const pageSize = 20;
 const metrics = {
   distanceKm:{label:'距离', unit:'公里', format:value => value.toLocaleString('zh-CN', {maximumFractionDigits:2}), missing:'missingDistance'},
   durationSeconds:{label:'时长', unit:'', format:formatTime},
@@ -78,7 +77,7 @@ function notes(period) {
   return result.length ? result.join(' · ') + '；合计仅含可读取指标。' : '';
 }
 
-export function renderTrendContent(periods, {mode = 'month', metric = 'distanceKm', selected = periods.at(-1)?.start, page = 1} = {}) {
+export function renderTrendContent(periods, {mode = 'month', metric = 'distanceKm', selected = periods.at(-1)?.start} = {}) {
   if (!periods.length) return '<p class="history-empty">此范围尚无可查看的周期。</p>';
   const active = periods.find(period => period.start === selected) ?? periods.at(-1);
   const maximum = Math.max(1, ...periods.map(period => period[metric] ?? 0));
@@ -89,19 +88,15 @@ export function renderTrendContent(periods, {mode = 'month', metric = 'distanceK
     const description = `${pretty(period.start)} — ${pretty(period.end)}，${metrics[metric].label} ${value}${incomplete ? '，数据不完整' : ''}${period.ongoing ? '，周期进行中' : ''}`;
     return `<button type="button" class="trend-bar${incomplete ? ' incomplete' : ''}" data-period="${period.start}" aria-pressed="${period.start === active.start}" aria-label="${description}" title="${description}"><span class="trend-bar-value">${unknownTexts.has(value) ? '—' : metric === 'durationSeconds' ? (period[metric] / 3600).toFixed(1) : metrics[metric].format(period[metric])}</span><span class="trend-bar-track"><span style="height:${Math.max(2, (period[metric] ?? 0) / maximum * 100).toFixed(2)}%"></span></span><span class="trend-bar-label">${label}</span></button>`;
   }).join('');
-  const pages = Math.max(1, Math.ceil(active.count / pageSize));
-  const currentPage = Math.min(page, pages);
   const heading = mode === 'week' ? '本周' : '本月';
   const previousLabel = mode === 'week' ? '上周' : '上月';
   const comparedLabel = previousLabel + (active.ongoing ? '同期' : '');
-  return `<p class="trend-guide">点击柱条查看活动 · ${mode === 'week' ? '周一至周日' : '自然月'}汇总 · ${metrics[metric].label}${metric === 'durationSeconds' ? '（柱图单位：小时）' : metrics[metric].unit ? '（' + metrics[metric].unit + '）' : ''} · 斜线表示数据不完整 · 横向滑动查看全部周期</p>
+  return `<p class="trend-guide">点击柱条查看周期统计 · ${mode === 'week' ? '周一至周日' : '自然月'}汇总 · ${metrics[metric].label}${metric === 'durationSeconds' ? '（柱图单位：小时）' : metrics[metric].unit ? '（' + metrics[metric].unit + '）' : ''} · 斜线表示数据不完整 · 横向滑动查看全部周期</p>
     <div class="trend-scroll" tabindex="0" role="region" aria-label="${mode === 'week' ? '每周' : '每月'}${metrics[metric].label}趋势，可横向滚动"><div class="trend-bars" style="--periods:${periods.length}">${bars}</div></div>
     <div class="trend-selection" aria-live="polite"><div class="trend-period"><h3>${pretty(active.start)} — ${pretty(active.end)}</h3><span>${active.ongoing ? heading + '进行中 · 与' + comparedLabel + '比较' : '与' + previousLabel + '比较'}</span></div>
     <p class="trend-previous">${comparedLabel}：${pretty(active.previous.start)} — ${pretty(active.previous.end)}</p>
     <dl class="trend-stats">${Object.entries(metrics).map(([key, spec]) => `<div><dt>${spec.label}</dt><dd><span>${valueText(active, key)}</span><p>${comparedLabel} ${valueText(active.previous, key)}</p><p class="trend-change">${compareTrend(active, active.previous, key)}</p></dd></div>`).join('')}</dl>
-    ${notes(active) ? '<p class="trend-note">所选周期：' + notes(active) + '</p>' : ''}${notes(active.previous) ? '<p class="trend-note">比较周期：' + notes(active.previous) + '</p>' : ''}</div>
-    <div class="trend-records">${renderDayRecords(active.records.slice((currentPage - 1) * pageSize, currentPage * pageSize), '所选周期运动记录') || '<p class="history-empty">' + (active.pending || active.unavailable ? '此周期暂无可读取的运动记录。' : '此周期没有运动记录。') + '</p>'}</div>
-    ${pages > 1 ? `<nav class="trend-pagination" aria-label="周期活动分页"><button type="button" data-trend-direction="previous" data-trend-page="${currentPage - 1}"${currentPage === 1 ? ' disabled' : ''}>上一页</button><span>共 ${active.count} 条 · 第 ${currentPage} / ${pages} 页</span><button type="button" data-trend-direction="next" data-trend-page="${currentPage + 1}"${currentPage === pages ? ' disabled' : ''}>下一页</button></nav>` : ''}`;
+    ${notes(active) ? '<p class="trend-note">所选周期：' + notes(active) + '</p>' : ''}${notes(active.previous) ? '<p class="trend-note">比较周期：' + notes(active.previous) + '</p>' : ''}</div>`;
 }
 
 function renderSportOptions(data) {
@@ -121,7 +116,6 @@ export function initializeTrends(initialData) {
   let metric = 'distanceKm';
   let sport = '';
   let selected;
-  let page = 1;
   const root = document.getElementById('trend-content');
   const panel = document.querySelector('.trend-panel');
   const yearSelect = document.getElementById('trend-year');
@@ -131,42 +125,34 @@ export function initializeTrends(initialData) {
     const changedSelection = !periods.some(period => period.start === selected);
     if (changedSelection) {
       selected = periods.at(-1)?.start;
-      page = 1;
     }
-    page = Math.min(page, Math.max(1, Math.ceil((periods.find(period => period.start === selected)?.count ?? 0) / pageSize)));
     const focused = document.activeElement;
     const focusedPeriod = focused?.dataset?.period;
-    const focusedDirection = focused?.dataset?.trendDirection;
     const scroll = root.querySelector('.trend-scroll');
     const left = scroll?.scrollLeft;
-    root.innerHTML = renderTrendContent(periods, {mode, metric, selected, page});
+    root.innerHTML = renderTrendContent(periods, {mode, metric, selected});
     const nextScroll = root.querySelector('.trend-scroll');
     if (nextScroll) nextScroll.scrollLeft = changedSelection ? nextScroll.scrollWidth : left ?? nextScroll.scrollWidth;
     if (focusedPeriod) root.querySelector(`[data-period="${focusedPeriod}"]`)?.focus({preventScroll:true});
-    if (focusedDirection) (root.querySelector(`[data-trend-direction="${focusedDirection}"]:not(:disabled)`) ?? root.querySelector('.trend-pagination button:not(:disabled)'))?.focus({preventScroll:true});
   }
   panel.addEventListener('click', event => {
     const period = event.target.closest('[data-period]');
     const toggle = event.target.closest('[data-trend-mode]');
-    const paging = event.target.closest('[data-trend-page]');
-    if (period) { selected = period.dataset.period; page = 1; }
+    if (period) selected = period.dataset.period;
     else if (toggle) {
       const date = createTrends(data, range, mode, today).find(period => period.start === selected)?.end ?? today;
       mode = toggle.dataset.trendMode;
       selected = (mode === 'week' ? weekStart : monthStart)(date);
-      page = 1;
       for (const button of panel.querySelectorAll('[data-trend-mode]')) button.setAttribute('aria-pressed', String(button.dataset.trendMode === mode));
-    } else if (paging && !paging.disabled) page = Number(paging.dataset.trendPage);
-    else return;
+    } else return;
     render();
-    // 柱条和分页重绘后恢复键盘焦点。
+    // 柱条重绘后恢复键盘焦点。
     if (period) root.querySelector(`[data-period="${selected}"]`)?.focus({preventScroll:true});
     if (toggle) root.querySelector(`[data-period="${selected}"]`)?.scrollIntoView({block:'nearest', inline:'nearest'});
-    if (paging) root.querySelector('.trend-records')?.scrollIntoView({block:'nearest'});
   });
   document.getElementById('trend-metric').addEventListener('change', event => { metric = event.target.value; render(); });
-  yearSelect.addEventListener('change', () => { range = yearSelect.value; page = 1; render(); });
-  sportSelect.addEventListener('change', () => { sport = sportSelect.value; page = 1; render(); });
+  yearSelect.addEventListener('change', () => { range = yearSelect.value; render(); });
+  sportSelect.addEventListener('change', () => { sport = sportSelect.value; render(); });
   return (latest, nextToday) => {
     data = latest;
     today = nextToday;

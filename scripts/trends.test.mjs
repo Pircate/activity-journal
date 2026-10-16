@@ -107,7 +107,7 @@ test('最近一年显示相交的完整自然月，不输出未来周期；空�
   assert.equal(periods.length, 13);
   assert.equal(periods[0].start, '2025-10-01');
   assert.equal(periods.at(-1).end, '2026-10-16');
-  assert.match(renderTrendContent(periods), /此周期没有运动记录/);
+  assert.match(renderTrendContent(periods), /<span>0 次<\/span>/);
   const data = snapshot([]);
   data.period.start = '2026-01-01';
   const january = createTrends(data, '2026', 'month', '2026-10-16')[0];
@@ -115,17 +115,13 @@ test('最近一年显示相交的完整自然月，不输出未来周期；空�
   assert.equal(compareTrend(january, january.previous, 'count'), '数据不完整，暂不比较');
 });
 
-test('周期明细每页 20 条，保留真实链接和力量训练指标，缩页时夹紧页码', () => {
+test('趋势保留周期合计，不展示活动列表和分页', () => {
   const records = Array.from({length:45}, (_, i) => ({...activity('2026-01-02', i), activityUrl:'https://intervals.icu/activities/i' + i}));
   records[0] = {...records[0], sport:'力量训练', sets:12, averageHeartRate:131};
   const periods = createTrends(snapshot(records), '2026', 'month', '2026-10-16');
   const first = renderTrendContent(periods, {selected:'2026-01-01'});
-  assert.equal((first.match(/class="activity-row/g) ?? []).length, 20);
-  assert.match(first, /12<small>组/);
-  assert.match(first, /131<small>bpm/);
-  assert.match(first, /href="https:\/\/intervals.icu\/activities\/i0"/);
-  const last = renderTrendContent(periods, {selected:'2026-01-01', page:99});
-  assert.equal((last.match(/class="activity-row/g) ?? []).length, 5);
-  assert.match(last, /第 3 \/ 3 页/);
-  assert.doesNotMatch(last, /NaN|Infinity/);
+  assert.match(first, /<span>45 次<\/span>/);
+  assert.match(first, /<span>990 公里<\/span>/);
+  assert.doesNotMatch(first, /trend-records|trend-pagination|activity-row|data-trend-page|intervals\.icu\/activities/);
+  assert.doesNotMatch(first, /NaN|Infinity/);
 });

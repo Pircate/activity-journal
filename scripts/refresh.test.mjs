@@ -285,14 +285,14 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     year.events.get('change')();
     chooseTrend('[data-period]', {period:'2026-10-05'});
     assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
-    assert.match(trends.innerHTML, /25\.00<small>km/);
-    // 合法但该范围内没有记录的类型应呈现空明细，不回退到全部运动。
+    assert.match(trends.innerHTML, /<span>25 公里<\/span>/);
+    // 合法但该范围内没有记录的类型应呈现零合计，不回退到全部运动。
     latest.activities.push({...latest.activities[0], date:'2025-01-01', sport:'跑步', distanceKm:5, activityUrl:'https://intervals.icu/activities/i2'});
     await refresh();
     sport.value = '跑步';
     sport.events.get('change')();
-    assert.match(trends.innerHTML, /此周期没有运动记录/);
-    assert.doesNotMatch(trends.innerHTML, /25\.00<small>km/);
+    assert.match(trends.innerHTML, /<span>0 次<\/span>/);
+    assert.doesNotMatch(trends.innerHTML, /<span>25 公里<\/span>/);
     assert.match(sport.innerHTML, /value="跑步"/);
     sport.value = '';
     sport.events.get('change')();
