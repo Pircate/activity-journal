@@ -8,6 +8,7 @@ import {createJournal, validateData, renderDayRecords, availableYears, renderYea
 const period = {start:'2025-10-16', end:'2026-10-15'};
 const record = {id:'i1', type:'Ride', start_date:'2026-10-14T16:30:00', moving_time:3601, distance:20070, icu_training_load:0};
 
+
 test('北京时间边界、米到公里、零负荷、缺失值及同日多次活动', () => {
   const activities = normalizeActivities([record, {...record, id:'i2', distance:null, icu_training_load:null},
     {...record, id:'i3', start_date:'2025-10-15T15:59:59Z'},
@@ -102,7 +103,7 @@ test('受限 Strava 记录在日期上标注缺失，并排除在距离、时长
   let count = 0;
   const restricted = {id:'s1', source:'STRAVA', start_date_local:'2026-10-15T20:00:00', _note:'STRAVA activities are not available via the API'};
   const data = await fetchAllActivities({config:{INTERVALS_ICU_API_KEY:'test'}, now:new Date('2026-10-15T04:00:00Z'),
-    fetchImpl:async () => ({ok:true, json:async () => ++count === 1 ? {id:'i123'} : count === 2 ? [record, restricted] : []})});
+    fetchImpl:async url => ({ok:true, json:async () => ++count === 1 ? {id:'i123'} : count === 2 ? [record, restricted] : []})});
   validateData(data);
   assert.deepEqual(data.unavailableActivities, [{date:'2026-10-15'}]);
   const journal = createJournal(data);

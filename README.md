@@ -1,6 +1,10 @@
-# 我的运动记录
+# 波咖茶的运动日志
 
 使用 Intervals.icu 真实记录的中文运动日志：[访问网站](https://pircate.github.io/movement-journal/)。
+
+## 个人资料
+
+首屏展示「波咖茶」「安徽 · 合肥」及 [Strava 主页](https://www.strava.com/athletes/78720097)，资料保存在 `data/profile.json`，修改后运行构建脚本生效。页面标题与分享标题随名字生成。
 
 ## 页面内容
 

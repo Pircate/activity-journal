@@ -203,7 +203,8 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   for (const a of unavailable) {
     if (!/^\d{4}-\d{2}-\d{2}T/.test(a.start_date_local ?? '') || !isDate(a.start_date_local.slice(0,10))) throw new Error('无法读取的活动缺少有效日期');
   }
-  const data = {period, syncedAt, activities:normalizeActivities(records.filter(a => !unavailable.includes(a)), period, strengthSets), unavailableActivities, gearLibrary};
+  const activities = normalizeActivities(records.filter(a => !unavailable.includes(a)), period, strengthSets);
+  const data = {period, syncedAt, activities, unavailableActivities, gearLibrary};
   const firstDate = [...data.activities, ...unavailableActivities].reduce((first, a) => a.date < first ? a.date : first, shiftDate(end, -364));
   period.start = firstDate.slice(0,4) + '-01-01';
   validateData(data);

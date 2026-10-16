@@ -7,6 +7,9 @@ import {filterActivities, historyPageSize} from '../docs/history.mjs';
 import {renderCalendar} from '../docs/calendar.mjs';
 import {renderTrendPanel} from '../docs/trends.mjs';
 validateData(data);
+const profile=JSON.parse(await readFile(new URL('../data/profile.json',import.meta.url),'utf8'));
+if (Object.keys(profile).sort().join(',') !== 'location,name,stravaUrl' || ![profile.name,profile.location].every(value=>typeof value==='string' && value.trim()) || typeof profile.stravaUrl!=='string' || !/^https:\/\/www\.strava\.com\/athletes\/\d+$/.test(profile.stravaUrl)) throw new Error('个人资料格式无效');
+const siteTitle=profile.name+'的运动日志';
 const journal = createJournal(data);
 const {activities,recent,recentSummary,period,syncedAt,daily,distance,duration,activeDays,missingDistance,missingLoad,unavailableCount,sports,columns,cells,monthLabels,cards,initialDate}=journal;
 const historyUnavailable = data.unavailableActivities.length;
@@ -23,12 +26,13 @@ const assetVersion=createHash('sha256').update((await Promise.all(assetFiles.map
 const favicon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#fc4c02"/><path d="M6 22V16M12 22V10M18 22V6M24 22V13" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
 const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#131313">
-<meta name="description" content="最近一年的真实运动记录：${activities.length} 次运动，${distance.toFixed(2)} 公里。查看距离、时长与训练负荷的全年活动热力图。">
-<meta property="og:title" content="我的运动记录"><meta property="og:description" content="最近一年的运动累计与每日活动热力图。"><meta property="og:type" content="website">
-<title>我的运动记录 · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css?v=${assetVersion}"><script type="module" src="app.js?v=${assetVersion}"></script></head>
+<meta name="description" content="${esc(siteTitle)}，${esc(profile.location)}。查看近期运动与全年活动。">
+<meta property="og:title" content="${esc(siteTitle)}"><meta property="og:description" content="${esc(profile.location)} · 日常运动记录。"><meta property="og:type" content="website">
+<title>${esc(siteTitle)} · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css?v=${assetVersion}"><script type="module" src="app.js?v=${assetVersion}"></script></head>
 <body><a class="skip" href="#main">跳转到运动概览</a><div class="wrap">
-<header><a class="brand" href="#main" aria-label="我的运动记录，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>我的运动记录</a><nav aria-label="页面导航"><a href="#records">运动记录</a><a href="#rhythm">全年活动</a><a href="#gear">运动装备库</a></nav></header>
-<main id="main"><section class="hero" aria-labelledby="title"><p class="eyebrow">个人运动日志</p><h1 id="title">我的运动记录</h1><div class="recent-summary" aria-label="最近七天运动摘要">${recentSummary}</div></section>
+<header><a class="brand" href="#main" aria-label="${esc(siteTitle)}，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${esc(siteTitle)}</a><nav aria-label="页面导航"><a href="#records">运动记录</a><a href="#rhythm">全年活动</a><a href="#gear">运动装备库</a></nav></header>
+<main id="main"><section class="hero profile" aria-labelledby="title"><div class="profile-identity"><p class="eyebrow">个人运动日志</p><h1 id="title">${esc(profile.name)}</h1><div class="profile-meta"><p class="profile-location">${esc(profile.location)}</p><a class="strava-link" href="${esc(profile.stravaUrl)}" target="_blank" rel="noopener noreferrer">在 Strava 查看 <span aria-hidden="true">↗</span><span class="sr-only">（新标签页）</span></a></div></div></section>
+<div class="recent-summary" aria-label="最近七天运动摘要">${recentSummary}</div>
 <section class="records-section" id="records" aria-labelledby="records-title"><div class="section-head"><h2 id="records-title"><span class="section-number">01</span>最近一周的运动记录</h2><p>${recent.length?'共 '+recent.length+' 条 · 最新记录在前':'最近一周还没有运动记录'}</p></div><div class="records-grid">${cards}</div>
 <p class="records-note">卡片主指标为距离，力量训练为组数；副指标按运动类型显示配速、速度或平均心率。${trainingLoadNote}</p>
 <details class="history-panel" id="history"><summary class="history-heading"><span>查看全部历史记录</span><span><span id="history-total">${data.activities.length} 条活动</span><span class="history-toggle" aria-hidden="true">⌄</span></span></summary>

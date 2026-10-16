@@ -6,7 +6,7 @@ import {setImmediate} from 'node:timers/promises';
 test('刷新复用缓存、只在内容或北京时间日期改变时重绘，并保留失败兜底', async t => {
   const initial = {
     period:{start:'2025-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00',
-    activities:[{date:'2026-10-09', sport:'骑行', distanceKm:20, duration:'1:00:00', trainingLoad:30}],
+    activities:[{date:'2026-10-09', sport:'骑行', distanceKm:20, duration:'1:00:00', trainingLoad:30, activityUrl:'https://intervals.icu/activities/i1'}],
     unavailableActivities:[], gearLibrary:[{name:'公路车', type:'Bike', distanceKm:100, components:[]}, {name:'通勤车', type:'Bike', distanceKm:200, components:[]}],
   };
   let latest = structuredClone(initial);
@@ -51,6 +51,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   }));
   groups.get('[data-metric]').forEach((node, index) => node.dataset.metric = ['distanceKm','durationSeconds','trainingLoad'][index]);
   element('#journal-data').textContent = JSON.stringify(initial);
+  element('meta[property="og:title"]').content = '波咖茶的运动日志';
   const replacements = {document, window:{addEventListener:(name, callback) => windowEvents.set(name, callback)},
     matchMedia:() => ({matches:false}), setInterval:(callback, delay) => intervals.push({callback, delay})};
   for (const [name, value] of Object.entries(replacements)) {

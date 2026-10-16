@@ -7,6 +7,7 @@ const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + vers
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
 let renderedData, renderedDate, renderedGear;
+const siteTitle = document.querySelector('meta[property="og:title"]').content;
 const dateInput = document.getElementById('selected-date');
 const description = document.getElementById('day-description');
 const dayRecords = document.getElementById('day-records');
@@ -161,7 +162,7 @@ function renderJournal() {
   document.querySelector('.overview-range').textContent = rangeLabel;
   document.querySelector('.year-number').textContent = journal.daily.length;
   document.querySelector('.metrics').setAttribute('aria-label', rangeLabel + '运动概览');
-  document.title = '我的运动记录 · ' + rangeLabel;
+  document.title = siteTitle + ' · ' + rangeLabel;
   document.querySelector('.period').innerHTML = '<time datetime="' + period.start + '">' + pretty(period.start) + '</time> — <time datetime="' + period.end + '">' + pretty(period.end) + '</time>';
   document.getElementById('sport-filter').innerHTML = renderSportFilter(journal.sports, sport);
   document.getElementById('sport-filter-status').textContent = sport ? '已筛选：' + sport + ' · 该范围内 ' + activities.length + ' 条记录' : '点选类型筛选年度范围，次数为该范围全部记录';

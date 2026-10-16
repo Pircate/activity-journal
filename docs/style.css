@@ -227,3 +227,12 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 .legend-item:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:600px){.scope-note{padding:10px 12px}.legend-item{min-height:44px;padding:8px 12px;font-size:.8125rem}}
 @media print{.scope-note{background:white;color:#111}.legend-item[aria-pressed=true]{border-color:#111}}
+
+/* 个人名片 */
+.profile{padding:24px 0 20px}
+.profile h1{font-size:clamp(2rem,4vw,2.75rem);line-height:1.2}
+.profile-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;margin-top:8px}
+.profile-location{margin:0;color:var(--muted);font-size:.8125rem}
+.strava-link{display:inline-flex;align-items:center;gap:6px;min-height:28px;color:var(--accent-soft);font-size:.8125rem}
+.profile+.recent-summary{margin:0 0 18px}
+@media print{.strava-link{color:#111}}
