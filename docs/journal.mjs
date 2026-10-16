@@ -1,5 +1,32 @@
 export const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const formatTime = seconds => Math.floor(seconds / 3600) + ':' + String(Math.floor(seconds % 3600 / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+export const dayMetrics = {
+  distanceKm:{label:'距离', thresholds:[10, 30, 60], format:value => value.toFixed(2) + ' 公里', missing:'missingDistance'},
+  durationSeconds:{label:'时长', thresholds:[1800, 3600, 7200], format:formatTime},
+  trainingLoad:{label:'负荷', thresholds:[50, 150, 300], format:String, missing:'missingLoad'},
+};
+export function formatDayMetric(day, key) {
+  const spec = dayMetrics[key];
+  if (day.count === 0) return spec.format(0);
+  const missing = spec.missing && day[spec.missing];
+  if (day[key] === null || missing === day.count) return '未提供';
+  return spec.format(day[key]) + (missing ? '（' + missing + ' 次未提供）' : '');
+}
+export function describeDay(day) {
+  if (day.pending) return day.date + ' · 尚未同步该日期的运动记录';
+  return day.date + ' · ' + day.count + ' 次运动 · ' + formatDayMetric(day, 'distanceKm') + ' · ' + formatDayMetric(day, 'durationSeconds') + ' · 负荷 ' + formatDayMetric(day, 'trainingLoad') + (day.unavailable ? ' · 另有 ' + day.unavailable + ' 次运动详情无法读取（日期为平台当地日期），未计入统计' : '');
+}
+export function dayMetricState(day, key) {
+  const spec = dayMetrics[key];
+  const value = day[key];
+  const missing = spec.missing && day[spec.missing];
+  const entirelyMissing = day.count > 0 && (value === null || missing === day.count);
+  return {
+    level:day.pending || entirelyMissing || day.unavailable && day.count === 0 ? 'missing' : day.count === 0 || value === 0 ? '0' : String(1 + spec.thresholds.filter(threshold => value >= threshold).length),
+    missing:Boolean(day.unavailable || missing && !entirelyMissing),
+    label:day.unavailable ? describeDay(day) : day.pending ? day.date + '，尚未同步' : day.date + '，' + day.count + ' 次运动，' + spec.label + ' ' + formatDayMetric(day, key),
+  };
+}
 const sportIcon = sport => {
   const paths = sport === '徒步'
     ? '<circle cx="17" cy="4" r="2" fill="currentColor" stroke="none"/><path d="m14 9-3 7-5 4m8-11 5 5 5 1m-10-6 4 10-1 9m-4-10-3 10m14-14 2 14M9 8l-2 7 4 1"/>'

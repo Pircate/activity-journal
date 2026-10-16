@@ -35,7 +35,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
         this.html = html;
         this.writes++;
         if (selector === '.day-grid') this.children = [...html.matchAll(/<button class="day-cell"[^>]*data-date="([^"]+)"/g)]
-          .map(([,date]) => ({dataset:{date}, setAttribute() {}, matches:() => true, focus() { document.activeElement = this; }}));
+          .map(([,date]) => ({dataset:{date}, setAttribute() {}, matches:() => true, scrollIntoView() {}, focus() { document.activeElement = this; }}));
       },
       get innerHTML() { return this.html; },
     };
@@ -44,6 +44,11 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   }
   const groups = new Map(['.metric-value', '.metric-note', '[data-metric]'].map(selector =>
     [selector, Array.from({length:3}, (_, index) => element(selector + index))]));
+  groups.set('[data-activity-view]', ['month','year'].map(view => {
+    const toggle = element('activity-view-' + view);
+    toggle.dataset.activityView = view;
+    return toggle;
+  }));
   groups.get('[data-metric]').forEach((node, index) => node.dataset.metric = ['distanceKm','durationSeconds','trainingLoad'][index]);
   element('#journal-data').textContent = JSON.stringify(initial);
   const replacements = {document, window:{addEventListener:(name, callback) => windowEvents.set(name, callback)},
@@ -114,6 +119,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
   assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/, '跨天刷新保留选中周期和指标');
   assert.equal(element('#selected-date').max, '2026-10-16');
+  assert.match(element('#calendar-days').innerHTML, /data-date="2026-10-16" data-level="missing"/, '月历跨天保留未同步状态');
   assert.equal(element('.records-grid').innerHTML.includes('record-card'), false, '最近一周剔除过期记录');
   assert.equal(grid.children.at(-1).dataset.date, '2026-10-16');
   assert.match(grid.children.at(-1).title, /尚未同步/);
@@ -195,5 +201,45 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     assert.equal(gear.writes, gearWrites + 1);
     assert.match(gear.innerHTML, /<strong>123 km<\/strong>/);
     assert.match(gear.innerHTML, /公路车/);
+  });
+
+  await t.test('月历翻月、点日期、键盘边界和回到今天同步更新明细及年度范围', () => {
+    const calendar = element('#calendar-days');
+    const date = element('#selected-date');
+    const year = element('#activity-year');
+    const click = id => element('#' + id).events.get('click')();
+    const choose = day => calendar.events.get('click')({target:{closest:() => ({dataset:{date:day}})}});
+    const key = (day, key) => calendar.events.get('keydown')({key, preventDefault() {}, target:{closest:() => ({dataset:{date:day}})}});
+    choose('2026-10-09');
+    assert.equal(date.value, '2026-10-09');
+    assert.equal(element('#day-records').hidden, false);
+    click('calendar-previous');
+    assert.equal(date.value, '2026-09-09');
+    assert.equal(element('#calendar-month').textContent, '2026 年 9 月');
+    assert.equal(element('#day-records').hidden, true);
+    click('calendar-next');
+    assert.equal(date.value, '2026-10-09');
+    key('2026-10-09', 'ArrowDown');
+    assert.equal(date.value, '2026-10-16');
+    key('2026-10-16', 'PageDown');
+    assert.equal(date.value, '2026-10-18', '最近一年右边界夹紧至北京时间今天');
+    assert.equal(element('#calendar-next').disabled, true);
+    const writes = calendar.writes;
+    click('calendar-next');
+    assert.equal(calendar.writes, writes, '边界翻月无效');
+    element('activity-view-year').events.get('click')();
+    assert.equal(element('.heatmap-card').dataset.mobileView, 'year');
+    element('activity-view-month').events.get('click')();
+    assert.equal(element('.heatmap-card').dataset.mobileView, 'month');
+    assert.equal(date.value, '2026-10-18', '切换视图保留日期');
+    year.value = '2025';
+    year.events.get('change')();
+    assert.equal(element('#calendar-month').textContent, '2025 年 12 月');
+    click('back-to-today');
+    assert.equal(year.value, 'recent');
+    assert.equal(date.value, '2026-10-18');
+    assert.equal(element('#calendar-month').textContent, '2026 年 10 月');
+    assert.match(element('#day-description').textContent, /尚未同步/);
+    assert.equal(element('#day-records').hidden, true);
   });
 });

@@ -1,7 +1,8 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
-const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, availableYears} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, availableYears, dayMetrics, dayMetricState, describeDay} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
+const {renderCalendar, moveCalendarDate} = await import('./calendar.mjs' + (version ? '?v=' + version : ''));
 const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + version : ''));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
@@ -13,24 +14,13 @@ const explanation = document.getElementById('metric-explanation');
 const yearSelect = document.getElementById('activity-year');
 const updateHistory = initializeHistory(data);
 const updateTrends = initializeTrends(data);
-const metrics = {
-  distanceKm: { label: '距离', thresholds: [10, 30, 60], format: value => value.toFixed(2) + ' 公里', missing: 'missingDistance' },
-  durationSeconds: { label: '时长', thresholds: [1800, 3600, 7200], format: formatTime },
-  trainingLoad: { label: '负荷', thresholds: [50, 150, 300], format: value => String(value), missing: 'missingLoad' }
-};
+const metrics = dayMetrics;
 let selectedDate;
 let metric = 'distanceKm';
-function display(day, key) {
-  if (day.count === 0) return key === 'durationSeconds' ? '0:00:00' : metrics[key].format(0);
-  const missing = metrics[key].missing && day[metrics[key].missing];
-  if (day[key] === null || missing === day.count) return '未提供';
-  return metrics[key].format(day[key]) + (missing ? '（' + missing + ' 次未提供）' : '');
-}
-function sentence(day) {
-  if (day.pending) return day.date + ' · 尚未同步该日期的运动记录';
-  return day.date + ' · ' + day.count + ' 次运动 · ' + display(day, 'distanceKm') + ' · ' + display(day, 'durationSeconds') + ' · 负荷 ' + display(day, 'trainingLoad') + (day.unavailable ? ' · 另有 ' + day.unavailable + ' 次运动详情无法读取（日期为平台当地日期），未计入统计' : '');
-}
-function selectDay(date, focus = false) {
+const calendarGrid = document.getElementById('calendar-days');
+const calendarPrevious = document.getElementById('calendar-previous');
+const calendarNext = document.getElementById('calendar-next');
+function selectDay(date, focus = false, view = 'year') {
   if (!byDate.has(date)) return;
   selectedDate = date;
   dateInput.value = date;
@@ -40,22 +30,25 @@ function selectDay(date, focus = false) {
     button.setAttribute('aria-current', String(active));
   }
   const day = byDate.get(date);
-  description.textContent = sentence(day);
+  description.textContent = describeDay(day);
   dayRecords.innerHTML = renderDayRecords(day.records);
   dayRecords.hidden = day.records.length === 0;
-  if (focus) buttonByDate.get(date).focus();
+  const month = date.slice(0, 7);
+  document.getElementById('calendar-month').textContent = date.slice(0, 4) + ' 年 ' + Number(date.slice(5, 7)) + ' 月';
+  calendarPrevious.disabled = month === daily[0].date.slice(0, 7);
+  calendarNext.disabled = month === daily.at(-1).date.slice(0, 7);
+  calendarGrid.innerHTML = renderCalendar(daily, date, metric, beijingDate());
+  if (focus) (view === 'month' ? calendarGrid.querySelector('[data-date="' + date + '"]') : buttonByDate.get(date))?.focus();
 }
 function render() {
   const spec = metrics[metric];
   for (const day of daily) {
     const button = buttonByDate.get(day.date);
-    const value = day[metric];
-    const missing = spec.missing && day[spec.missing];
-    const entirelyMissing = day.count > 0 && (value === null || missing === day.count);
-    button.dataset.level = day.pending || entirelyMissing || day.unavailable && day.count === 0 ? 'missing' : day.count === 0 || value === 0 ? '0' : String(1 + spec.thresholds.filter(threshold => value >= threshold).length);
-    button.dataset.missing = String(Boolean(day.unavailable || missing && !entirelyMissing));
-    button.setAttribute('aria-label', day.unavailable ? sentence(day) : day.pending ? day.date + '，尚未同步' : day.date + '，' + day.count + ' 次运动，' + spec.label + ' ' + display(day, metric));
-    button.title = sentence(day);
+    const state = dayMetricState(day, metric);
+    button.dataset.level = state.level;
+    button.dataset.missing = String(state.missing);
+    button.setAttribute('aria-label', state.label);
+    button.title = describeDay(day);
   }
   for (const button of document.querySelectorAll('[data-metric]')) button.setAttribute('aria-pressed', String(button.dataset.metric === metric));
   const ranges = {
@@ -89,11 +82,46 @@ dateInput.addEventListener('change', () => {
   if (dateInput.validity.valid && byDate.has(dateInput.value)) selectDay(dateInput.value);
   else dateInput.value = selectedDate;
 });
+calendarGrid.addEventListener('click', event => {
+  const button = event.target.closest('[data-date]');
+  if (button) selectDay(button.dataset.date, true, 'month');
+});
+calendarGrid.addEventListener('keydown', event => {
+  const button = event.target.closest('[data-date]');
+  if (!button) return;
+  const date = moveCalendarDate(button.dataset.date, event.key);
+  if (date === undefined) return;
+  event.preventDefault();
+  selectDay([daily[0].date, date, daily.at(-1).date].sort()[1], true, 'month');
+});
+for (const [button, key] of [[calendarPrevious, 'PageUp'], [calendarNext, 'PageDown']]) {
+  button.addEventListener('click', () => {
+    if (!button.disabled) selectDay([daily[0].date, moveCalendarDate(selectedDate, key), daily.at(-1).date].sort()[1]);
+  });
+}
+for (const button of document.querySelectorAll('[data-activity-view]')) button.addEventListener('click', () => {
+  const view = button.dataset.activityView;
+  document.querySelector('.heatmap-card').dataset.mobileView = view;
+  for (const toggle of document.querySelectorAll('[data-activity-view]')) toggle.setAttribute('aria-pressed', String(toggle.dataset.activityView === view));
+  if (view === 'year') buttonByDate.get(selectedDate)?.scrollIntoView({block:'nearest', inline:'nearest'});
+});
+document.getElementById('back-to-today').addEventListener('click', () => {
+  const today = beijingDate();
+  if (!byDate.has(today)) {
+    yearSelect.value = 'recent';
+    selectedDate = today;
+    renderJournal();
+  } else selectDay(today);
+  if (matchMedia('(min-width: 601px)').matches || document.querySelector('.heatmap-card').dataset.mobileView === 'year') {
+    buttonByDate.get(today)?.scrollIntoView({block:'nearest', inline:'nearest'});
+  }
+});
 yearSelect.addEventListener('change', () => {
   selectedDate = undefined;
   renderJournal();
 });
 function renderJournal() {
+  const focusedCalendarDate = document.activeElement?.matches('.calendar-day[data-date]') ? document.activeElement.dataset.date : null;
   const focusedDate = document.activeElement?.matches('.day-cell[data-date]') ? document.activeElement.dataset.date : null;
   const today = beijingDate();
   const range = availableYears(data, today).includes(yearSelect.value) ? yearSelect.value : 'recent';
@@ -146,6 +174,7 @@ function renderJournal() {
   syncTime.dateTime = data.syncedAt.replace(' ', 'T').replace(' +08:00', '+08:00');
   render();
   if (focusedDate) buttonByDate.get(focusedDate)?.focus({preventScroll:true});
+  if (focusedCalendarDate) calendarGrid.querySelector('[data-date="' + focusedCalendarDate + '"]')?.focus({preventScroll:true});
   if (renderedData !== undefined && snapshot !== renderedData) updateHistory(data);
   renderedData = snapshot;
   renderedDate = today;
@@ -179,8 +208,4 @@ refreshData();
 window.addEventListener('pageshow', event => {if (event.persisted) refreshData();});
 document.addEventListener('visibilitychange', () => {if (!document.hidden) refreshData();});
 setInterval(() => {if (!document.hidden) refreshData();}, 5 * 60000);
-if (matchMedia('(max-width: 600px)').matches) {
-  const scroller = document.querySelector('.heatmap-scroll');
-  scroller.scrollLeft = scroller.scrollWidth;
-}
 
