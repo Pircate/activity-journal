@@ -12,6 +12,9 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   let latest = structuredClone(initial);
   let respond = async () => ({ok:true, json:async () => structuredClone(latest)});
   const requests = [];
+  const initialBests = {source:'Intervals.icu', syncedAt:'2026-10-15T04:00:00.000Z', records:[{sport:'跑步', event:'5 公里', result:'25:00', date:'2026-10-09', activityUrl:'https://intervals.icu/activities/i123'}]};
+  let latestBests = structuredClone(initialBests);
+  let failBests = false;
   const elements = new Map();
   const documentEvents = new Map();
   const windowEvents = new Map();
@@ -29,6 +32,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       setAttribute(name, value) { this.attributes.set(name, value); },
       querySelectorAll() { return this.children; },
       querySelector() { return null; },
+      contains(node) { return this.children.includes(node); },
       matches() { return Boolean(this.dataset.date); },
       focus() { document.activeElement = this; },
       set innerHTML(html) {
@@ -51,6 +55,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   }));
   groups.get('[data-metric]').forEach((node, index) => node.dataset.metric = ['distanceKm','durationSeconds','trainingLoad'][index]);
   element('#journal-data').textContent = JSON.stringify(initial);
+  element('#personal-bests-data').textContent = JSON.stringify(initialBests);
   element('meta[property="og:title"]').content = '波咖茶的运动日志';
   const replacements = {document, window:{addEventListener:(name, callback) => windowEvents.set(name, callback)},
     matchMedia:() => ({matches:false}), setInterval:(callback, delay) => intervals.push({callback, delay})};
@@ -61,11 +66,17 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   }
   t.mock.timers.enable({apis:['Date'], now:new Date('2026-10-15T04:00:00Z')});
   t.mock.method(globalThis, 'fetch', async (url, options) => {
+    if (url.pathname.endsWith('/personal-bests.json')) {
+      if (failBests) throw new Error('PB offline');
+      return {ok:true, json:async () => structuredClone(latestBests)};
+    }
     requests.push({url, options});
     return respond();
   });
   await import('../docs/app.js');
   await setImmediate();
+  const bests = element('#pb-content');
+  assert.match(bests.innerHTML, /25:00/);
   const grid = element('.day-grid');
   const gear = element('.gear-library');
   const trends = element('#trend-content');
@@ -85,6 +96,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.equal(gear.writes, 1);
   assert.equal(trends.writes, 1, '数据未变化时不重建趋势');
   assert.equal(document.activeElement, focused);
+  assert.equal(bests.writes, 1, 'PB 内容相同时保留节点和焦点');
   assert.equal(status.textContent, '已读取最新已同步数据');
 
   latest.syncedAt = '2026-10-15 12:01:00 +08:00';
@@ -126,10 +138,15 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.match(grid.children.at(-1).title, /未同步/);
   assert.match(status.textContent, /最近成功同步/);
 
+  latestBests.records[0].result = '24:00';
+  latestBests.syncedAt = '2026-10-16T04:00:00.000Z';
   respond = async () => { throw new Error('offline'); };
   t.mock.timers.setTime(Date.parse('2026-10-17T04:00:00Z'));
   await refresh();
   assert.equal(grid.writes, 5, '网络失败也滚动日期');
+  assert.match(bests.innerHTML, /24:00/, '活动请求失败不阻止 PB 独立更新');
+  const bestWrites = bests.writes;
+  failBests = true;
   assert.equal(element('#selected-date').max, '2026-10-17');
   assert.match(status.textContent, /暂时无法读取/);
   assert.match(groups.get('.metric-value')[0].innerHTML, /25\.00/, '失败保留旧数据');
@@ -144,6 +161,9 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   rejectRequest(new Error('timeout'));
   await setImmediate();
   assert.equal(grid.writes, 6, '请求期间跨天且失败也滚动日期');
+  assert.equal(bests.writes, bestWrites, 'PB 失败保留旧快照');
+  assert.match(element('#pb-status').textContent, /保留最近成功同步/);
+  failBests = false;
   assert.equal(element('#selected-date').max, '2026-10-18');
 
   respond = async () => ({ok:false, status:503});
@@ -187,6 +207,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       assert.equal(grid.writes, previousGridWrites + 1, '年度热力图正常更新');
       assert.equal(element('.overview-range').textContent, range === 'recent' ? '最近一年' : range + ' 年');
       assert.equal(trends.writes, trendWrites, '年度范围不重建独立的运动趋势');
+      assert.equal(bests.writes, bestWrites, '年度范围不重建 PB');
       assert.equal(trends.innerHTML, trendHtml, '年度范围不改变趋势选中周期及明细');
       assert.equal(element('#selected-date').min, range === 'recent' ? '2025-10-19' : range + '-01-01');
       assert.equal(element('#selected-date').max, range === 'recent' ? '2026-10-18' : range + '-12-31');

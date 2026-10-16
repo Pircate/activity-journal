@@ -23,8 +23,11 @@
 
 ```sh
 node scripts/update-data.mjs
+node scripts/update-personal-bests.mjs
 node scripts/build.mjs
 ```
+
+`update-personal-bests.mjs` 必须在上面的活动同步之后运行：它并发查询全历史配速曲线（`athlete/0/pace-curves.json?type=Run&curves=all`）与功率曲线（`athlete/0/power-curves.json?type=Ride&curves=all`），最远骑行和成绩对应日期都取自刚写入的活动快照。跑步成绩取曲线上首个不短于目标距离的累计用时（5 公里、10 公里、半程马拉松 21097.5 米、全程马拉松 42195 米），骑行最远距离按快照中全部骑行类活动（含虚拟骑行）的最大距离，功率取 300 秒与 1200 秒处的原始最佳努力值。曲线按运动大类聚合，因此 `type=Run` 已含越野跑与虚拟跑步，`type=Ride` 已含虚拟骑行；不要按子类型重复查询或重复计项。功率值只能用秒数精确定位，曲线上存在小幅回弹，不做插值或单调性推断。任一请求、结构校验或解析失败时整次失败并保留旧文件。公开 JSON 顶层仅含 `source`、`syncedAt`、`records`；每条记录仅含 `sport`、`event`、`result`、`date`、`activityUrl`，日期在活动快照中查不到时为 `null`；不发布曲线返回的体重、w/kg、功率模型、活动原始标识或其他字段。
 
 脚本先通过 `/athlete/0` 解析账号，再查询截至北京时间今天的全部历史活动，以及 `/athlete/{id}/gear` 装备列表，全部成功后原子替换同一份快照。API 字段为 `distance`（米）、`moving_time`（运动秒数）、`icu_training_load`、`average_heartrate`（仅力量训练使用）；日期由 UTC 开始时间转换为北京时间。从 1900-01-01 起查询，上界扩大一天，再按北京时间裁剪至今天。单次达到 10000 条上限时自动二分不重叠的当地日期范围，递归查询至每段未达到上限；单日仍达上限时停止并保留旧快照。period.start 保存最早记录所在年的元旦，至少覆盖最近一年；period.end 保存同步当天。页面默认最近 365 天，可选择各自然年，历史记录不能裁剪掉。装备累计里程直接使用平台统计，不按年度活动重算。
 
@@ -42,7 +45,7 @@ gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm�
 
 用户在 Intervals.icu 换件后重置“更换”提醒。前后外胎分别建 Tyre 配件，名称以“前胎”“后胎”开头；未识别位置时只提示，不猜测。网站固定目标为链条及前后胎 5000 km、飞轮 10000 km、牙盘 30000 km，不改写平台提醒。青野的链条与牙盘同时关联青野和 R200，以平台共享配件计数累计室内外里程；外胎仅关联青野。
 
-检查 git diff，日常数据更新应仅涉及 data/strength-sets.json、docs/activities.json 与 docs/index.html；维护摘要在构建时从装备快照生成，共享提醒只计一次，前端的车辆内定位索引不作为平台标识使用；出现异常删除先复核查询完整性。
+检查 git diff，日常数据更新应仅涉及 data/strength-sets.json、docs/activities.json、docs/personal-bests.json 与 docs/index.html；维护摘要在构建时从装备快照生成，共享提醒只计一次，前端的车辆内定位索引不作为平台标识使用；出现异常删除先复核查询完整性。
 
 ## 力量训练组数补充
 

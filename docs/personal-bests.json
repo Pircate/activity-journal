@@ -1,0 +1,55 @@
+{
+  "source": "Intervals.icu",
+  "syncedAt": "2026-10-16T08:57:52.554Z",
+  "records": [
+    {
+      "sport": "跑步",
+      "event": "5 公里",
+      "result": "18:12",
+      "date": "2022-11-06",
+      "activityUrl": "https://intervals.icu/activities/i17229425"
+    },
+    {
+      "sport": "跑步",
+      "event": "10 公里",
+      "result": "37:33",
+      "date": "2022-11-06",
+      "activityUrl": "https://intervals.icu/activities/i17229425"
+    },
+    {
+      "sport": "跑步",
+      "event": "半程马拉松",
+      "result": "1:24:29",
+      "date": "2022-10-27",
+      "activityUrl": "https://intervals.icu/activities/i17229384"
+    },
+    {
+      "sport": "跑步",
+      "event": "全程马拉松",
+      "result": "2:57:09",
+      "date": "2023-11-19",
+      "activityUrl": "https://intervals.icu/activities/i27581543"
+    },
+    {
+      "sport": "骑行",
+      "event": "最远距离",
+      "result": "154.86 km",
+      "date": "2025-05-11",
+      "activityUrl": "https://intervals.icu/activities/i77934321"
+    },
+    {
+      "sport": "骑行",
+      "event": "CP5",
+      "result": "288 W",
+      "date": "2026-05-10",
+      "activityUrl": "https://intervals.icu/activities/i146848137"
+    },
+    {
+      "sport": "骑行",
+      "event": "CP20",
+      "result": "233 W",
+      "date": "2026-10-02",
+      "activityUrl": "https://intervals.icu/activities/i192532318"
+    }
+  ]
+}

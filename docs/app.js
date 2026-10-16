@@ -4,6 +4,8 @@ const {createJournal, beijingDate, formatTime, validateData, syncTimestamp, rend
 const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
 const {renderCalendar, moveCalendarDate} = await import('./calendar.mjs' + (version ? '?v=' + version : ''));
 const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + version : ''));
+const {initializePersonalBests} = await import('./personal-bests.mjs' + (version ? '?v=' + version : ''));
+const refreshPersonalBests = initializePersonalBests(JSON.parse(document.getElementById('personal-bests-data').textContent));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
 let renderedData, renderedDate, renderedGear;
@@ -212,9 +214,7 @@ function renderJournal() {
 
 const status = document.getElementById('sync-status');
 let refreshing = false;
-async function refreshData() {
-  if (refreshing) return;
-  refreshing = true;
+async function refreshActivities() {
   status.textContent = '正在读取最新数据…';
   try {
     const response = await fetch(new URL('activities.json', import.meta.url), {cache:'no-cache', signal:AbortSignal.timeout(15000)});
@@ -230,6 +230,14 @@ async function refreshData() {
     status.textContent = '暂时无法读取最新数据，当前显示最近成功同步的记录。';
   } finally {
     if (JSON.stringify(data) !== renderedData || beijingDate() !== renderedDate) renderJournal();
+  }
+}
+async function refreshData() {
+  if (refreshing) return;
+  refreshing = true;
+  try {
+    await Promise.all([refreshActivities(), refreshPersonalBests()]);
+  } finally {
     refreshing = false;
   }
 }
