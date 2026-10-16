@@ -3,7 +3,7 @@
     "start": "2021-01-01",
     "end": "2026-10-16"
   },
-  "syncedAt": "2026-10-16 18:03:48 +08:00",
+  "syncedAt": "2026-10-16 22:05:32 +08:00",
   "activities": [
     {
       "date": "2026-10-15",
@@ -1219,15 +1219,6 @@
       "trainingLoad": 58,
       "activityUrl": "https://intervals.icu/activities/i134840235",
       "stravaUrl": "https://www.strava.com/activities/17852952920"
-    },
-    {
-      "date": "2026-03-25",
-      "sport": "划船",
-      "distanceKm": null,
-      "duration": "0:00:36",
-      "trainingLoad": 0,
-      "activityUrl": "https://intervals.icu/activities/i134649114",
-      "stravaUrl": "https://www.strava.com/activities/17851287685"
     },
     {
       "date": "2026-03-24",
