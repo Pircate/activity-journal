@@ -30,6 +30,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       events:new Map(), attributes:new Map(),
       addEventListener(name, callback) { this.events.set(name, callback); },
       setAttribute(name, value) { this.attributes.set(name, value); },
+      removeAttribute(name) { this.attributes.delete(name); },
       querySelectorAll() { return this.children; },
       querySelector() { return null; },
       contains(node) { return this.children.includes(node); },

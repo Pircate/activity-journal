@@ -5,6 +5,7 @@ const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + ve
 const {renderCalendar, moveCalendarDate} = await import('./calendar.mjs' + (version ? '?v=' + version : ''));
 const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + version : ''));
 const {initializePersonalBests} = await import('./personal-bests.mjs' + (version ? '?v=' + version : ''));
+const {initializeReports} = await import('./reports.mjs' + (version ? '?v=' + version : ''));
 const refreshPersonalBests = initializePersonalBests(JSON.parse(document.getElementById('personal-bests-data').textContent));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
@@ -19,6 +20,7 @@ const statNotesBodyElement = document.getElementById('stat-notes-body');
 const yearSelect = document.getElementById('activity-year');
 const updateHistory = initializeHistory(data);
 const updateTrends = initializeTrends(data);
+const updateReports = initializeReports(data, document.getElementById('title').textContent);
 // 先展开所属车辆，再由原生锚点定位；其余车辆保持各自的展开状态。
 document.querySelector('.gear-library').addEventListener('click', event => {
   const link = event.target.closest('[data-gear-target]');
@@ -157,6 +159,7 @@ function renderJournal() {
   const snapshot = JSON.stringify(data);
   const updateRecent = snapshot !== renderedData || today !== renderedDate;
   if (updateRecent) updateTrends(data, today);
+  if (renderedData !== undefined && updateRecent) updateReports(data, today);
   if (updateRecent) document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
   const {period, distance, duration, activities, recent, activeDays, missingDistance, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');

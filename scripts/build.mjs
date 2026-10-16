@@ -7,6 +7,7 @@ import {filterActivities, historyPageSize} from '../docs/history.mjs';
 import {renderCalendar} from '../docs/calendar.mjs';
 import {renderTrendPanel} from '../docs/trends.mjs';
 import {renderPersonalBestsPanel, validatePersonalBests} from '../docs/personal-bests.mjs';
+import {renderReportPanel} from '../docs/reports.mjs';
 const personalBests = JSON.parse(await readFile(new URL('../docs/personal-bests.json', import.meta.url), 'utf8'));
 validatePersonalBests(personalBests);
 validateData(data);
@@ -24,7 +25,7 @@ const historySports=[...new Set(data.activities.map(activity=>activity.sport))].
 assert.equal(daily.length,365);
 assert.equal(Math.round(daily.reduce((s,d)=>s+d.distanceKm,0)*100),Math.round(distance*100));
 // 用内容哈希做缓存失效：改样式或脚本后，浏览器一定会重新拉取。
-const assetFiles=['style.css','app.js','journal.mjs','history.mjs','trends.mjs','calendar.mjs','personal-bests.mjs'];
+const assetFiles=['style.css','app.js','journal.mjs','history.mjs','trends.mjs','calendar.mjs','personal-bests.mjs','reports.mjs'];
 const assetVersion=createHash('sha256').update((await Promise.all(assetFiles.map(name=>readFile(new URL('../docs/'+name,import.meta.url))))).join('\0')).digest('hex').slice(0,8);
 const favicon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#fc4c02"/><path d="M6 22V16M12 22V10M18 22V6M24 22V13" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
 const html=`<!DOCTYPE html><html lang="zh-CN"><head>
@@ -33,7 +34,7 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <meta property="og:title" content="${esc(siteTitle)}"><meta property="og:description" content="${esc(profile.location)} · 日常运动记录。"><meta property="og:type" content="website">
 <title>${esc(siteTitle)} · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css?v=${assetVersion}"><script type="module" src="app.js?v=${assetVersion}"></script></head>
 <body><a class="skip" href="#main">跳转到运动概览</a><div class="wrap">
-<header><a class="brand" href="#main" aria-label="${esc(siteTitle)}，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${esc(siteTitle)}</a><nav aria-label="页面导航"><a href="#records">运动记录</a><a href="#rhythm">全年活动</a><a href="#trends">运动趋势</a><a href="#personal-bests">个人最佳成绩</a><a href="#gear">运动装备库</a></nav></header>
+<header><a class="brand" href="#main" aria-label="${esc(siteTitle)}，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${esc(siteTitle)}</a><nav aria-label="页面导航"><a href="#records">运动记录</a><a href="#rhythm">全年活动</a><a href="#trends">运动趋势</a><a href="#personal-bests">个人最佳成绩</a><a href="#reports">月报／年报分享</a><a href="#gear">运动装备库</a></nav></header>
 <main id="main"><section class="hero profile" aria-labelledby="title"><div class="profile-identity"><p class="eyebrow">个人运动日志</p><h1 id="title">${esc(profile.name)}</h1><div class="profile-meta"><p class="profile-location">${esc(profile.location)}</p><a class="strava-link" href="${esc(profile.stravaUrl)}" target="_blank" rel="noopener noreferrer">在 Strava 查看 <span aria-hidden="true">↗</span><span class="sr-only">（新标签页）</span></a></div></div></section>
 <div class="recent-summary" aria-label="最近七天运动摘要">${recentSummary}</div>
 <section class="records-section" id="records" aria-labelledby="records-title"><div class="section-head"><h2 id="records-title"><span class="section-number">01</span>最近一周的运动记录</h2><p>${recent.length?'共 '+recent.length+' 条 · 最新记录在前':'最近一周还没有运动记录'}</p></div><div class="records-grid">${cards}</div>
@@ -68,7 +69,8 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <p class="chart-caption">每格代表一天，同一天的多次运动合并统计；斜纹区分${dayStateLabels.pending}、${dayStateLabels.missing}与${dayStateLabels.unavailable}，具体口径见下方“统计说明”。</p>${statNotes}<noscript><p>启用 JavaScript 后可查看热力图和切换指标；上方为最近一周的运动记录。</p></noscript></div></section>
 ${renderTrendPanel(data)}
 ${renderPersonalBestsPanel(personalBests)}
-<section class="gear-section" id="gear" aria-labelledby="gear-title"><div class="section-head"><h2 id="gear-title"><span class="section-number">05</span>运动装备库</h2><p>累计使用 · 独立于年度统计</p></div>
+${renderReportPanel(data)}
+<section class="gear-section" id="gear" aria-labelledby="gear-title"><div class="section-head"><h2 id="gear-title"><span class="section-number">06</span>运动装备库</h2><p>累计使用 · 独立于年度统计</p></div>
 <div class="gear-library">${renderGearLibrary(data.gearLibrary)}</div>
 <p class="gear-caption">建议更换里程：链条、前后胎 5000 km，飞轮 10000 km，牙盘 30000 km。以上里程仅为维护参考，不代表实际磨损程度。更换后，在 Intervals.icu 重置配件的“更换”提醒；日期和里程随每日同步更新。</p></section>
 </main>
