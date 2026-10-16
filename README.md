@@ -1,6 +1,6 @@
 # 波咖茶的运动日志
 
-使用 Intervals.icu 真实记录的中文运动日志：[访问网站](https://pircate.github.io/movement-journal/)。
+使用 Intervals.icu 真实记录的中文运动日志：[访问网站](https://pircate.github.io/activity-journal/)。
 
 ## 个人资料
 

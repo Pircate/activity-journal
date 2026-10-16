@@ -163,7 +163,7 @@
 
 ## 已完成发布核验
 
-- 前三项已推送至 `main`，GitHub Pages [部署工作流](https://github.com/Pircate/movement-journal/actions/runs/38847081166) 对应 `8d7d79c`，状态为成功。
+- 前三项已推送至 `main`，GitHub Pages [部署工作流](https://github.com/Pircate/activity-journal/actions/runs/38847081166) 对应 `8d7d79c`，状态为成功。
 - 2026-10-16 核对线上 `index.html`、`app.js`、`trends.mjs`、`activities.json`：HTTP 200，内容哈希均与该提交本地文件一致。第四至第七项尚未发布（本地提交 `683a935`、`c6acff2`、`9779f7e`、`6ca2f43`），线上仍为第三项 `8d7d79c`。
 
 ## 新会话接续动作

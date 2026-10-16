@@ -1,6 +1,6 @@
 # 运动记录网站更新说明（供每日同步任务读取）
 
-本文件描述如何在「每日同步 Strava/Garmin/COROS 运动数据」任务同步成功后，更新 https://pircate.github.io/movement-journal/ 和仓库 Pircate/movement-journal。
+本文件描述如何在「每日同步 Strava/Garmin/COROS 运动数据」任务同步成功后，更新 https://pircate.github.io/activity-journal/ 和仓库 Pircate/activity-journal。
 
 ## 触发条件
 
@@ -8,8 +8,8 @@
 
 ## 仓库与目录
 
-- 仓库：https://github.com/Pircate/movement-journal.git（公开，GitHub Pages 从 main 分支 /docs 发布）
-- 固定工作目录：/Users/gaoxiang/Workspace/github/movement-journal
+- 仓库：https://github.com/Pircate/activity-journal.git（公开，GitHub Pages 从 main 分支 /docs 发布）
+- 固定工作目录：/Users/gaoxiang/Workspace/github/activity-journal
 - 目录不存在时，先从上面的仓库地址恢复到该路径。
 - 更新前先读 README.md 和 docs/activities.json，检查 git status；仅在工作区干净且可 fast-forward 时更新 origin/main，保留他人修改，禁止 reset --hard、禁止强制推送。
 
