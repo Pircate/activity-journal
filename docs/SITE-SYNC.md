@@ -15,7 +15,7 @@
 
 ## 取数与构建
 
-运动基础数据来自 Intervals.icu；力量训练组数通过下述 COROS 补充流程取得。
+运动基础数据优先来自 Intervals.icu；受限历史活动使用 `data/strava-activities.json` 中已由 Strava API 核对的公开指标，力量训练组数通过下述 COROS 补充流程取得。
 
 凭据保存在本机 `~/.config/interval-icu/config.json` 的 `INTERVALS_ICU_API_KEY` 字段中，脚本运行时直接读取配置文件；目录权限为 `700`，文件权限为 `600`。禁止把密钥写入仓库、公开文件、自动化提示词或日志。配置缺失、无效或授权失败时停止网站更新并报告，不得切回 COROS。
 
@@ -45,7 +45,13 @@ gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm�
 
 用户在 Intervals.icu 换件后重置“更换”提醒。前后外胎分别建 Tyre 配件，名称以“前胎”“后胎”开头；未识别位置时只提示，不猜测。网站固定目标为链条及前后胎 5000 km、飞轮 10000 km、牙盘 30000 km，不改写平台提醒。青野的链条与牙盘同时关联青野和 R200，以平台共享配件计数累计室内外里程；外胎仅关联青野。
 
-检查 git diff，日常数据更新应仅涉及 data/strength-sets.json、docs/activities.json、docs/personal-bests.json 与 docs/index.html；维护摘要在构建时从装备快照生成，共享提醒只计一次，前端的车辆内定位索引不作为平台标识使用；出现异常删除先复核查询完整性。
+检查 git diff，日常数据更新应仅涉及 data/strength-sets.json、data/strava-activities.json、docs/activities.json、docs/personal-bests.json 与 docs/index.html；维护摘要在构建时从装备快照生成，共享提醒只计一次，前端的车辆内定位索引不作为平台标识使用；出现异常删除先复核查询完整性。
+
+## Strava 受限历史活动补充
+
+`data/strava-activities.json` 仅保存与网站相同的公开活动字段，不保存完整 API 响应、凭据、坐标或心率明细。通过 Strava API 分页查询历史活动，使用受限记录的真实 Strava ID 精确核对；`activityUrl` 与 `stravaUrl` 必须分别为两个平台的活动链接并包含同一个纯数字 ID，禁止按日期或名称关联。日期由 Strava 的 UTC 开始时间转换为北京时间，距离和运动时长沿用现有单位换算，运动类型使用 `sport_type`，训练负荷必须为 `null`。未匹配的活动继续标记详情不可读取；已有补充记录不能因授权或查询失败被清空。
+
+日常 `update-data.mjs` 自动读取该文件，只恢复 Intervals.icu 仍受限的同 ID 记录；原生详情重新可读时优先采用原生指标，不重复计数。文件中重复 ID、错误链接、无效指标或非空负荷均导致同步失败并保留旧快照。
 
 ## 力量训练组数补充
 

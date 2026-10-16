@@ -163,7 +163,7 @@ export async function readConfig(configPath = join(homedir(), '.config/interval-
   return config;
 }
 
-export async function fetchAllActivities({config, fetchImpl = fetch, now = new Date(), strengthSets = []} = {}) {
+export async function fetchAllActivities({config, fetchImpl = fetch, now = new Date(), strengthSets = [], stravaActivities = []} = {}) {
   config ??= await readConfig();
   if (typeof config?.INTERVALS_ICU_API_KEY !== 'string' || !config.INTERVALS_ICU_API_KEY.trim()) {
     throw new Error('请配置 ~/.config/interval-icu/config.json 中的 INTERVALS_ICU_API_KEY');
@@ -198,14 +198,27 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   const period = {start:'1900-01-01', end};
   const gearLibrary = normalizeGear(await get(`athlete/${encodeURIComponent(athlete.id)}/gear`));
   const syncedAt = new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'}).format(now) + ' +08:00';
-  const unavailable = records.filter(a => a.source === 'STRAVA' && !a.type && !a.start_date && a._note === 'STRAVA activities are not available via the API');
+  const restricted = records.filter(a => a.source === 'STRAVA' && !a.type && !a.start_date && a._note === 'STRAVA activities are not available via the API');
+  // 补充文件只含公开指标；以两个平台链接中的同一个 Strava ID 精确关联，不按日期猜测。
+  validateData({period, syncedAt, activities:stravaActivities, unavailableActivities:[], gearLibrary:[]});
+  const supplements = new Map();
+  for (const activity of stravaActivities) {
+    const id = activity.stravaUrl?.match(/^https:\/\/www\.strava\.com\/activities\/([1-9]\d*)$/)?.[1];
+    if (!id || activity.activityUrl !== 'https://intervals.icu/activities/' + id || supplements.has(id) || activity.trainingLoad !== null) {
+      throw new Error('Strava 补充数据关联无效或重复');
+    }
+    supplements.set(id, activity);
+  }
+  const restored = restricted.filter(a => supplements.has(String(a.id))).map(a => supplements.get(String(a.id)));
+  const unavailable = restricted.filter(a => !supplements.has(String(a.id)));
   const unavailableActivities = unavailable.map(a => ({date:a.start_date_local?.slice(0,10)}))
     .filter(a => a.date >= period.start && a.date <= period.end);
   // 空壳只保留平台提供的当地日期，公开注明详情缺失，不混入可读取活动的总量。
   for (const a of unavailable) {
     if (!/^\d{4}-\d{2}-\d{2}T/.test(a.start_date_local ?? '') || !isDate(a.start_date_local.slice(0,10))) throw new Error('无法读取的活动缺少有效日期');
   }
-  const activities = normalizeActivities(records.filter(a => !unavailable.includes(a)), period, strengthSets);
+  const activities = [...normalizeActivities(records.filter(a => !restricted.includes(a)), period, strengthSets), ...restored]
+    .sort((a,b) => b.date.localeCompare(a.date));
   const data = {period, syncedAt, activities, unavailableActivities, gearLibrary};
   const firstDate = [...data.activities, ...unavailableActivities].reduce((first, a) => a.date < first ? a.date : first, shiftDate(end, -364));
   period.start = firstDate.slice(0,4) + '-01-01';
@@ -216,7 +229,8 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.length > 2) throw new Error('用法：node scripts/update-data.mjs（获取 Intervals.icu 全部历史数据）');
   const strengthSets = JSON.parse(await readFile(new URL('../data/strength-sets.json', import.meta.url), 'utf8'));
-  const data = await fetchAllActivities({strengthSets});
+  const stravaActivities = JSON.parse(await readFile(new URL('../data/strava-activities.json', import.meta.url), 'utf8'));
+  const data = await fetchAllActivities({strengthSets, stravaActivities});
   const target = new URL('../docs/activities.json', import.meta.url);
   const temporary = new URL('../docs/activities.json.tmp', import.meta.url);
   try {

@@ -1,6 +1,6 @@
 {
   "source": "Intervals.icu",
-  "syncedAt": "2026-10-16T10:07:53.251Z",
+  "syncedAt": "2026-10-16T14:46:56.811Z",
   "records": [
     {
       "sport": "跑步",
@@ -34,10 +34,10 @@
     {
       "sport": "骑行",
       "event": "最远距离",
-      "result": "154.86 km",
-      "date": "2025-05-11",
-      "activityUrl": "https://intervals.icu/activities/i77934321",
-      "stravaUrl": "https://www.strava.com/activities/14441762148"
+      "result": "164.19 km",
+      "date": "2023-04-26",
+      "activityUrl": "https://intervals.icu/activities/8969808360",
+      "stravaUrl": "https://www.strava.com/activities/8969808360"
     },
     {
       "sport": "骑行",

@@ -1,6 +1,6 @@
 # 波咖茶的运动日志
 
-使用 Intervals.icu 真实记录的中文运动日志：[访问网站](https://pircate.github.io/activity-journal/)。
+使用 Intervals.icu 真实记录、Strava 历史活动补充的中文运动日志：[访问网站](https://pircate.github.io/activity-journal/)。
 
 ## 个人资料
 
@@ -112,7 +112,7 @@
 
 API Key 从 [Intervals.icu 设置](https://intervals.icu/settings) 底部 Developer Settings 获取。目录权限设为 `700`，配置文件权限设为 `600`。脚本每次运行直接读取该文件。
 
-不要将凭据写入代码、公开 JSON 或 Git。脚本先解析当前账号，再查询全部历史活动及装备列表，全部校验成功后原子替换同一份公开快照。活动或装备任一请求失败时均保留上一版。重复运行不会累积重复记录；运动基础指标仅使用 Intervals.icu，力量训练组数使用上述已核对的 COROS 补充数据。
+不要将凭据写入代码、公开 JSON 或 Git。脚本先解析当前账号，再查询全部历史活动及装备列表，全部校验成功后原子替换同一份公开快照。活动或装备任一请求失败时均保留上一版。重复运行不会累积重复记录；运动基础指标优先使用 Intervals.icu，受限活动使用下述已核对的 Strava 补充数据，力量训练组数使用上述 COROS 补充数据。
 
 ```sh
 node scripts/update-data.mjs
@@ -125,7 +125,9 @@ node --test scripts/*.test.mjs
 
 字段来自 [官方 API 文档](https://intervals.icu/api-docs.html)：`distance` 从米转为公里，`moving_time` 为运动秒数，`icu_training_load` 为活动训练负荷；力量训练的平均心率来自 `average_heartrate`，零值或缺失值记为 `null`。使用 UTC 开始时间 `start_date` 转换北京时间日期；API 从 1900-01-01 起查询历史活动，上界比北京时间今天扩大一天，再按北京时间裁剪；达到单次 10000 条上限时自动二分为不重叠的日期范围，直至每段结果可确认完整。保留同一天的多次运动，不按日期去重。
 
-API 不提供部分 Strava 来源活动的完整内容；这些记录仅在 `unavailableActivities` 中保留平台提供的当地日期，页面标注为“详情不可读取”，不计入距离、时长和次数。其他缺失运动时长、重复活动 ID、无效记录或单日仍达到查询上限的情况会让整次同步失败并保留旧文件。不使用旧来源的数据补齐；可读取活动缺失的距离和负荷保留为空，并计入“指标缺失”。
+API 不提供部分 Strava 来源活动的完整内容。已通过 Strava API 核对的历史记录保存在 `data/strava-activities.json`，仅含网站公开活动字段；补充记录的 `activityUrl` 与 `stravaUrl` 必须使用同一个真实 Strava 活动 ID。同步时仅按这个 ID 恢复 Intervals.icu 受限记录，不按日期、名称猜测，也不覆盖可读取的原生记录。日期由 Strava UTC 开始时间转换为北京时间，距离、运动时长和运动类型使用 Strava 原值；训练负荷固定为 `null`，不使用 Strava 相对强度代替 Intervals.icu 负荷。补充文件随仓库保存，日常同步无需 Strava 凭据即可保留已核对的记录；新增受限记录需重新读取 Strava API 后补录。
+
+尚未匹配的受限记录在 `unavailableActivities` 中保留平台提供的当地日期，页面标注为“详情不可读取”，不计入距离、时长和次数。其他缺失运动时长、重复活动 ID、无效记录或单日仍达到查询上限的情况会让整次同步失败并保留旧文件。可读取活动缺失的距离和负荷保留为空，并计入“指标缺失”。
 
 `period.start` 为最早记录所在年的元旦（至少覆盖最近一年），`period.end` 为同步时的北京时间当天；年份选项包含此范围内的所有年份，空年也可查看。
 

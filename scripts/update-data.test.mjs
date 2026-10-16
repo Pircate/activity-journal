@@ -228,3 +228,22 @@ test('达到上限后拆分为互不重叠的日期范围，分段失败则拒�
   fail = true;
   await assert.rejects(fetchAllActivities(options), /HTTP 503/);
 });
+
+test('Strava 补充按 ID 恢复受限记录，保留未匹配状态，不覆盖原生指标', async () => {
+  const restricted = id => ({id, source:'STRAVA', start_date_local:'2026-10-15T20:00:00', _note:'STRAVA activities are not available via the API'});
+  const supplement = normalizeActivities([{...record, id:'901', strava_id:'901', distance:12345, icu_training_load:null}], period)[0];
+  const nativeSupplement = {...supplement, activityUrl:'https://intervals.icu/activities/902', stravaUrl:'https://www.strava.com/activities/902'};
+  const options = {config:{INTERVALS_ICU_API_KEY:'test'}, now:new Date('2026-10-15T14:00:00Z'),
+    stravaActivities:[supplement, nativeSupplement],
+    fetchImpl:async url => ({ok:true, json:async () => url.endsWith('/athlete/0') ? {id:'test'} : url.endsWith('/gear') ? []
+      : [restricted('901'), restricted('903'), {...record, id:'902', strava_id:'902'}]})};
+  const data = await fetchAllActivities(options);
+  assert.equal(data.activities.length, 2);
+  assert.deepEqual(data.activities.find(a => a.stravaUrl.endsWith('/901')), supplement);
+  assert.equal(data.activities.find(a => a.stravaUrl.endsWith('/902')).trainingLoad, 0);
+  assert.deepEqual(data.unavailableActivities, [{date:'2026-10-15'}]);
+  for (const stravaActivities of [[supplement, supplement], [{...supplement, activityUrl:'https://intervals.icu/activities/999'}],
+    [{...supplement, trainingLoad:42}], [{...supplement, duration:'无效'}]]) {
+    await assert.rejects(fetchAllActivities({...options, stravaActivities}), /无效|重复/);
+  }
+});
