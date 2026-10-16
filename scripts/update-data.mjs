@@ -137,8 +137,16 @@ export function normalizeGear(records) {
     visit(bike.id,new Set());
     return {name:bike.name, type:'Bike', distanceKm:distanceKm(bike.distance), components};
   });
+  let sharedGroup = 0;
   for (const entries of owners.values()) {
-    if (entries.length > 1) for (const entry of entries) entry.component.sharedBy = entries.map(owner => owner.bike);
+    if (entries.length > 1) {
+      sharedGroup++;
+      for (const entry of entries) {
+        entry.component.sharedBy = entries.map(owner => owner.bike);
+        // 仅为本份快照生成共享分组号，原始平台配件标识不公开。
+        entry.component.sharedGroup = sharedGroup;
+      }
+    }
   }
   return library;
 }

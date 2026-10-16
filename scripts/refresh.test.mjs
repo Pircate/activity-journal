@@ -203,6 +203,33 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     assert.match(gear.innerHTML, /公路车/);
   });
 
+  await t.test('维护入口展开目标车辆并聚焦配件，年度切换及无变化刷新保留状态', async () => {
+    const bike = element('目标车辆');
+    const other = element('其他车辆');
+    bike.open = false;
+    other.open = true;
+    const part = element('#gear-part-1-0');
+    part.closest = selector => selector === '.gear-bike' ? bike : null;
+    const link = {dataset:{gearTarget:'gear-part-1-0'}};
+    gear.events.get('click')({target:{closest:() => link}});
+    assert.equal(bike.open, true);
+    assert.equal(other.open, true);
+    assert.equal(document.activeElement, part);
+    const writes = gear.writes;
+    const year = element('#activity-year');
+    for (const range of ['2025','recent']) {
+      year.value = range;
+      year.events.get('change')();
+      assert.equal(gear.writes, writes);
+      assert.equal(bike.open, true);
+      assert.equal(other.open, true);
+      assert.equal(document.activeElement, part);
+    }
+    await refresh();
+    assert.equal(gear.writes, writes);
+    assert.equal(document.activeElement, part);
+  });
+
   await t.test('月历翻月、点日期、键盘边界和回到今天同步更新明细及年度范围', () => {
     const calendar = element('#calendar-days');
     const date = element('#selected-date');

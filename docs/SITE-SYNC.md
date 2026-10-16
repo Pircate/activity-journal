@@ -32,9 +32,9 @@ node scripts/build.mjs
 
 Strava API 明确返回的受限空壳只保留当地日期，在页面标注详情缺失，不计入总量；不得猜测详情或把它当成没有运动。
 
-公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动含 date、sport、distanceKm、duration、trainingLoad、activityUrl；力量训练额外含 sets（组数）和 averageHeartRate（平均心率，bpm），缺失时为 null。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，供最近一周卡片跳转，包含活动 ID；不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、装备标识、账号信息、装备备注、坐标、心率明细、原始文件链接或凭据。
+公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动含 date、sport、distanceKm、duration、trainingLoad、activityUrl；力量训练额外含 sets（组数）和 averageHeartRate（平均心率，bpm），缺失时为 null。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，供最近一周卡片跳转，包含活动 ID；不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、原始装备标识、账号信息、装备备注、坐标、心率明细、原始文件链接或凭据。
 
-gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm、components；配件仅含 name、type、distanceKm、replacement。首次尚未同步的仓库快照使用 null，禁止在同步失败时改为 null 或空列表。已退役装备隐藏，component_ids 只在脚本内部用于递归解析归属，不发布原始标识。
+gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm、components；配件含 name、type、distanceKm、replacement；共享配件另含 sharedBy 车辆名称数组和 sharedGroup 正整数分组号。sharedGroup 由 normalizeGear 按同一原始平台配件的实际关联生成，仅在当前快照内标记共享实例，不写入原始装备标识，不按名称或数值推断共享。共享配件的各份使用信息和所属车辆必须一致，否则拒绝更新。首次尚未同步的仓库快照使用 null，禁止在同步失败时改为 null 或空列表。已退役装备隐藏，component_ids 只在脚本内部用于递归解析归属，不发布原始标识。
 
 链条（Chain）、飞轮（Cassette）、外胎（Tyre）、牙盘（Chainrings）的 replacement 仅含 status、date、distanceKm。读取唯一一个名为“更换”的配件提醒，用 last_reset 转换北京时间日期，用 distance_used 转换公里数；名称重名或缺少该提醒分别标记 duplicate-reminder、missing-reminder，日期与更换后里程置 null；找到唯一提醒时标记 available，缺失字段仍保留 null。其他配件的 replacement 为 null。不得使用 purchased、配件总里程或其他保养提醒推断更换信息。
 
@@ -42,7 +42,7 @@ gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm�
 
 用户在 Intervals.icu 换件后重置“更换”提醒。前后外胎分别建 Tyre 配件，名称以“前胎”“后胎”开头；未识别位置时只提示，不猜测。网站固定目标为链条及前后胎 5000 km、飞轮 10000 km、牙盘 30000 km，不改写平台提醒。青野的链条与牙盘同时关联青野和 R200，以平台共享配件计数累计室内外里程；外胎仅关联青野。
 
-检查 git diff，日常数据更新应仅涉及 data/strength-sets.json、docs/activities.json 与 docs/index.html；出现异常删除先复核查询完整性。
+检查 git diff，日常数据更新应仅涉及 data/strength-sets.json、docs/activities.json 与 docs/index.html；维护摘要在构建时从装备快照生成，共享提醒只计一次，前端的车辆内定位索引不作为平台标识使用；出现异常删除先复核查询完整性。
 
 ## 力量训练组数补充
 

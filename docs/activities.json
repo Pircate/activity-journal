@@ -12444,7 +12444,8 @@
           "sharedBy": [
             "CYCPLUS R200",
             "青野"
-          ]
+          ],
+          "sharedGroup": 1
         },
         {
           "name": "青野牙盘",
@@ -12458,7 +12459,8 @@
           "sharedBy": [
             "CYCPLUS R200",
             "青野"
-          ]
+          ],
+          "sharedGroup": 2
         },
         {
           "name": "R200 飞轮",
@@ -12509,7 +12511,8 @@
           "sharedBy": [
             "CYCPLUS R200",
             "青野"
-          ]
+          ],
+          "sharedGroup": 1
         },
         {
           "name": "青野牙盘",
@@ -12523,7 +12526,8 @@
           "sharedBy": [
             "CYCPLUS R200",
             "青野"
-          ]
+          ],
+          "sharedGroup": 2
         },
         {
           "name": "青野飞轮",

@@ -14,6 +14,16 @@ const explanation = document.getElementById('metric-explanation');
 const yearSelect = document.getElementById('activity-year');
 const updateHistory = initializeHistory(data);
 const updateTrends = initializeTrends(data);
+// 先展开所属车辆，再由原生锚点定位；其余车辆保持各自的展开状态。
+document.querySelector('.gear-library').addEventListener('click', event => {
+  const link = event.target.closest('[data-gear-target]');
+  if (!link) return;
+  const part = document.getElementById(link.dataset.gearTarget);
+  const bike = part?.closest('.gear-bike');
+  if (!bike) return;
+  bike.open = true;
+  part.focus({preventScroll:true});
+});
 const metrics = dayMetrics;
 let selectedDate;
 let metric = 'distanceKm';

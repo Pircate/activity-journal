@@ -38,6 +38,8 @@
 
 ## 装备维护
 
+装备区顶部的“维护摘要”按已达建议里程、接近建议里程、信息待完善汇总重点配件；同一配件按此优先级只计一类，共享配件只计一次。需要关注的配件列出当前里程、距建议里程或超出里程、缺失信息，并为每辆关联车辆提供“查看”入口；点击后展开目标车辆、定位并高亮对应配件，键盘 Enter 同样可用。其他车辆的展开状态独立保留，切换年度或无变化刷新不重建装备节点。首次未同步和没有车辆分别展示原有提示，不显示误导性的零维护统计。
+
 在 Intervals.icu 的装备中维护自行车及配件，网站只读取信息，不提供编辑或重置操作：
 
 - 将配件关联到自行车，也支持轮组下的外胎；已退役装备隐藏，共享配件在各所属自行车下展示。
@@ -86,7 +88,7 @@ API 不提供部分 Strava 来源活动的完整内容；这些记录仅在 `una
 
 `period.start` 为最早记录所在年的元旦（至少覆盖最近一年），`period.end` 为同步时的北京时间当天；年份选项包含此范围内的所有年份，空年也可查看。
 
-`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。活动的 `activityUrl` 只接受 `https://intervals.icu/activities/` 加平台活动 ID；兼容尚无链接的旧活动快照，这些卡片不提供跳转。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件含 `name`、`type`、`distanceKm`、`replacement`；共享配件额外含 `sharedBy` 车辆名称数组，不公开装备标识。兼容没有共享字段的旧快照，不推断共享关系。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
+`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。活动的 `activityUrl` 只接受 `https://intervals.icu/activities/` 加平台活动 ID；兼容尚无链接的旧活动快照，这些卡片不提供跳转。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件含 `name`、`type`、`distanceKm`、`replacement`；共享配件额外含 `sharedBy` 车辆名称数组和 `sharedGroup` 正整数分组号；分组号仅在本份快照内标记同一共享配件，按平台原始配件关系生成，不含原始装备标识。同名、同里程的不同配件仍有不同分组，不按名称猜测共享关系；共享分组的归属和使用信息必须一致，否则拒绝更新。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
 
 同步与构建成功后，将更新文件提交并推送到 `main`，GitHub Pages 从 `docs/` 自动发布。网页只读取同源公开 JSON，凭据仅在本机脚本运行时使用。
 

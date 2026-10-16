@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {normalizeGear, fetchAllActivities} from './update-data.mjs';
-import {renderGearLibrary, validateData, createJournal} from '../docs/journal.mjs';
+import {renderGearLibrary, summarizeGear, validateData, createJournal} from '../docs/journal.mjs';
 
 const part = (id, type, extra = {}) => ({id, type, name:id, component:true, distance:12000000, ...extra});
 const bike = (id, component_ids = [], extra = {}) => ({id, name:id, type:'Bike', distance:24000000, component_ids, ...extra});
@@ -182,4 +182,87 @@ test('装备 API 失败时整次同步失败，CLI 从本地配置取密钥并�
   assert.match(result.stderr,/HTTP 503/);
   assert.equal(await readFile(dataPath,'utf8'),before);
   await assert.rejects(access(new URL('../docs/activities.json.tmp',import.meta.url)),{code:'ENOENT'});
+});
+
+test('维护摘要合并真实共享实例，同名同里程的不同共享配件仍分别计数', () => {
+  const library = normalizeGear([bike('甲',['共享一','共享二','独立一']),bike('乙',['共享一','共享二','独立二']),
+    ...['共享一','共享二','独立一','独立二'].map(id => part(id,'Chain',{name:'同名链条',reminders:[reminder(4900000)]}))]);
+  assert.equal(library[0].components[0].sharedGroup, library[1].components[0].sharedGroup);
+  assert.notEqual(library[0].components[0].sharedGroup, library[0].components[1].sharedGroup);
+  assert.equal(library[0].components[2].sharedGroup, undefined);
+  const summary = summarizeGear(library);
+  assert.equal(summary.parts.length, 4);
+  assert.equal(summary.shared, 2);
+  assert.deepEqual(summary.counts, {due:0, soon:4, unknown:0, normal:0});
+  assert.deepEqual(summary.parts.map(entry => entry.owners.length), [2,2,1,1]);
+  const html = renderGearLibrary(library);
+  const maintenance = html.slice(0, html.indexOf('<details'));
+  assert.equal((maintenance.match(/<li data-state="soon"/g) ?? []).length, 4);
+  assert.equal((maintenance.match(/data-gear-target=/g) ?? []).length, 6);
+  assert.match(maintenance, /4 件重点配件 · 2 件共享配件各计一次/);
+});
+
+test('维护摘要优先已达、接近、信息缺失；未知日期和零里程准确区分', () => {
+  const library = normalizeGear([bike('车',['正常','未知日期','接近','已达','无提醒','普通配件']),
+    part('正常','Chain',{reminders:[reminder(0)]}),
+    part('未知日期','Chain',{reminders:[{name:'更换',distance_used:100000}]}),
+    part('接近','Chain',{reminders:[reminder(4000000)]}),
+    part('已达','Chain',{reminders:[reminder(6000000)]}),
+    part('无提醒','Cassette'),part('普通配件','Wheelset')]);
+  const summary = summarizeGear(library);
+  assert.equal(summary.parts.length, 5);
+  assert.deepEqual(summary.counts, {due:1, soon:1, unknown:2, normal:1});
+  assert.deepEqual(summary.parts.map(entry => entry.state), ['due','soon','unknown','unknown','normal']);
+  const html = renderGearLibrary(library);
+  const maintenance = html.slice(0, html.indexOf('<details'));
+  assert.match(maintenance, /已超出 1,000 km/);
+  assert.match(maintenance, /距建议里程 1,000 km/);
+  assert.match(maintenance, /最近更换日期未记录/);
+  assert.doesNotMatch(maintenance, /NaN|Infinity/);
+  assert.doesNotMatch(maintenance, /<h4>正常<\/h4>|<h4>普通配件<\/h4>/);
+});
+
+test('维护定位链接使用排序前索引，精确指向共享配件的每个车辆条目', () => {
+  const library = normalizeGear([bike('甲',['正常','共享']),bike('乙',['共享']),
+    part('正常','Chain',{reminders:[reminder()]}),part('共享','Chain',{reminders:[reminder(4900000)]})]);
+  const html = renderGearLibrary(library);
+  assert.match(html, /href="#gear-part-0-1" data-gear-target="gear-part-0-1"/);
+  assert.match(html, /href="#gear-part-1-0" data-gear-target="gear-part-1-0"/);
+  assert.match(html, /id="gear-part-0-1" tabindex="-1" data-state="soon"/);
+  assert.match(html, /id="gear-part-1-0" tabindex="-1" data-state="soon"/);
+  const targets = [...html.matchAll(/data-gear-target="([^"]+)"/g)].map(match => match[1]);
+  for (const target of targets) assert.equal((html.match(new RegExp('id="' + target + '"', 'g')) ?? []).length, 1);
+  assert.ok(html.indexOf('id="gear-part-0-1"') < html.indexOf('id="gear-part-0-0"'), '优先展示需关注配件，仍保持链接对应原配件');
+});
+
+test('共享分组缺失、复用或归属及数值不一致时拒绝整个快照', () => {
+  const library = normalizeGear([bike('甲',['共享','共享二']),bike('乙',['共享','共享二']),
+    part('共享','Chain',{reminders:[reminder(4900000)]}),part('共享二','Chain',{reminders:[reminder()]})]);
+  const changes = [
+    value => delete value[0].components[0].sharedGroup,
+    value => delete value[0].components[0].sharedBy,
+    value => value[0].components[0].sharedGroup = 0,
+    value => value[0].components[0].sharedGroup = 1.5,
+    value => value[0].components[0].sharedGroup = 99,
+    value => value[1].components[0].replacement.distanceKm = 1,
+    value => value[0].components[0].sharedBy.push('甲'),
+    value => value[0].components[1].sharedGroup = value[0].components[0].sharedGroup,
+  ];
+  for (const mutate of changes) {
+    const invalid = structuredClone(library);
+    mutate(invalid);
+    assert.throws(() => validateData(snapshot(invalid)), /共享/);
+  }
+});
+
+test('维护摘要区分首次未同步、没有车辆、没有重点配件及全部正常', () => {
+  assert.equal(summarizeGear(null), null);
+  assert.doesNotMatch(renderGearLibrary(null), /maintenance-counts/);
+  assert.doesNotMatch(renderGearLibrary([]), /maintenance-counts/);
+  const noTracked = normalizeGear([bike('车',['轮组']),part('轮组','Wheelset')]);
+  assert.equal(summarizeGear(noTracked).parts.length, 0);
+  assert.match(renderGearLibrary(noTracked), /尚未关联链条、飞轮、外胎或牙盘/);
+  const normal = normalizeGear([bike('车',['链条']),part('链条','Chain',{reminders:[reminder(0)]})]);
+  assert.match(renderGearLibrary(normal), /更换信息完整，暂无接近或已达建议里程的配件/);
+  assert.doesNotMatch(renderGearLibrary(normal), /class="maintenance-list"/);
 });
