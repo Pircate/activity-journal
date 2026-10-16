@@ -46,7 +46,7 @@ test('年度类型筛选只统计所选类型，且不改变类型分布', () =>
   assert.equal(empty.initialDate, '2026-10-16');
 });
 
-test('运动趋势跟随年度类型筛选，受限记录不再阻止比较', () => {
+test('运动趋势按自身类型筛选，受限记录不再阻止比较', () => {
   const data = snapshot(records);
   const all = createTrends(data, '2026', 'month', '2026-10-16');
   const october = all.find(period => period.start === '2026-10-01');

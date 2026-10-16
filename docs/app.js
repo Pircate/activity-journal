@@ -152,9 +152,9 @@ function renderJournal() {
   yearSelect.innerHTML = renderYearOptions(data, today);
   yearSelect.value = range;
   const journal = createJournal(data, today, range, sport);
-  updateTrends(data, range, today, sport);
   const snapshot = JSON.stringify(data);
   const updateRecent = snapshot !== renderedData || today !== renderedDate;
+  if (updateRecent) updateTrends(data, today);
   if (updateRecent) document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
   const {period, distance, duration, activities, recent, activeDays, missingDistance, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');

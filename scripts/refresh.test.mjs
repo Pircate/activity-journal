@@ -170,6 +170,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     element('#history-min-distance').value = '30';
     element('#history-filters').events.get('submit')({preventDefault() {}});
     const historyWrites = historyResults.writes;
+    const trendWrites = trends.writes;
+    const trendHtml = trends.innerHTML;
     const summary = element('装备标题');
     summary.focus();
     for (const range of ['2025', '2026', 'recent']) {
@@ -184,8 +186,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       assert.equal(document.activeElement, summary, '不移除装备区域内的焦点');
       assert.equal(grid.writes, previousGridWrites + 1, '年度热力图正常更新');
       assert.equal(element('.overview-range').textContent, range === 'recent' ? '最近一年' : range + ' 年');
-      assert.match(trends.innerHTML, /周一至周日汇总 · 时长/, '切换年度保留趋势周期和指标');
-      if (range === '2025') assert.match(trends.innerHTML, /2025\.12\.29 — 2026\.01\.04/, '年度末周展示完整自然周');
+      assert.equal(trends.writes, trendWrites, '年度范围不重建独立的运动趋势');
+      assert.equal(trends.innerHTML, trendHtml, '年度范围不改变趋势选中周期及明细');
       assert.equal(element('#selected-date').min, range === 'recent' ? '2025-10-19' : range + '-01-01');
       assert.equal(element('#selected-date').max, range === 'recent' ? '2026-10-18' : range + '-12-31');
       assert.match(element('#stat-notes-body').innerHTML, new RegExp(range === 'recent' ? '最近一年' : range + ' 年'), '折叠说明跟随年度范围');
@@ -231,11 +233,50 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     assert.match(filter.innerHTML, /data-sport="骑行" aria-pressed="true"/);
     assert.match(element('#stat-notes-body').innerHTML, /历史记录查询只列出详情可读取的 <strong>\d+<\/strong> 条活动/, '折叠说明跟随类型筛选更新');
     assert.match(element('#stat-notes-body').innerHTML, /详情不可读取的记录没有运动类型，未计入所选类型/, '筛选时说明排除的不可读取记录');
-    assert.equal(trends.writes, trendWrites + 1, '趋势跟随年度范围重建并应用类型筛选');
+    assert.equal(trends.writes, trendWrites, '年度运动类型不重建独立的运动趋势');
     filter.events.get('click')({target:{closest:() => sport}});
     assert.equal(grid.writes, gridWrites + 2, '再次点击清除筛选');
     assert.match(filter.innerHTML, /data-sport="" aria-pressed="true"/);
     assert.equal(element('#sport-filter-status').textContent, '点选类型筛选年度范围，次数为该范围全部记录');
+  });
+
+  await t.test('趋势范围与类型独立筛选，刷新保留选择，且不改变全年活动', async () => {
+    const year = element('#trend-year');
+    const sport = element('#trend-sport');
+    const gridWrites = grid.writes;
+    const annualSport = element('#sport-filter').innerHTML;
+    const annualRange = element('#activity-year').value;
+    year.value = '2025';
+    year.events.get('change')();
+    assert.match(trends.innerHTML, /2025\.12\.29 — 2026\.01\.04/, '趋势范围的边界周包含完整自然周');
+    sport.value = '骑行';
+    sport.events.get('change')();
+    const html = trends.innerHTML;
+    assert.equal(grid.writes, gridWrites, '趋势筛选不重建全年活动');
+    assert.equal(element('#activity-year').value, annualRange);
+    assert.equal(element('#sport-filter').innerHTML, annualSport);
+    latest.syncedAt = '2026-10-18 12:00:00 +08:00';
+    await refresh();
+    assert.equal(year.value, '2025', '数据刷新保留趋势范围');
+    assert.equal(sport.value, '骑行', '数据刷新保留趋势运动类型');
+    assert.equal(trends.innerHTML, html, '刷新保留周期、指标和选中项');
+    year.value = 'recent';
+    year.events.get('change')();
+    chooseTrend('[data-period]', {period:'2026-10-05'});
+    assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
+    assert.match(trends.innerHTML, /25\.00<small>km/);
+    // 合法但该范围内没有记录的类型应呈现空明细，不回退到全部运动。
+    latest.activities.push({...latest.activities[0], date:'2025-01-01', sport:'跑步', distanceKm:5, activityUrl:'https://intervals.icu/activities/i2'});
+    await refresh();
+    sport.value = '跑步';
+    sport.events.get('change')();
+    assert.match(trends.innerHTML, /此周期没有运动记录/);
+    assert.doesNotMatch(trends.innerHTML, /25\.00<small>km/);
+    assert.match(sport.innerHTML, /value="跑步"/);
+    sport.value = '';
+    sport.events.get('change')();
+    latest.activities.pop();
+    await refresh();
   });
 
   await t.test('维护入口展开目标车辆并聚焦配件，年度切换及无变化刷新保留状态', async () => {
