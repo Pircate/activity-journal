@@ -74,7 +74,7 @@ ${renderReportPanel(data)}
 <div class="gear-library">${renderGearLibrary(data.gearLibrary)}</div>
 <p class="gear-caption">建议更换里程：链条、前后胎 5000 km，飞轮 10000 km，牙盘 30000 km。以上里程仅为维护参考，不代表实际磨损程度。更换后，在 Intervals.icu 重置配件的“更换”提醒；日期和里程随每日同步更新。</p></section>
 </main>
-<footer><div><p class="footer-title">每一程，都是记录。</p><p>数据来自 Intervals.icu · 受限历史活动由 Strava 补充 · 力量训练组数来自 COROS</p><p>日期按北京时间展示</p></div><div class="footer-right"><p>同步于 <time id="sync-time">${syncedAt.replace(' +08:00','').replaceAll('-','.')}</time>（北京时间）</p><p class="footer-note">每天 22:00 同步后更新 · 打开时读取最新数据</p><p id="sync-status" role="status" aria-live="polite"></p></div></footer></div>
+<footer><div><p class="footer-title">每一程，都是记录。</p><p>数据来自 Intervals.icu · 历史活动由 Strava 补充 · 力量训练组数来自 COROS</p><p>日期按北京时间展示</p></div><div class="footer-right"><p>同步于 <time id="sync-time">${syncedAt.replace(' +08:00','').replaceAll('-','.')}</time>（北京时间）</p><p class="footer-note">每天 22:00 同步后更新 · 打开时读取最新数据</p><p id="sync-status" role="status" aria-live="polite"></p></div></footer></div>
 <script type="application/json" id="personal-bests-data">${JSON.stringify(personalBests).replaceAll('<','\\u003c')}</script>
 <script type="application/json" id="journal-data">${JSON.stringify(data).replaceAll('<','\\u003c')}</script></body></html>`;
 await writeFile(new URL('../docs/index.html',import.meta.url),html);

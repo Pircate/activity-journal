@@ -199,25 +199,38 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   const gearLibrary = normalizeGear(await get(`athlete/${encodeURIComponent(athlete.id)}/gear`));
   const syncedAt = new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'}).format(now) + ' +08:00';
   const restricted = records.filter(a => a.source === 'STRAVA' && !a.type && !a.start_date && a._note === 'STRAVA activities are not available via the API');
-  // 补充文件只含公开指标；以两个平台链接中的同一个 Strava ID 精确关联，不按日期猜测。
+  // 补充文件保存已核对的关联；没有 Intervals.icu 记录的 Strava 活动也独立保留。
   validateData({period, syncedAt, activities:stravaActivities, unavailableActivities:[], gearLibrary:[]});
   const supplements = new Map();
+  const linkedActivities = new Map();
   for (const activity of stravaActivities) {
     const id = activity.stravaUrl?.match(/^https:\/\/www\.strava\.com\/activities\/([1-9]\d*)$/)?.[1];
-    if (!id || activity.activityUrl !== 'https://intervals.icu/activities/' + id || supplements.has(id) || activity.trainingLoad !== null) {
+    const intervalsId = activity.activityUrl?.split('/').at(-1);
+    if (!id || supplements.has(id) || activity.trainingLoad !== null ||
+        intervalsId && (!intervalsId.startsWith('i') && intervalsId !== id || linkedActivities.has(activity.activityUrl))) {
       throw new Error('Strava 补充数据关联无效或重复');
     }
     supplements.set(id, activity);
+    if (activity.activityUrl) linkedActivities.set(activity.activityUrl, activity);
   }
-  const restored = restricted.filter(a => supplements.has(String(a.id))).map(a => supplements.get(String(a.id)));
-  const unavailable = restricted.filter(a => !supplements.has(String(a.id)));
+  const native = normalizeActivities(records.filter(a => !restricted.includes(a)), period, strengthSets).map(activity => {
+    const supplement = linkedActivities.get(activity.activityUrl);
+    if (!supplement) return activity;
+    if (activity.stravaUrl && activity.stravaUrl !== supplement.stravaUrl) throw new Error('Strava 补充关联与平台记录冲突');
+    return {...activity, stravaUrl:supplement.stravaUrl};
+  });
+  const nativeUrls = new Set(native.map(a => a.activityUrl));
+  const stravaUrls = new Set(native.map(a => a.stravaUrl).filter(Boolean));
+  const restored = stravaActivities.filter(a => !nativeUrls.has(a.activityUrl) && !stravaUrls.has(a.stravaUrl));
+  for (const a of restored) stravaUrls.add(a.stravaUrl);
+  const unavailable = restricted.filter(a => !stravaUrls.has('https://www.strava.com/activities/' + a.id));
   const unavailableActivities = unavailable.map(a => ({date:a.start_date_local?.slice(0,10)}))
     .filter(a => a.date >= period.start && a.date <= period.end);
   // 空壳只保留平台提供的当地日期，公开注明详情缺失，不混入可读取活动的总量。
   for (const a of unavailable) {
     if (!/^\d{4}-\d{2}-\d{2}T/.test(a.start_date_local ?? '') || !isDate(a.start_date_local.slice(0,10))) throw new Error('无法读取的活动缺少有效日期');
   }
-  const activities = [...normalizeActivities(records.filter(a => !restricted.includes(a)), period, strengthSets), ...restored]
+  const activities = [...native, ...restored]
     .sort((a,b) => b.date.localeCompare(a.date));
   const data = {period, syncedAt, activities, unavailableActivities, gearLibrary};
   const firstDate = [...data.activities, ...unavailableActivities].reduce((first, a) => a.date < first ? a.date : first, shiftDate(end, -364));

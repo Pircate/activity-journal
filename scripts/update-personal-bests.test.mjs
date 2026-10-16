@@ -49,6 +49,14 @@ test('最远骑行包含虚拟骑行，并按活动快照给出日期与链接',
   assert.equal(longestRide(virtualOnly).date, '2026-02-02');
 });
 
+test('Strava 独有的最远骑行保留日期和真实链接，不生成 Intervals.icu 链接', () => {
+  const ride = {date:'2021-05-12', sport:'骑行', distanceKm:200, stravaUrl:'https://www.strava.com/activities/901'};
+  const data = buildPersonalBests({activities:[...activities, ride], paceCurves, powerCurves});
+  assert.deepEqual(data.records.find(record => record.event === '最远距离'), {
+    sport:'骑行', event:'最远距离', result:'200.00 km', date:ride.date, activityUrl:null, stravaUrl:ride.stravaUrl,
+  });
+});
+
 test('组装成绩固定顺序，并用活动快照精确关联日期及 Strava 链接', () => {
   const linkedActivities = activities.map((activity, index) => ({...activity, stravaUrl:'https://www.strava.com/activities/' + (9000 + index)}));
   const data = buildPersonalBests({activities:linkedActivities, paceCurves, powerCurves, now:new Date('2026-10-16T04:00:00Z')});

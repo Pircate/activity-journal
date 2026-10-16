@@ -15,7 +15,7 @@
 
 ## 取数与构建
 
-运动基础数据优先来自 Intervals.icu；受限历史活动使用 `data/strava-activities.json` 中已由 Strava API 核对的公开指标，力量训练组数通过下述 COROS 补充流程取得。
+运动基础数据优先来自 Intervals.icu；缺失或受限的历史活动使用 `data/strava-activities.json` 中已由 Strava API 全量核对的公开指标，力量训练组数通过下述 COROS 补充流程取得。
 
 凭据保存在本机 `~/.config/interval-icu/config.json` 的 `INTERVALS_ICU_API_KEY` 字段中，脚本运行时直接读取配置文件；目录权限为 `700`，文件权限为 `600`。禁止把密钥写入仓库、公开文件、自动化提示词或日志。配置缺失、无效或授权失败时停止网站更新并报告，不得切回 COROS。
 
@@ -33,9 +33,9 @@ node scripts/build.mjs
 
 只有活动与装备查询都成功、列表未达到上限、所有记录有效时才写入。API 失败、授权过期、超时、缺失运动时长、重复 ID、装备关联不完整或循环、无效里程或疑似截断时保留旧文件并报告；不得把失败当作零条记录，不得复用 COROS 负荷补缺。同一天多次运动保留实际条数。
 
-Strava API 明确返回的受限空壳只保留当地日期，在页面标注详情缺失，不计入总量；不得猜测详情或把它当成没有运动。
+Intervals.icu 返回的 Strava 受限空壳若尚无补充记录，只保留当地日期，在页面标注详情缺失，不计入总量；不得猜测详情或把它当成没有运动。仅存在于 Strava 补充文件的独立活动也须保留，不能因 Intervals.icu 没有对应条目而丢弃。
 
-公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动含 date、sport、distanceKm、duration、trainingLoad、activityUrl；力量训练额外含 sets（组数）和 averageHeartRate（平均心率，bpm），缺失时为 null。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，用于成绩与组数关联。有 strava_id 时额外保存 stravaUrl，为 https://www.strava.com/activities/ 加该 Strava 活动 ID，供最近一周、当天明细和历史查询跳转；无关联时省略 stravaUrl，不提供跳转。不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、原始装备标识、账号信息、装备备注、坐标、心率明细、原始文件链接或凭据。
+公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动含 date、sport、distanceKm、duration、trainingLoad；存在真实关联时包含可选 activityUrl，Strava 独有记录省略该字段；力量训练额外含 sets（组数）和 averageHeartRate（平均心率，bpm），缺失时为 null。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，用于成绩与组数关联。有 strava_id 时额外保存 stravaUrl，为 https://www.strava.com/activities/ 加该 Strava 活动 ID，供最近一周、当天明细和历史查询跳转；无关联时省略 stravaUrl，不提供跳转。不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、原始装备标识、账号信息、装备备注、坐标、心率明细、原始文件链接或凭据。
 
 gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm、components；配件含 name、type、distanceKm、replacement；共享配件另含 sharedBy 车辆名称数组和 sharedGroup 正整数分组号。sharedGroup 由 normalizeGear 按同一原始平台配件的实际关联生成，仅在当前快照内标记共享实例，不写入原始装备标识，不按名称或数值推断共享。共享配件的各份使用信息和所属车辆必须一致，否则拒绝更新。首次尚未同步的仓库快照使用 null，禁止在同步失败时改为 null 或空列表。已退役装备隐藏，component_ids 只在脚本内部用于递归解析归属，不发布原始标识。
 
@@ -47,11 +47,15 @@ gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm�
 
 检查 git diff，日常数据更新应仅涉及 data/strength-sets.json、data/strava-activities.json、docs/activities.json、docs/personal-bests.json 与 docs/index.html；维护摘要在构建时从装备快照生成，共享提醒只计一次，前端的车辆内定位索引不作为平台标识使用；出现异常删除先复核查询完整性。
 
-## Strava 受限历史活动补充
+## Strava 全量历史活动补充
 
-`data/strava-activities.json` 仅保存与网站相同的公开活动字段，不保存完整 API 响应、凭据、坐标或心率明细。通过 Strava API 分页查询历史活动，使用受限记录的真实 Strava ID 精确核对；`activityUrl` 与 `stravaUrl` 必须分别为两个平台的活动链接并包含同一个纯数字 ID，禁止按日期或名称关联。日期由 Strava 的 UTC 开始时间转换为北京时间，距离和运动时长沿用现有单位换算，运动类型使用 `sport_type`，训练负荷必须为 `null`。未匹配的活动继续标记详情不可读取；已有补充记录不能因授权或查询失败被清空。
+`data/strava-activities.json` 仅保存与网站相同的公开活动字段，不保存完整 API 响应、凭据、坐标或心率明细。通过 Strava API 分页读取全部历史，先按 Strava ID、原始文件标识核对已有活动；旧记录缺少共同标识时，用精确 UTC 开始时间、运动类型及指标交叉核对，时间存在偏差的记录逐条复核。禁止仅凭某天或名称批量关联。
 
-日常 `update-data.mjs` 自动读取该文件，只恢复 Intervals.icu 仍受限的同 ID 记录；原生详情重新可读时优先采用原生指标，不重复计数。文件中重复 ID、错误链接、无效指标或非空负荷均导致同步失败并保留旧快照。
+已核对的关联保存为各自真实的 `activityUrl` 与 `stravaUrl`，两个平台的 ID 可以不同。完全未收录于 Intervals.icu 的活动仅保留真实 `stravaUrl`，省略 `activityUrl`，不能用 Strava ID 编造 Intervals.icu 链接。日期由 UTC 转换为北京时间，距离和运动时长沿用现有单位换算，运动类型使用 `sport_type`，补充文件的训练负荷必须为 `null`。
+
+日常 `update-data.mjs` 自动读取该文件，优先保留原生记录的指标，仅补齐 Strava 链接；其余补充记录以 Strava URL 去重后独立保留，包括 Intervals.icu 从未列出的活动。受限空壳仍未补齐时继续标记详情不可读取。重复 Strava ID、重复 Intervals.icu 关联、与平台链接冲突、错误链接、无效指标或非空补充负荷均导致同步失败并保留旧快照；已有补充记录不能因授权或查询失败被清空。
+
+全量补录后，必须验证 Strava 所有 ID 均被快照覆盖，核对最早开始日期，并确认跨平台已关联活动没有重复新增；不能仅以 `unavailableActivities` 为空判定完整。网站可保留其他平台独有的活动，因此网站总数不要求等于 Strava 总数。
 
 ## 力量训练组数补充
 

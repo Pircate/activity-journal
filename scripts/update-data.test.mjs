@@ -247,3 +247,25 @@ test('Strava 补充按 ID 恢复受限记录，保留未匹配状态，不覆盖
     await assert.rejects(fetchAllActivities({...options, stravaActivities}), /无效|重复/);
   }
 });
+
+test('独立保留 Intervals.icu 完全未列出的早期 Strava 活动，并按已核对链接去重', async () => {
+  const {activityUrl, ...early} = normalizeActivities([{...record, id:'901', strava_id:'901', start_date:'2021-05-12T13:52:32Z', icu_training_load:null}], {start:'1900-01-01', end:period.end})[0];
+  const linked = {...early, date:'2026-10-15', activityUrl:'https://intervals.icu/activities/i1', stravaUrl:'https://www.strava.com/activities/902'};
+  const options = {config:{INTERVALS_ICU_API_KEY:'test'}, now:new Date('2026-10-15T14:00:00Z'), stravaActivities:[early, linked],
+    fetchImpl:async url => ({ok:true, json:async () => url.endsWith('/athlete/0') ? {id:'test'} : url.endsWith('/gear') ? [] : [record]})};
+  const data = await fetchAllActivities(options);
+  assert.equal(data.period.start, '2021-01-01');
+  assert.equal(data.activities.length, 2);
+  assert.deepEqual(data.activities.at(-1), early);
+  assert.equal(data.activities[0].stravaUrl, linked.stravaUrl);
+  assert.equal(data.activities[0].trainingLoad, record.icu_training_load);
+  assert.equal(data.unavailableActivities.length, 0);
+  const repeated = await fetchAllActivities(options);
+  assert.deepEqual(repeated.activities, data.activities);
+  const alreadyLinked = await fetchAllActivities({...options, stravaActivities:[early],
+    fetchImpl:async url => ({ok:true, json:async () => url.endsWith('/athlete/0') ? {id:'test'} : url.endsWith('/gear') ? [] : [{...record, strava_id:'901'}]})});
+  assert.equal(alreadyLinked.activities.length, 1);
+  await assert.rejects(fetchAllActivities({...options, stravaActivities:[linked, {...linked, stravaUrl:early.stravaUrl}]}), /关联无效或重复/);
+  await assert.rejects(fetchAllActivities({...options,
+    fetchImpl:async url => ({ok:true, json:async () => url.endsWith('/athlete/0') ? {id:'test'} : url.endsWith('/gear') ? [] : [{...record, strava_id:'903'}]})}), /关联与平台记录冲突/);
+});

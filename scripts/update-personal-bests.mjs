@@ -68,7 +68,8 @@ export function longestRide(activities) {
     if (!best || activity.distanceKm > best.distanceKm) best = activity;
   }
   if (!best) return null;
-  return {sport:'骑行', event:'最远距离', result:best.distanceKm.toFixed(2) + ' km', date:best.date ?? null, activityUrl:best.activityUrl ?? null};
+  return {sport:'骑行', event:'最远距离', result:best.distanceKm.toFixed(2) + ' km', date:best.date ?? null, activityUrl:best.activityUrl ?? null,
+    ...(best.stravaUrl ? {stravaUrl:best.stravaUrl} : {})};
 }
 
 export function buildPersonalBests({activities = [], paceCurves, powerCurves, now = new Date()} = {}) {
@@ -76,7 +77,7 @@ export function buildPersonalBests({activities = [], paceCurves, powerCurves, no
   // 按 Intervals.icu 活动链接精确关联；查不到时不猜测日期或 Strava 链接。
   const withActivity = records => records.map(record => {
     const activity = activityByUrl.get(record.activityUrl);
-    return {...record, date:activity?.date ?? null, ...(activity?.stravaUrl ? {stravaUrl:activity.stravaUrl} : {})};
+    return {...record, date:activity?.date ?? record.date, ...(activity?.stravaUrl ? {stravaUrl:activity.stravaUrl} : {})};
   });
   const ride = longestRide(activities);
   const records = withActivity([...paceRecords(paceCurves), ...(ride ? [ride] : []), ...powerRecords(powerCurves)]);

@@ -1,27 +1,30 @@
 {
   "source": "Intervals.icu",
-  "syncedAt": "2026-10-16T14:46:56.811Z",
+  "syncedAt": "2026-10-16T15:03:59.989Z",
   "records": [
     {
       "sport": "跑步",
       "event": "5 公里",
       "result": "18:12",
       "date": "2022-11-06",
-      "activityUrl": "https://intervals.icu/activities/i17229425"
+      "activityUrl": "https://intervals.icu/activities/i17229425",
+      "stravaUrl": "https://www.strava.com/activities/8074592205"
     },
     {
       "sport": "跑步",
       "event": "10 公里",
       "result": "37:33",
       "date": "2022-11-06",
-      "activityUrl": "https://intervals.icu/activities/i17229425"
+      "activityUrl": "https://intervals.icu/activities/i17229425",
+      "stravaUrl": "https://www.strava.com/activities/8074592205"
     },
     {
       "sport": "跑步",
       "event": "半程马拉松",
       "result": "1:24:29",
       "date": "2022-10-27",
-      "activityUrl": "https://intervals.icu/activities/i17229384"
+      "activityUrl": "https://intervals.icu/activities/i17229384",
+      "stravaUrl": "https://www.strava.com/activities/8026642371"
     },
     {
       "sport": "跑步",
