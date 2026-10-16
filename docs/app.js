@@ -1,6 +1,6 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
-const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, availableYears, dayMetrics, dayMetricState, describeDay} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {createJournal, beijingDate, formatTime, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetrics, dayMetricState, describeDay} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
 const {renderCalendar, moveCalendarDate} = await import('./calendar.mjs' + (version ? '?v=' + version : ''));
 const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + version : ''));
@@ -27,6 +27,7 @@ document.querySelector('.gear-library').addEventListener('click', event => {
 const metrics = dayMetrics;
 let selectedDate;
 let metric = 'distanceKm';
+let sport = '';
 const calendarGrid = document.getElementById('calendar-days');
 const calendarPrevious = document.getElementById('calendar-previous');
 const calendarNext = document.getElementById('calendar-next');
@@ -130,19 +131,28 @@ yearSelect.addEventListener('change', () => {
   selectedDate = undefined;
   renderJournal();
 });
+document.getElementById('sport-filter').addEventListener('click', event => {
+  const chip = event.target.closest('[data-sport]');
+  if (!chip) return;
+  sport = sport === chip.dataset.sport ? '' : chip.dataset.sport;
+  // 切换类型只影响年度范围；最近一周、历史查询和装备库各自独立。
+  renderJournal();
+});
 function renderJournal() {
   const focusedCalendarDate = document.activeElement?.matches('.calendar-day[data-date]') ? document.activeElement.dataset.date : null;
   const focusedDate = document.activeElement?.matches('.day-cell[data-date]') ? document.activeElement.dataset.date : null;
+  const focusedSport = document.activeElement?.closest?.('#sport-filter') ? document.activeElement.dataset.sport : undefined;
   const today = beijingDate();
   const range = availableYears(data, today).includes(yearSelect.value) ? yearSelect.value : 'recent';
+  if (sport && !data.activities.some(activity => activity.sport === sport)) sport = '';
   yearSelect.innerHTML = renderYearOptions(data, today);
   yearSelect.value = range;
-  const journal = createJournal(data, today, range);
-  updateTrends(data, range, today);
+  const journal = createJournal(data, today, range, sport);
+  updateTrends(data, range, today, sport);
   const snapshot = JSON.stringify(data);
   const updateRecent = snapshot !== renderedData || today !== renderedDate;
   if (updateRecent) document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
-  const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad, unavailableCount} = journal;
+  const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad, unavailableCount, unavailableExcluded} = journal;
   const pretty = date => date.replaceAll('-', '.');
   const rangeLabel = range === 'recent' ? '最近一年' : range + ' 年';
   document.querySelector('.overview-range').textContent = rangeLabel;
@@ -150,7 +160,8 @@ function renderJournal() {
   document.querySelector('.metrics').setAttribute('aria-label', rangeLabel + '运动概览');
   document.title = '我的运动记录 · ' + rangeLabel;
   document.querySelector('.period').innerHTML = '<time datetime="' + period.start + '">' + pretty(period.start) + '</time> — <time datetime="' + period.end + '">' + pretty(period.end) + '</time>';
-  document.querySelector('.legend').innerHTML = journal.sports.map(s => '<span class="legend-item">' + escapeHtml(s.sport) + ' <strong>' + s.count + '</strong> 次</span>').join('');
+  document.getElementById('sport-filter').innerHTML = renderSportFilter(journal.sports, sport);
+  document.getElementById('sport-filter-status').textContent = sport ? '已筛选：' + sport + ' · 该范围内 ' + activities.length + ' 条记录' : '点选类型筛选年度范围，次数为该范围全部记录';
   const values = document.querySelectorAll('.metric-value');
   values[0].innerHTML = distance.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2}) + '<small>公里</small>';
   values[1].innerHTML = Math.floor(duration / 3600) + '<small>小时</small>';
@@ -171,7 +182,7 @@ function renderJournal() {
     renderedGear = gear;
   }
   if (updateRecent) document.querySelector('.records-section .section-head p').textContent = recent.length ? '共 ' + recent.length + ' 条 · 最新记录在前' : '最近一周还没有运动记录';
-  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。负荷为 Intervals.icu 的活动训练负荷。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '') + (unavailableCount ? ' 另有 ' + unavailableCount + ' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。' : '');
+  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。负荷为 Intervals.icu 的活动训练负荷。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '') + (unavailableCount ? ' 另有 ' + unavailableCount + ' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。' : '') + (unavailableExcluded ? ' 另有 ' + unavailableExcluded + ' 次详情无法读取的运动没有类型信息，未计入所选类型。' : '');
   dateInput.min = period.start;
   dateInput.max = period.end;
   daily = journal.daily;
@@ -185,6 +196,7 @@ function renderJournal() {
   render();
   if (focusedDate) buttonByDate.get(focusedDate)?.focus({preventScroll:true});
   if (focusedCalendarDate) calendarGrid.querySelector('[data-date="' + focusedCalendarDate + '"]')?.focus({preventScroll:true});
+  if (focusedSport !== undefined) [...document.querySelectorAll('#sport-filter [data-sport]')].find(chip => chip.dataset.sport === focusedSport)?.focus({preventScroll:true});
   if (renderedData !== undefined && snapshot !== renderedData) updateHistory(data);
   renderedData = snapshot;
   renderedDate = today;

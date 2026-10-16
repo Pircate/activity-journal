@@ -239,6 +239,16 @@ export function renderYearOptions(data, endDate = data.period.end) {
   return '<option value="recent">最近一年</option>' + availableYears(data, endDate).map(year => `<option value="${year}">${year} 年</option>`).join('');
 }
 
+// 运动类型分布同时作为年度筛选入口：计数始终是该范围的完整分布，不随筛选变化。
+export function renderSportFilter(sports, selected = '') {
+  const items = sports.map(({sport, count}) => ({sport, count}));
+  // 保留已选类型：该范围没有记录时也显示当前筛选，便于直接清除。
+  if (selected && !items.some(item => item.sport === selected)) items.push({sport:selected, count:0});
+  const total = items.reduce((sum, item) => sum + item.count, 0);
+  const chip = (sport, count, label) => `<button type="button" class="legend-item" data-sport="${escapeHtml(sport)}" aria-pressed="${sport === selected}" aria-label="${escapeHtml(label)}，该范围 ${count} 次" title="${escapeHtml(label)}，该范围 ${count} 次">${escapeHtml(label)} <strong>${count}</strong> 次</button>`;
+  return chip('', total, '全部运动') + items.map(item => chip(item.sport, item.count, item.sport)).join('');
+}
+
 function renderRecentSummary(recent, data, endDate) {
   const start = shiftDate(endDate, -6);
   const distance = recent.reduce((sum, activity) => sum + Math.round((activity.distanceKm ?? 0) * 100), 0) / 100;
@@ -254,12 +264,16 @@ function renderRecentSummary(recent, data, endDate) {
     <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>公里</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}`;
 }
 
-export function createJournal(data, endDate = data.period.end, range = 'recent') {
+export function createJournal(data, endDate = data.period.end, range = 'recent', sport = '') {
   if (range !== 'recent' && !availableYears(data, endDate).includes(String(range))) throw new Error('所选年份不在已同步范围内');
   const period = range === 'recent' ? {start:shiftDate(endDate, -364), end:endDate} : {start:range + '-01-01', end:range + '-12-31'};
-  const activities = data.activities.filter(a => a.date >= period.start && a.date <= period.end).slice().sort((a,b) => b.date.localeCompare(a.date));
-  const unavailableActivities = data.unavailableActivities.filter(a => a.date >= period.start && a.date <= period.end);
+  const rangeActivities = data.activities.filter(a => a.date >= period.start && a.date <= period.end);
+  const activities = (sport ? rangeActivities.filter(a => a.sport === sport) : rangeActivities).slice().sort((a,b) => b.date.localeCompare(a.date));
+  // 详情无法读取的运动没有类型信息，筛选单个类型时不计入统计，避免把未知归属算进所选类型。
+  const unavailableInRange = data.unavailableActivities.filter(a => a.date >= period.start && a.date <= period.end);
+  const unavailableActivities = sport ? [] : unavailableInRange;
   const unavailableCount = unavailableActivities.length;
+  const unavailableExcluded = sport ? unavailableInRange.length : 0;
   const recent = data.activities.filter(a => a.date >= shiftDate(endDate, -6) && a.date <= endDate).slice().sort((a,b) => b.date.localeCompare(a.date));
   const daily = [];
   for (let date = period.start; date <= period.end; date = shiftDate(date, 1)) {
@@ -276,7 +290,7 @@ export function createJournal(data, endDate = data.period.end, range = 'recent')
   const activeDays = daily.filter(d => d.count > 0).length;
   const missingDistance = activities.filter(a => a.distanceKm === null).length;
   const missingLoad = activities.filter(a => a.trainingLoad === null).length;
-  const sports = [...new Set(activities.map(a => a.sport))].map(sport => ({sport, count:activities.filter(a => a.sport === sport).length}));
+  const sports = [...new Set(rangeActivities.map(a => a.sport))].map(name => ({sport:name, count:rangeActivities.filter(a => a.sport === name).length}));
   const first = new Date(period.start + 'T00:00:00Z');
   const last = new Date(period.end + 'T00:00:00Z');
   const start = shiftDate(period.start, -((first.getUTCDay() + 6) % 7));
@@ -291,5 +305,5 @@ export function createJournal(data, endDate = data.period.end, range = 'recent')
   const monthLabels = months.map((m,i) => '<span style="grid-column:' + m.column + '/' + (months[i+1]?.column ?? columns+1) + '">' + m.label + '</span>').join('');
   const cards = recent.length ? recent.map(recordCard).join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
   const initialDate = daily.findLast(d => d.count > 0)?.date ?? daily.findLast(d => !d.pending)?.date ?? period.end;
-  return {activities, recent, recentSummary:renderRecentSummary(recent, data, endDate), unavailableCount, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
+  return {activities, recent, recentSummary:renderRecentSummary(recent, data, endDate), unavailableCount, unavailableExcluded, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
 }

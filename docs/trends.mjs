@@ -14,12 +14,15 @@ const metrics = {
   trainingLoad:{label:'负荷', unit:'', format:value => value.toLocaleString('zh-CN', {maximumFractionDigits:1}), missing:'missingLoad'},
 };
 
-export function createTrends(data, range = 'recent', mode = 'month', today = beijingDate()) {
+export function createTrends(data, range = 'recent', mode = 'month', today = beijingDate(), sport = '') {
   const start = range === 'recent' ? shift(today, -364) : range + '-01-01';
   const end = range === 'recent' ? today : [range + '-12-31', today].sort()[0];
   const align = mode === 'week' ? weekStart : monthStart;
+  // 运动类型筛选跟随年度查看范围；受限记录没有类型信息，筛选时整体排除。
+  const activities = sport ? data.activities.filter(activity => activity.sport === sport) : data.activities;
+  const unavailableActivities = sport ? [] : data.unavailableActivities;
   function summarize(first, last) {
-    const records = data.activities.filter(a => a.date >= first && a.date <= last).slice().sort((a, b) => b.date.localeCompare(a.date));
+    const records = activities.filter(a => a.date >= first && a.date <= last).slice().sort((a, b) => b.date.localeCompare(a.date));
     const missingDistance = records.filter(a => a.distanceKm === null).length;
     const missingLoad = records.filter(a => a.trainingLoad === null).length;
     return {start:first, end:last, records, count:records.length,
@@ -27,7 +30,7 @@ export function createTrends(data, range = 'recent', mode = 'month', today = bei
       durationSeconds:records.reduce((sum, a) => sum + a.duration.split(':').reduce((value, part) => value * 60 + Number(part), 0), 0),
       trainingLoad:records.length && missingLoad === records.length ? null : records.reduce((sum, a) => sum + (a.trainingLoad ?? 0), 0),
       missingDistance, missingLoad,
-      unavailable:data.unavailableActivities.filter(a => a.date >= first && a.date <= last).length,
+      unavailable:unavailableActivities.filter(a => a.date >= first && a.date <= last).length,
       pending:first < data.period.start || last > data.period.end};
   }
   const periods = [];
@@ -96,7 +99,7 @@ export function renderTrendContent(periods, {mode = 'month', metric = 'distanceK
 }
 
 export function renderTrendPanel(data, today = beijingDate()) {
-  return `<section class="trend-panel" aria-labelledby="trend-title"><div class="trend-heading"><h3 id="trend-title">运动趋势</h3><div class="trend-controls"><div class="metric-switch" role="group" aria-label="趋势汇总周期"><button type="button" data-trend-mode="week" aria-pressed="false">每周</button><button type="button" data-trend-mode="month" aria-pressed="true">每月</button></div><label class="sr-only" for="trend-metric">趋势统计指标</label><select id="trend-metric">${Object.entries(metrics).map(([key, spec]) => `<option value="${key}">${spec.label}</option>`).join('')}</select></div></div><p class="trend-intro">跟随上方查看范围，边界周／月包含完整自然周期的记录。本周／本月截至北京时间今天，与上周期相同天数比较（不超过上周期末）。</p><div id="trend-content">${renderTrendContent(createTrends(data, 'recent', 'month', today))}</div></section>`;
+  return `<section class="trend-panel" aria-labelledby="trend-title"><div class="trend-heading"><h3 id="trend-title">运动趋势</h3><div class="trend-controls"><div class="metric-switch" role="group" aria-label="趋势汇总周期"><button type="button" data-trend-mode="week" aria-pressed="false">每周</button><button type="button" data-trend-mode="month" aria-pressed="true">每月</button></div><label class="sr-only" for="trend-metric">趋势统计指标</label><select id="trend-metric">${Object.entries(metrics).map(([key, spec]) => `<option value="${key}">${spec.label}</option>`).join('')}</select></div></div><p class="trend-intro">跟随上方“查看范围”和运动类型筛选，边界周／月包含完整自然周期的记录。本周／本月截至北京时间今天，与上周期相同天数比较（不超过上周期末）。</p><div id="trend-content">${renderTrendContent(createTrends(data, 'recent', 'month', today))}</div></section>`;
 }
 
 export function initializeTrends(initialData) {
@@ -105,12 +108,13 @@ export function initializeTrends(initialData) {
   let today = beijingDate();
   let mode = 'month';
   let metric = 'distanceKm';
+  let sport = '';
   let selected;
   let page = 1;
   const root = document.getElementById('trend-content');
   const panel = document.querySelector('.trend-panel');
   function render() {
-    const periods = createTrends(data, range, mode, today);
+    const periods = createTrends(data, range, mode, today, sport);
     const changedSelection = !periods.some(period => period.start === selected);
     if (changedSelection) {
       selected = periods.at(-1)?.start;
@@ -148,5 +152,5 @@ export function initializeTrends(initialData) {
     if (paging) root.querySelector('.trend-records')?.scrollIntoView({block:'nearest'});
   });
   document.getElementById('trend-metric').addEventListener('change', event => { metric = event.target.value; render(); });
-  return (latest, nextRange, nextToday) => { data = latest; range = nextRange; today = nextToday; render(); };
+  return (latest, nextRange, nextToday, nextSport = '') => { data = latest; range = nextRange; today = nextToday; sport = nextSport; render(); };
 }

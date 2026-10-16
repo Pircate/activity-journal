@@ -203,6 +203,37 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     assert.match(gear.innerHTML, /公路车/);
   });
 
+  await t.test('运动类型分布作为年度筛选入口，只更新年度区域', async () => {
+    const filter = element('#sport-filter');
+    const gridWrites = grid.writes;
+    const recentWrites = element('.records-grid').writes;
+    const summaryWrites = element('.recent-summary').writes;
+    const historyWrites = element('#history-results').writes;
+    const gearWrites = gear.writes;
+    const trendWrites = trends.writes;
+    const sport = element('sport-chip');
+    sport.dataset = {sport:'骑行'};
+    sport.closest = selector => selector === '#sport-filter' ? filter : null;
+    sport.matches = () => false;
+    sport.focus = () => { document.activeElement = sport; };
+    groups.set('#sport-filter [data-sport]', [sport]);
+    sport.focus();
+    filter.events.get('click')({target:{closest:() => sport}});
+    assert.equal(grid.writes, gridWrites + 1, '年度热力图随类型筛选更新');
+    assert.equal(element('.records-grid').writes, recentWrites);
+    assert.equal(element('.recent-summary').writes, summaryWrites);
+    assert.equal(element('#history-results').writes, historyWrites);
+    assert.equal(gear.writes, gearWrites);
+    assert.equal(document.activeElement, sport, '重绘筛选后恢复键盘焦点');
+    assert.match(element('#sport-filter-status').textContent, /^已筛选：骑行/);
+    assert.match(filter.innerHTML, /data-sport="骑行" aria-pressed="true"/);
+    assert.equal(trends.writes, trendWrites + 1, '趋势跟随年度范围重建并应用类型筛选');
+    filter.events.get('click')({target:{closest:() => sport}});
+    assert.equal(grid.writes, gridWrites + 2, '再次点击清除筛选');
+    assert.match(filter.innerHTML, /data-sport="" aria-pressed="true"/);
+    assert.equal(element('#sport-filter-status').textContent, '点选类型筛选年度范围，次数为该范围全部记录');
+  });
+
   await t.test('维护入口展开目标车辆并聚焦配件，年度切换及无变化刷新保留状态', async () => {
     const bike = element('目标车辆');
     const other = element('其他车辆');

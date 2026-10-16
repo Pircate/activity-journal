@@ -179,3 +179,17 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
   .heatmap-card[data-mobile-view=month] .heatmap-scroll,.heatmap-card[data-mobile-view=month] .mobile-hint,.heatmap-card[data-mobile-view=year] .calendar-view{display:none}
   .day-inspector{align-items:center}.day-inspector label{width:100%}.day-inspector input{min-height:44px;flex:1;min-width:0}#back-to-today{flex-shrink:0}
 }
+
+/* 年度范围说明与运动类型筛选入口：类型分布同时可点选筛选年度统计。 */
+.scope-note{margin:0 0 14px;padding:10px 14px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:#1f1c1a;color:var(--muted);font-size:.75rem;line-height:1.6}
+.sport-filter{margin-top:16px}
+.sport-filter-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;margin:0 0 8px;font-size:.75rem;color:var(--muted)}
+.sport-filter-heading>span:first-child{color:var(--text);font-weight:500}
+.sport-filter .legend{margin-top:0;gap:8px}
+.legend-item{border:1px solid transparent;font:inherit;font-size:.75rem;min-height:36px;padding:5px 11px;cursor:pointer}
+.legend-item:hover{border-color:#4f4f4f;color:var(--text)}
+.legend-item[aria-pressed=true]{border-color:var(--accent);background:#302016;color:var(--text)}
+.legend-item[aria-pressed=true] strong{color:var(--accent-soft)}
+.legend-item:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.scope-note{padding:10px 12px}.legend-item{min-height:44px;padding:8px 12px;font-size:.8125rem}}
+@media print{.scope-note{background:white;color:#111}.legend-item[aria-pressed=true]{border-color:#111}}
