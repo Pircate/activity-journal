@@ -1,5 +1,26 @@
 export const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const formatTime = seconds => Math.floor(seconds / 3600) + ':' + String(Math.floor(seconds % 3600 / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+export const durationSeconds = duration => duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
+export const formatPace = secondsPerUnit => {
+  const total = Math.round(secondsPerUnit);
+  return Math.floor(total / 60) + ':' + String(total % 60).padStart(2, '0');
+};
+const missingMetric = {text:'未提供', html:'<span class="record-metric-missing">未提供</span>'};
+const measuredMetric = (text, html) => ({text, html});
+// 运动专属副指标：跑步／步行／徒步看每公里配速，游泳看每百米配速，其余有距离的运动看速度。
+// 全部由 Intervals.icu 的距离与运动时长换算，缺少任一数值时按要求显示“未提供”，不推算缺失指标。
+const paceSports = new Set(['跑步', '越野跑', '虚拟跑步', '步行', '徒步']);
+export function sportMetric({sport, distanceKm, duration}) {
+  const seconds = durationSeconds(duration);
+  const measurable = distanceKm !== null && distanceKm > 0 && seconds > 0;
+  if (paceSports.has(sport)) return {label:'平均配速', ...measurable ? measuredMetric(formatPace(seconds / distanceKm) + ' /km', formatPace(seconds / distanceKm) + '<small>/km</small>') : missingMetric};
+  if (sport === '游泳') return {label:'每百米配速', ...measurable ? measuredMetric(formatPace(seconds / (distanceKm * 10)) + ' /100m', formatPace(seconds / (distanceKm * 10)) + '<small>/100m</small>') : missingMetric};
+  return {label:'平均速度', ...measurable ? measuredMetric((distanceKm * 3600 / seconds).toFixed(1) + ' km/h', (distanceKm * 3600 / seconds).toFixed(1) + '<small>km/h</small>') : missingMetric};
+}
+const primaryOrder = ['距离', '组数'];
+const secondaryOrder = ['平均配速', '每百米配速', '平均速度', '平均心率'];
+const orderedLabels = (order, labels) => order.filter(label => labels.includes(label)).join(' / ');
+export const trainingLoadNote = '训练负荷来自 Intervals.icu，用于对照单次运动的训练投入，仅作统计参考，不构成训练建议。';
 export const dayMetrics = {
   distanceKm:{label:'距离', thresholds:[10, 30, 60], format:value => value.toFixed(2) + ' 公里', missing:'missingDistance'},
   durationSeconds:{label:'时长', thresholds:[1800, 3600, 7200], format:formatTime},
@@ -38,43 +59,50 @@ const sportIcon = sport => {
   return '<svg class="record-icon' + (sport === '力量训练' ? ' strength-icon' : '') + '" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
 };
 
+// 每条运动统一的指标层级：主指标（距离／组数）、副指标（配速、速度或平均心率）。
+function activityMetrics(activity) {
+  if (activity.sport === '力量训练') return {
+    primaryLabel:'组数',
+    primary:activity.sets === null ? missingMetric : measuredMetric(activity.sets + ' 组', escapeHtml(activity.sets) + '<small>组</small>'),
+    secondaryLabel:'平均心率',
+    secondary:activity.averageHeartRate === null ? missingMetric : measuredMetric(activity.averageHeartRate + ' bpm', escapeHtml(activity.averageHeartRate) + '<small>bpm</small>'),
+  };
+  const metric = sportMetric(activity);
+  return {primaryLabel:'距离', primary:activity.distanceKm === null ? missingMetric : measuredMetric(activity.distanceKm.toFixed(2) + ' km', activity.distanceKm.toFixed(2) + '<small>km</small>'), secondaryLabel:metric.label, secondary:metric};
+}
+
 function recordCard(activity) {
-  const {date, sport, distanceKm, duration, trainingLoad, activityUrl, sets, averageHeartRate} = activity;
-  const strength = sport === '力量训练';
-  const seconds = duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
-  const speed = distanceKm !== null && seconds > 0 ? (distanceKm * 3600 / seconds).toFixed(1) : null;
+  const {date, sport, duration, trainingLoad, activityUrl} = activity;
+  const {primaryLabel, primary, secondaryLabel, secondary} = activityMetrics(activity);
   const weekday = new Intl.DateTimeFormat('zh-CN', {timeZone:'UTC', weekday:'long'}).format(new Date(date + 'T00:00:00Z'));
-  const distance = distanceKm === null ? '<span class="record-distance-missing">未记录距离</span>' : distanceKm.toFixed(2) + '<small>km</small>';
-  const primary = strength ? (sets == null ? '<span class="record-distance-missing">未提供组数</span>' : escapeHtml(sets) + '<small>组</small>') : distance;
-  const heartRate = averageHeartRate == null ? '未提供心率' : escapeHtml(averageHeartRate) + '<small>bpm</small>';
-  const heading = `${sportIcon(sport)}<span><span class="sr-only">${strength ? '组数' : '距离'} </span>${primary}</span>`;
+  const heading = `<span class="record-metric-label">${primaryLabel}</span><span class="record-metric-value">${primary.html}</span>`;
   return `<article class="record-card${sport === '徒步' ? ' hike' : ''}">
     <div class="record-body">
-      <h3 class="record-distance">${activityUrl ? `<a class="record-link" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + ' ' + duration)}，在 Intervals.icu 查看（新标签页）">${heading}</a>` : heading}</h3>
-      <div class="record-meta"><span><span class="sr-only">运动时长 </span>${escapeHtml(duration)}</span>${strength ? '<span><span class="sr-only">平均心率 </span>' + heartRate + '</span>' : speed === null ? '' : '<span><span class="sr-only">平均速度 </span>' + speed + '<small>km/h</small></span>'}</div>
-      <p class="record-details"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</time><span>${weekday}</span><span class="record-sport">${escapeHtml(sport)}</span>${activityUrl ? '<span class="record-open" aria-hidden="true">Intervals.icu ↗</span>' : ''}</p>
+      <p class="record-top"><span class="record-sport">${sportIcon(sport)}${escapeHtml(sport)}</span></p>
+      <h3 class="record-distance">${activityUrl ? `<a class="record-link" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + '，' + primaryLabel + ' ' + primary.text + '，' + secondaryLabel + ' ' + secondary.text + '，时长 ' + duration)}，在 Intervals.icu 查看（新标签页）">${heading}</a>` : heading}</h3>
+      <div class="record-meta"><span><span class="record-meta-label">时长</span>${escapeHtml(duration)}</span><span><span class="record-meta-label">${secondaryLabel}</span>${secondary.html}</span></div>
+      <p class="record-details"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</time><span>${weekday}</span>${activityUrl ? '<span class="record-open" aria-hidden="true">Intervals.icu ↗</span>' : ''}</p>
     </div>
     <div class="record-load"><span class="record-load-value${trainingLoad === null ? ' missing' : ''}">${trainingLoad ?? '未记录'}</span><span class="record-load-label">训练负荷</span></div>
   </article>`;
 }
 export function renderDayRecords(records, title = '当天运动记录') {
   if (!records.length) return '';
-  const allStrength = records.every(activity => activity.sport === '力量训练');
-  const mixedStrength = !allStrength && records.some(activity => activity.sport === '力量训练');
-  const rows = records.map(({date, sport, distanceKm, duration, trainingLoad, activityUrl, sets, averageHeartRate}) => {
-    const strength = sport === '力量训练';
-    const seconds = duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
-    const speed = distanceKm !== null && seconds > 0 ? (distanceKm * 3600 / seconds).toFixed(1) + '<small>km/h</small>' : '未提供';
+  const metricsByRecord = records.map(activity => ({activity, metric:activityMetrics(activity)}));
+  const rows = metricsByRecord.map(({activity, metric:{primaryLabel, primary, secondaryLabel, secondary}}) => {
+    const {date, sport, duration, trainingLoad, activityUrl} = activity;
     const name = sportIcon(sport) + '<span>' + escapeHtml(sport) + '</span>';
+    const aria = date + ' ' + sport + ' ' + duration + '，' + primaryLabel + ' ' + primary.text + '，' + secondaryLabel + ' ' + secondary.text;
     return `<tr class="activity-row${sport === '徒步' ? ' hike' : ''}" role="row">
       <td role="cell"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日<small>${date.slice(0, 4)}</small></time></td>
-      <td role="cell">${activityUrl ? `<a class="activity-link activity-name" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + ' ' + duration)}，在 Intervals.icu 查看（新标签页）">${name}<span class="activity-open" aria-hidden="true">↗</span></a>` : `<span class="activity-name">${name}</span>`}</td>
-      <td role="cell" data-label="${strength ? '组数' : '距离'}">${strength ? sets == null ? '未提供' : escapeHtml(sets) + '<small>组</small>' : distanceKm === null ? '未提供' : distanceKm.toFixed(2) + '<small>km</small>'}</td>
-      <td role="cell" data-label="运动时间">${escapeHtml(duration)}</td><td role="cell" data-label="${strength ? '平均心率' : '平均速度'}">${strength ? averageHeartRate == null ? '未提供' : escapeHtml(averageHeartRate) + '<small>bpm</small>' : speed}</td><td role="cell" data-label="训练负荷">${trainingLoad ?? '未提供'}</td>
+      <td role="cell">${activityUrl ? `<a class="activity-link activity-name" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(aria)}，在 Intervals.icu 查看（新标签页）">${name}<span class="activity-open" aria-hidden="true">↗</span></a>` : `<span class="activity-name">${name}</span>`}</td>
+      <td role="cell" data-label="${primaryLabel}">${primary.html}</td>
+      <td role="cell" data-label="运动时间">${escapeHtml(duration)}</td><td role="cell" data-label="${secondaryLabel}">${secondary.html}</td><td role="cell" data-label="训练负荷">${trainingLoad ?? '未提供'}</td>
     </tr>`;
   }).join('');
+  const labels = metricsByRecord.map(({metric}) => metric);
   return `<div class="day-records-heading"><span>${escapeHtml(title)}</span><span>${records.length} 条活动</span></div>
-    <div class="activity-table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(title)}"><table class="activity-table" role="table"><caption class="sr-only">${escapeHtml(title)}，点击运动可在新标签页打开 Intervals.icu 详情</caption><thead role="rowgroup"><tr role="row"><th scope="col">日期</th><th scope="col">运动</th><th scope="col">${allStrength ? '组数' : mixedStrength ? '距离 / 组数' : '距离'}</th><th scope="col">运动时间</th><th scope="col">${allStrength ? '平均心率' : mixedStrength ? '平均速度 / 心率' : '平均速度'}</th><th scope="col">训练负荷</th></tr></thead><tbody role="rowgroup">${rows}</tbody></table></div>`;
+    <div class="activity-table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(title)}"><table class="activity-table" role="table"><caption class="sr-only">${escapeHtml(title)}，点击运动可在新标签页打开 Intervals.icu 详情。训练负荷为 Intervals.icu 的统计值，不含训练建议。</caption><thead role="rowgroup"><tr role="row"><th scope="col">日期</th><th scope="col">运动</th><th scope="col">${orderedLabels(primaryOrder, labels.map(metric => metric.primaryLabel))}</th><th scope="col">运动时间</th><th scope="col">${orderedLabels(secondaryOrder, labels.map(metric => metric.secondaryLabel))}</th><th scope="col">训练负荷</th></tr></thead><tbody role="rowgroup">${rows}</tbody></table></div>`;
 }
 export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit'}).format(date);
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));

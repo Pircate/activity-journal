@@ -76,12 +76,12 @@ test('力量训练列表使用组数、平均心率和杠铃图标；混合列�
   assert.match(html, /class="record-icon strength-icon"/);
   assert.doesNotMatch(html, /km\/h|data-label="距离"/);
   const unknown = renderDayRecords([{...strength, sets:null, averageHeartRate:null}]);
-  assert.match(unknown, /data-label="组数">未提供/);
-  assert.match(unknown, /data-label="平均心率">未提供/);
+  assert.match(unknown, /data-label="组数"><span class="record-metric-missing">未提供<\/span>/);
+  assert.match(unknown, /data-label="平均心率"><span class="record-metric-missing">未提供<\/span>/);
   const ride = normalizeActivities([{...raw, id:'i2', type:'Ride', distance:20000}], period)[0];
   const mixed = renderDayRecords([strength, ride]);
   assert.match(mixed, /距离 \/ 组数/);
-  assert.match(mixed, /平均速度 \/ 心率/);
+  assert.match(mixed, /平均速度 \/ 平均心率/);
   assert.match(mixed, /data-label="距离">20\.00<small>km/);
   assert.match(mixed, /data-label="平均速度">103\.0<small>km\/h/);
 });
@@ -91,9 +91,9 @@ test('近期力量训练卡片显示组数与心率，未知值不当作零', ()
   const cards = createJournal(snapshot([strength])).cards;
   assert.match(cards, /12<small>组<\/small>/);
   assert.match(cards, /137<small>bpm<\/small>/);
-  assert.match(cards, /平均心率/);
+  assert.match(cards, /record-meta-label">平均心率<\/span>137/);
   assert.doesNotMatch(cards, /km\/h|未记录距离/);
   const unknown = createJournal(snapshot([{...strength, sets:null, averageHeartRate:null}])).cards;
-  assert.match(unknown, /未提供组数/);
-  assert.match(unknown, /未提供心率/);
+  assert.match(unknown, /record-metric-label">组数<\/span><span class="record-metric-value"><span class="record-metric-missing">未提供/);
+  assert.match(unknown, /record-meta-label">平均心率<\/span><span class="record-metric-missing">未提供/);
 });

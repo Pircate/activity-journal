@@ -182,7 +182,7 @@ function renderJournal() {
     renderedGear = gear;
   }
   if (updateRecent) document.querySelector('.records-section .section-head p').textContent = recent.length ? '共 ' + recent.length + ' 条 · 最新记录在前' : '最近一周还没有运动记录';
-  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。负荷为 Intervals.icu 的活动训练负荷。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '') + (unavailableCount ? ' 另有 ' + unavailableCount + ' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。' : '') + (unavailableExcluded ? ' 另有 ' + unavailableExcluded + ' 次详情无法读取的运动没有类型信息，未计入所选类型。' : '');
+  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。训练负荷为 Intervals.icu 的活动统计值，不构成训练建议。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '') + (unavailableCount ? ' 另有 ' + unavailableCount + ' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。' : '') + (unavailableExcluded ? ' 另有 ' + unavailableExcluded + ' 次详情无法读取的运动没有类型信息，未计入所选类型。' : '');
   dateInput.min = period.start;
   dateInput.max = period.end;
   daily = journal.daily;

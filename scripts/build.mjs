@@ -2,7 +2,7 @@ import {readFile,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 const data=JSON.parse(await readFile(new URL('../docs/activities.json',import.meta.url),'utf8'));
-import {createJournal, formatTime as time, escapeHtml as esc, validateData, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter} from '../docs/journal.mjs';
+import {createJournal, formatTime as time, escapeHtml as esc, validateData, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, trainingLoadNote} from '../docs/journal.mjs';
 import {filterActivities, historyPageSize} from '../docs/history.mjs';
 import {renderCalendar} from '../docs/calendar.mjs';
 import {renderTrendPanel} from '../docs/trends.mjs';
@@ -27,6 +27,7 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <header><a class="brand" href="#main" aria-label="我的运动记录，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>我的运动记录</a><nav aria-label="页面导航"><a href="#records">运动记录</a><a href="#rhythm">全年活动</a><a href="#gear">运动装备库</a></nav></header>
 <main id="main"><section class="hero" aria-labelledby="title"><p class="eyebrow">个人运动日志</p><h1 id="title">我的运动记录</h1><div class="recent-summary" aria-label="最近七天运动摘要">${recentSummary}</div></section>
 <section class="records-section" id="records" aria-labelledby="records-title"><div class="section-head"><h2 id="records-title"><span class="section-number">01</span>最近一周的运动记录</h2><p>${recent.length?'共 '+recent.length+' 条 · 最新记录在前':'最近一周还没有运动记录'}</p></div><div class="records-grid">${cards}</div>
+<p class="records-note">卡片主指标为距离，力量训练为组数；副指标按运动类型显示配速、速度或平均心率。${trainingLoadNote}</p>
 <details class="history-panel" id="history"><summary class="history-heading"><span>查看全部历史记录</span><span><span id="history-total">${data.activities.length} 条活动</span><span class="history-toggle" aria-hidden="true">⌄</span></span></summary>
 <div class="history-content"><p class="history-intro">查询全部已同步记录，不受年度统计范围影响。日期按北京时间筛选；设置距离条件后，仅显示已提供距离的记录。</p>
 <form id="history-filters" class="history-filters" aria-label="历史运动筛选">
@@ -54,7 +55,7 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <div class="heatmap-bottom"><p id="metric-explanation">颜色越亮，代表当天累计距离越多。</p><div class="heatmap-scale" aria-label="活动强度从少到多"><span>少</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i><span>多</span></div></div><p class="mobile-hint">可横向滑动查看全年记录。</p>
 <div class="day-inspector"><label for="selected-date">查看某一天</label><input id="selected-date" type="date" min="${period.start}" max="${period.end}" value="${initialDate}"><button type="button" id="back-to-today">回到今天</button><p id="day-description" aria-live="polite"></p></div>
 <div id="day-records"${initialRecords.length ? '' : ' hidden'}>${renderDayRecords(initialRecords)}</div>
-<p class="chart-caption">每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供。负荷为 Intervals.icu 的活动训练负荷。${missingLoad?' '+missingLoad+' 次运动未提供负荷，统计时保留缺失标记。':''}${unavailableCount?' 另有 '+unavailableCount+' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。':''}</p><noscript><p>启用 JavaScript 后可查看热力图和切换指标；上方为最近一周的运动记录。</p></noscript></div>${renderTrendPanel(data)}</section>
+<p class="chart-caption">每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供。训练负荷为 Intervals.icu 的活动统计值，不构成训练建议。${missingLoad?' '+missingLoad+' 次运动未提供负荷，统计时保留缺失标记。':''}${unavailableCount?' 另有 '+unavailableCount+' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。':''}</p><noscript><p>启用 JavaScript 后可查看热力图和切换指标；上方为最近一周的运动记录。</p></noscript></div>${renderTrendPanel(data)}</section>
 <section class="gear-section" id="gear" aria-labelledby="gear-title"><div class="section-head"><h2 id="gear-title"><span class="section-number">03</span>运动装备库</h2><p>累计使用 · 独立于年度统计</p></div>
 <div class="gear-library">${renderGearLibrary(data.gearLibrary)}</div>
 <p class="gear-caption">建议更换里程：链条、前后胎 5000 km，飞轮 10000 km，牙盘 30000 km。以上里程仅为维护参考，不代表实际磨损程度。更换后，在 Intervals.icu 重置配件的“更换”提醒；日期和里程随每日同步更新。</p></section>
