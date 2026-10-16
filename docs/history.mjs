@@ -1,5 +1,5 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml, isDate, renderDayRecords} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml, isDate, renderDayRecords, dayStateLabels} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 
 export const historyPageSize = 20;
 const seconds = duration => duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
@@ -99,7 +99,8 @@ export function initializeHistory(initialData) {
     document.getElementById('history-total').textContent = `${data.activities.length} 条活动`;
     const unavailable = data.unavailableActivities.length;
     const note = document.getElementById('history-note');
-    note.textContent = unavailable ? `全部历史另有 ${unavailable} 条运动详情无法读取，未列入此列表。` : '';
+    // 与热力图、统计说明共用同一措辞，避免把“详情不可读取”写成另一种缺失。
+    note.textContent = unavailable ? `全部历史另有 ${unavailable} 条${dayStateLabels.unavailable}的记录，未列入此列表。` : '';
     note.hidden = unavailable === 0;
     render();
   }

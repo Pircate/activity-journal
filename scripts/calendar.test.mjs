@@ -41,8 +41,9 @@ test('范围外日期不可选择，未来日期保留未同步标记，不当�
   assert.doesNotMatch(october, /data-date="2025-10-16"/);
   const future = renderCalendar(journal().daily, '2026-12-01');
   assert.equal((future.match(/data-level="missing"/g) ?? []).length, 31);
-  assert.equal((future.match(/>待同步</g) ?? []).length, 31);
-  assert.match(future, /2026-12-01，尚未同步/);
+  assert.equal((future.match(/data-state="pending"/g) ?? []).length, 31);
+  assert.equal((future.match(/>未同步</g) ?? []).length, 31);
+  assert.match(future, /2026-12-01，未同步：该日期不在已同步日期范围内，或晚于北京时间今天/);
 });
 
 test('同日多次活动只占一个日期，选中态和今天标记彼此独立', () => {
@@ -59,16 +60,27 @@ test('同日多次活动只占一个日期，选中态和今天标记彼此独�
 test('月历与热力图共用分级及缺失标记，切换指标只更改统计颜色与描述', () => {
   const data = journal([activity('2026-10-15', null), activity('2026-10-15', 30, null)], '2026', '2026-10-16', [{date:'2026-10-14'}]);
   const day = data.daily.find(day => day.date === '2026-10-15');
-  assert.deepEqual(dayMetricState(day, 'distanceKm'), {level:'3', missing:true, label:'2026-10-15，2 次运动，距离 30.00 公里（1 次未提供）'});
+  assert.deepEqual(dayMetricState(day, 'distanceKm'), {level:'3', state:'partial', missing:true, unavailable:false, label:'2026-10-15，2 次运动，距离 30.00 公里（1 次未提供）（部分指标缺失）'});
   let html = renderCalendar(data.daily, '2026-10-15', 'distanceKm');
-  assert.match(html, /data-date="2026-10-15" data-level="3" data-missing="true"/);
-  assert.match(html, /data-date="2026-10-14" data-level="missing" data-missing="true"/);
-  assert.match(html, />缺详情</);
+  assert.match(html, /data-date="2026-10-15" data-level="3" data-state="partial" data-unavailable="false"/);
+  assert.match(html, /data-date="2026-10-14" data-level="missing" data-state="unavailable" data-unavailable="true"/);
+  assert.match(html, />不可读</);
   html = renderCalendar(data.daily, '2026-10-15', 'durationSeconds');
   assert.match(html, /2026-10-15，2 次运动，时长 2:00:00/);
-  assert.match(html, /data-date="2026-10-15" data-level="4" data-missing="false"/);
+  assert.match(html, /data-date="2026-10-15" data-level="4" data-state="value" data-unavailable="false"/);
   const missing = journal([activity('2026-10-15', null, null)]);
   html = renderCalendar(missing.daily, '2026-10-15', 'trainingLoad');
-  assert.match(html, /2026-10-15，1 次运动，负荷 未提供/);
-  assert.match(html, /data-date="2026-10-15" data-level="missing"/);
+  assert.match(html, /2026-10-15，1 次运动，负荷：指标缺失（活动已经读取，但该指标没有提供）/);
+  assert.match(html, /data-date="2026-10-15" data-level="missing" data-state="missing"/);
+});
+
+test('未同步、指标缺失、详情不可读取三种状态在月历中互相区分', () => {
+  const data = journal([activity('2026-10-14', 20), activity('2026-10-15', null, null)], '2026', '2026-10-16', [{date:'2026-10-13'}]);
+  const html = renderCalendar(data.daily, '2026-10-15', 'distanceKm');
+  assert.match(html, /data-date="2026-10-13" data-level="missing" data-state="unavailable" data-unavailable="true"/);
+  assert.match(html, /data-date="2026-10-14" data-level="2" data-state="value" data-unavailable="false"/);
+  assert.match(html, /data-date="2026-10-15" data-level="missing" data-state="missing"/);
+  assert.match(html, /data-date="2026-10-16"[^>]*data-state="none"/, '当天在已同步范围内，没有记录不等于未同步');
+  assert.match(html, /data-date="2026-10-17" data-level="missing" data-state="pending"/);
+  assert.equal((html.match(/data-state="pending"/g) ?? []).length, 15, '10 月 17 日至 31 日尚未同步');
 });

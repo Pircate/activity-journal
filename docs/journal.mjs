@@ -33,20 +33,70 @@ export function formatDayMetric(day, key) {
   if (day[key] === null || missing === day.count) return '未提供';
   return spec.format(day[key]) + (missing ? '（' + missing + ' 次未提供）' : '');
 }
+// 三种非正常状态必须彼此区分，措辞与热力图纹理共用同一份定义：
+// 未同步（日期不在已同步范围）、指标缺失（活动已读取但指标为空）、详情不可读取（平台只返回当地日期）。
+export const dayStateLabels = {pending:'未同步', missing:'指标缺失', unavailable:'详情不可读取'};
+// 月历格子宽度有限，只在这里使用短措辞；完整口径始终以 dayStateLabels 为准。
+export const dayStateShort = {pending:'未同步', missing:'指标缺失', unavailable:'不可读'};
+export const dayStateNotes = {
+  pending:'该日期不在已同步日期范围内，或晚于北京时间今天',
+  missing:'活动已经读取，但该指标没有提供',
+  unavailable:'平台只返回当地日期，没有距离、时长和运动类型',
+};
 export function describeDay(day) {
-  if (day.pending) return day.date + ' · 尚未同步该日期的运动记录';
-  return day.date + ' · ' + day.count + ' 次运动 · ' + formatDayMetric(day, 'distanceKm') + ' · ' + formatDayMetric(day, 'durationSeconds') + ' · 负荷 ' + formatDayMetric(day, 'trainingLoad') + (day.unavailable ? ' · 另有 ' + day.unavailable + ' 次运动详情无法读取（日期为平台当地日期），未计入统计' : '');
+  if (day.pending) return day.date + ' · ' + dayStateLabels.pending + '：' + dayStateNotes.pending;
+  // 只有受限记录、没有可读取活动时，先说明状态，避免读成“这天没有运动”。
+  if (day.count === 0 && day.unavailable) return day.date + ' · ' + dayStateLabels.unavailable + ' ' + day.unavailable + ' 条：' + dayStateNotes.unavailable + '，未计入统计';
+  const summary = day.date + ' · ' + day.count + ' 次运动 · ' + formatDayMetric(day, 'distanceKm') + ' · ' + formatDayMetric(day, 'durationSeconds') + ' · 负荷 ' + formatDayMetric(day, 'trainingLoad');
+  return day.unavailable ? summary + ' · 另有 ' + day.unavailable + ' 条' + dayStateLabels.unavailable + '（' + dayStateNotes.unavailable + '），未计入统计' : summary;
 }
 export function dayMetricState(day, key) {
   const spec = dayMetrics[key];
   const value = day[key];
   const missing = spec.missing && day[spec.missing];
-  const entirelyMissing = day.count > 0 && (value === null || missing === day.count);
-  return {
-    level:day.pending || entirelyMissing || day.unavailable && day.count === 0 ? 'missing' : day.count === 0 || value === 0 ? '0' : String(1 + spec.thresholds.filter(threshold => value >= threshold).length),
-    missing:Boolean(day.unavailable || missing && !entirelyMissing),
-    label:day.unavailable ? describeDay(day) : day.pending ? day.date + '，尚未同步' : day.date + '，' + day.count + ' 次运动，' + spec.label + ' ' + formatDayMetric(day, key),
-  };
+  const hasUnavailable = Boolean(day.unavailable);
+  // state 驱动纹理：pending／missing／unavailable 各自独立；partial 在分级颜色上叠加白色斜纹，unavailable 另加虚线边框。
+  if (day.pending) return {level:'missing', state:'pending', missing:false, unavailable:false, label:day.date + '，' + dayStateLabels.pending + '：' + dayStateNotes.pending};
+  if (day.count === 0 && hasUnavailable) return {level:'missing', state:'unavailable', missing:false, unavailable:true, label:day.date + '，' + dayStateLabels.unavailable + ' ' + day.unavailable + ' 条：' + dayStateNotes.unavailable};
+  if (day.count === 0) return {level:'0', state:'none', missing:false, unavailable:false, label:day.date + '，没有运动记录'};
+  if (value === null || missing === day.count) return {level:'missing', state:'missing', missing:false, unavailable:hasUnavailable, label:day.date + '，' + day.count + ' 次运动，' + spec.label + '：' + dayStateLabels.missing + '（' + dayStateNotes.missing + '）'};
+  const level = value === 0 ? '0' : String(1 + spec.thresholds.filter(threshold => value >= threshold).length);
+  const text = day.date + '，' + day.count + ' 次运动，' + spec.label + ' ' + formatDayMetric(day, key);
+  return {level, state:missing ? 'partial' : 'value', missing:Boolean(missing), unavailable:hasUnavailable, label:missing ? text + '（部分' + dayStateLabels.missing + '）' : text};
+}
+
+// 三类状态的图例与折叠说明集中在这里，避免同一口径在页面多处出现不同说法。
+export function renderHeatmapStates() {
+  return '<ul class="heatmap-states"><li><i class="state-swatch" data-state="none" aria-hidden="true"></i>无运动记录</li>' +
+    '<li><i class="state-swatch" data-state="pending" aria-hidden="true"></i>' + dayStateLabels.pending + '</li>' +
+    '<li><i class="state-swatch" data-state="missing" aria-hidden="true"></i>' + dayStateLabels.missing + '</li>' +
+    '<li><i class="state-swatch" data-state="unavailable" aria-hidden="true"></i>' + dayStateLabels.unavailable + '</li></ul>';
+}
+export function statNotesHint(counts) {
+  const parts = [];
+  if (counts.pendingDays) parts.push(dayStateLabels.pending + ' ' + counts.pendingDays + ' 天');
+  if (counts.missingMetrics) parts.push(dayStateLabels.missing + ' ' + counts.missingMetrics + ' 次');
+  if (counts.unavailableCount) parts.push(dayStateLabels.unavailable + ' ' + counts.unavailableCount + ' 条');
+  return parts.length ? '当前范围：' + parts.join(' · ') : '当前范围没有缺失标记，只统计可读取指标';
+}
+export function renderStatNotesBody(counts) {
+  const {rangeLabel = '', pendingDays = 0, missingMetrics = 0, missingDistance = 0, missingLoad = 0, unavailableCount = 0, unavailableExcluded = 0, activityCount = 0, historyUnavailable = 0} = counts;
+  return `<section class="stat-note-group"><h4>三类缺失状态</h4><dl class="stat-note-states">
+    <div data-state="pending"><dt><i class="state-swatch" data-state="pending" aria-hidden="true"></i>${dayStateLabels.pending}</dt><dd>${dayStateNotes.pending}，不当作没有运动；${pendingDays ? rangeLabel + '有 <strong>' + pendingDays + '</strong> 天' + dayStateLabels.pending + '。' : '当前范围不含' + dayStateLabels.pending + '日期。'}</dd></div>
+    <div data-state="missing"><dt><i class="state-swatch" data-state="missing" aria-hidden="true"></i>${dayStateLabels.missing}</dt><dd>${dayStateNotes.missing}，不按 0 计入；${rangeLabel}有 <strong>${missingMetrics}</strong> 次运动存在指标缺失，涉及距离未提供 <strong>${missingDistance}</strong> 次、训练负荷未提供 <strong>${missingLoad}</strong> 次。力量训练以组数替代距离，距离为空不计入指标缺失，但仍计入“距离未提供”的次数。</dd></div>
+    <div data-state="unavailable"><dt><i class="state-swatch" data-state="unavailable" aria-hidden="true"></i>${dayStateLabels.unavailable}</dt><dd>${dayStateNotes.unavailable}，因此不计入距离、时长和次数；${rangeLabel}有 <strong>${unavailableCount}</strong> 条。</dd></div>
+    </dl><p class="stat-note-excluded" id="stat-notes-excluded"${unavailableExcluded ? '' : ' hidden'}>当前按运动类型筛选，另有 ${unavailableExcluded} 条${dayStateLabels.unavailable}的记录没有运动类型，未计入所选类型。</p></section>
+    <section class="stat-note-group"><h4>每日标记</h4><p>灰色方格表示当天没有可读取的运动；灰色斜纹表示${dayStateLabels.pending}，橙色斜纹表示${dayStateLabels.missing}，蓝色交叉纹理表示${dayStateLabels.unavailable}。当天部分指标缺失时，在分级颜色上叠加白色斜纹；当天既有可读取活动又有${dayStateLabels.unavailable}记录时，方格保留活动颜色并加蓝色虚线边框。</p></section>
+    <section class="stat-note-group"><h4>统计口径</h4><p>最近一周、历史记录查询和运动装备库各自独立，“查看范围”与运动类型筛选只作用于统计概览、每日活动视图和运动趋势。历史记录查询只列出详情可读取的 <strong>${activityCount}</strong> 条活动，全部历史另有 <strong>${historyUnavailable}</strong> 条${dayStateLabels.unavailable}的记录未列入。</p><p>${trainingLoadNote}</p><p>趋势按自然周或自然月汇总，边界周／月包含完整自然周期；本周／本月截至北京时间今天，与上周期相同天数比较。</p></section>`;
+}
+export function renderStatNotes(counts) {
+  return `<details class="stat-notes" id="stat-notes"><summary class="stat-notes-heading"><span>统计说明</span><span class="stat-notes-hint" id="stat-notes-hint">${statNotesHint(counts)}</span><span class="stat-notes-toggle" aria-hidden="true">⌄</span></summary><div class="stat-notes-body" id="stat-notes-body">${renderStatNotesBody(counts)}</div></details>`;
+}
+// 折叠说明的唯一数据来源：年度概览、每日视图、趋势和历史缺失条数都从这里取。
+export function statNotesCounts(journal, rangeLabel, historyUnavailable = 0) {
+  return {rangeLabel, pendingDays:journal.pendingDays, missingMetrics:journal.missingMetrics, missingDistance:journal.missingDistance,
+    missingLoad:journal.missingLoad, unavailableCount:journal.unavailableCount, unavailableExcluded:journal.unavailableExcluded,
+    activityCount:journal.activities.length, historyUnavailable};
 }
 const sportIcon = sport => {
   const paths = sport === '徒步'
@@ -284,20 +334,26 @@ function renderRecentSummary(recent, data, endDate) {
   const missing = recent.filter(activity => activity.distanceKm === null).length;
   const unavailable = data.unavailableActivities.filter(activity => activity.date >= start && activity.date <= endDate).length;
   const notes = [];
-  if (missing) notes.push(missing + ' 次运动未提供距离');
-  if (unavailable) notes.push('另有 ' + unavailable + ' 次运动详情无法读取，未计入统计');
-  if (start < data.period.start || endDate > data.period.end) notes.push('部分日期尚未同步，当前为已同步记录');
+  if (missing) notes.push(missing + ' 次运动' + dayStateLabels.missing + '（距离未提供）');
+  if (unavailable) notes.push('另有 ' + unavailable + ' 条' + dayStateLabels.unavailable + '，未计入统计');
+  if (start < data.period.start || endDate > data.period.end) notes.push('部分日期' + dayStateLabels.pending + '，当前为已同步记录');
   const distanceText = recent.length && missing === recent.length ? '—' : distance.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2});
   return `<div class="summary-context"><span class="summary-label">最近 7 天</span><span class="summary-period"><time datetime="${start}">${start.replaceAll('-', '.')}</time> — <time datetime="${endDate}">${endDate.replaceAll('-', '.')}</time></span></div>
     <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>公里</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}`;
 }
+
+// 一条已读取的活动只要应有的指标未提供，就计入“指标缺失”；与未同步、详情不可读取分开统计。
+// 力量训练的主指标是组数，距离本就不适用，因此只看组数、平均心率与训练负荷。
+export const hasMissingMetric = activity => activity.sport === '力量训练'
+  ? activity.sets === null || activity.averageHeartRate === null || activity.trainingLoad === null
+  : activity.distanceKm === null || activity.trainingLoad === null;
 
 export function createJournal(data, endDate = data.period.end, range = 'recent', sport = '') {
   if (range !== 'recent' && !availableYears(data, endDate).includes(String(range))) throw new Error('所选年份不在已同步范围内');
   const period = range === 'recent' ? {start:shiftDate(endDate, -364), end:endDate} : {start:range + '-01-01', end:range + '-12-31'};
   const rangeActivities = data.activities.filter(a => a.date >= period.start && a.date <= period.end);
   const activities = (sport ? rangeActivities.filter(a => a.sport === sport) : rangeActivities).slice().sort((a,b) => b.date.localeCompare(a.date));
-  // 详情无法读取的运动没有类型信息，筛选单个类型时不计入统计，避免把未知归属算进所选类型。
+  // 详情不可读取的运动没有类型信息，筛选单个类型时不计入统计，避免把未知归属算进所选类型。
   const unavailableInRange = data.unavailableActivities.filter(a => a.date >= period.start && a.date <= period.end);
   const unavailableActivities = sport ? [] : unavailableInRange;
   const unavailableCount = unavailableActivities.length;
@@ -318,6 +374,7 @@ export function createJournal(data, endDate = data.period.end, range = 'recent',
   const activeDays = daily.filter(d => d.count > 0).length;
   const missingDistance = activities.filter(a => a.distanceKm === null).length;
   const missingLoad = activities.filter(a => a.trainingLoad === null).length;
+  const missingMetrics = activities.filter(hasMissingMetric).length;
   const sports = [...new Set(rangeActivities.map(a => a.sport))].map(name => ({sport:name, count:rangeActivities.filter(a => a.sport === name).length}));
   const first = new Date(period.start + 'T00:00:00Z');
   const last = new Date(period.end + 'T00:00:00Z');
@@ -327,11 +384,16 @@ export function createJournal(data, endDate = data.period.end, range = 'recent',
   const padded = [];
   for (let date = start; date <= end; date = shiftDate(date, 1)) padded.push(byDate.get(date) ?? {date, padding:true});
   const columns = padded.length / 7;
-  const cells = padded.map(d => d.padding ? '<span class="day-cell padding" aria-hidden="true"></span>' : '<button class="day-cell" type="button" data-date="' + d.date + '" tabindex="-1" aria-label="' + d.date + '，' + (d.pending ? '尚未同步' : d.count + ' 次运动') + '"></button>').join('');
+  // 初始快照按默认距离指标写状态属性，随后 app.js 切换指标时只更新属性，不改结构。
+  const cells = padded.map(d => {
+    if (d.padding) return '<span class="day-cell padding" aria-hidden="true"></span>';
+    const state = dayMetricState(d, 'distanceKm');
+    return '<button class="day-cell" type="button" data-date="' + d.date + '" data-level="' + state.level + '" data-state="' + state.state + '" data-unavailable="' + state.unavailable + '" tabindex="-1" aria-label="' + escapeHtml(state.label) + '"></button>';
+  }).join('');
   const months = [];
   padded.forEach((d,i) => {if(d.date.endsWith('-01') && d.date >= period.start && d.date <= period.end) months.push({column:Math.floor(i/7)+1, label:Number(d.date.slice(5,7))+'月'});});
   const monthLabels = months.map((m,i) => '<span style="grid-column:' + m.column + '/' + (months[i+1]?.column ?? columns+1) + '">' + m.label + '</span>').join('');
   const cards = recent.length ? recent.map(recordCard).join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
   const initialDate = daily.findLast(d => d.count > 0)?.date ?? daily.findLast(d => !d.pending)?.date ?? period.end;
-  return {activities, recent, recentSummary:renderRecentSummary(recent, data, endDate), unavailableCount, unavailableExcluded, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, sports, columns, cells, monthLabels, cards, initialDate};
+  return {activities, recent, recentSummary:renderRecentSummary(recent, data, endDate), unavailableCount, unavailableExcluded, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, missingMetrics, pendingDays:daily.filter(d => d.pending).length, sports, columns, cells, monthLabels, cards, initialDate};
 }

@@ -1,5 +1,5 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml, formatTime, beijingDate, renderDayRecords} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml, formatTime, beijingDate, renderDayRecords, dayStateLabels, dayStateNotes} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const shift = (date, days) => new Date(Date.parse(date + 'T00:00:00Z') + days * 86400000).toISOString().slice(0, 10);
 const monthStart = date => date.slice(0, 7) + '-01';
 const nextMonth = date => new Date(Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)), 1)).toISOString().slice(0, 10);
@@ -60,15 +60,21 @@ export function compareTrend(current, previous, key) {
 
 function valueText(period, key) {
   const spec = metrics[key];
-  if (period[key] === null || !period.count && (period.pending || period.unavailable)) return '未提供';
+  if (period[key] === null) return '未提供';
+  // 周期内没有可读取活动时，明确写出是未同步还是详情不可读取，而不是笼统的“未提供”。
+  if (!period.count && period.pending) return dayStateLabels.pending;
+  if (!period.count && period.unavailable) return dayStateLabels.unavailable;
   return spec.format(period[key]) + (spec.unit ? ' ' + spec.unit : '');
 }
+const unknownTexts = new Set(['未提供', dayStateLabels.pending, dayStateLabels.unavailable]);
 function notes(period) {
   const result = [];
-  if (period.pending) result.push('部分日期尚未同步');
-  if (period.unavailable) result.push(`另有 ${period.unavailable} 次详情无法读取（日期按平台当地日期），未计入统计`);
-  if (period.missingDistance) result.push(`${period.missingDistance} 次未提供距离`);
-  if (period.missingLoad) result.push(`${period.missingLoad} 次未提供负荷`);
+  // 三类状态与热力图共用同一套措辞，避免同一现象在趋势里被说成另一种缺失。
+  // 周期是所有日期，未同步说明用“部分日期”而不是单日口径。
+  if (period.pending) result.push(dayStateLabels.pending + '：部分日期不在已同步日期范围内，或晚于北京时间今天');
+  if (period.unavailable) result.push(dayStateLabels.unavailable + ' ' + period.unavailable + ' 条（' + dayStateNotes.unavailable + '），未计入统计');
+  if (period.missingDistance) result.push(dayStateLabels.missing + '：' + period.missingDistance + ' 次未提供距离');
+  if (period.missingLoad) result.push(dayStateLabels.missing + '：' + period.missingLoad + ' 次未提供负荷');
   return result.length ? result.join(' · ') + '；合计仅含可读取指标。' : '';
 }
 
@@ -81,7 +87,7 @@ export function renderTrendContent(periods, {mode = 'month', metric = 'distanceK
     const value = valueText(period, metric);
     const incomplete = period.pending || period.unavailable || metrics[metric].missing && period[metrics[metric].missing];
     const description = `${pretty(period.start)} — ${pretty(period.end)}，${metrics[metric].label} ${value}${incomplete ? '，数据不完整' : ''}${period.ongoing ? '，周期进行中' : ''}`;
-    return `<button type="button" class="trend-bar${incomplete ? ' incomplete' : ''}" data-period="${period.start}" aria-pressed="${period.start === active.start}" aria-label="${description}" title="${description}"><span class="trend-bar-value">${period[metric] === null || value === '未提供' ? '—' : metric === 'durationSeconds' ? (period[metric] / 3600).toFixed(1) : metrics[metric].format(period[metric])}</span><span class="trend-bar-track"><span style="height:${Math.max(2, (period[metric] ?? 0) / maximum * 100).toFixed(2)}%"></span></span><span class="trend-bar-label">${label}</span></button>`;
+    return `<button type="button" class="trend-bar${incomplete ? ' incomplete' : ''}" data-period="${period.start}" aria-pressed="${period.start === active.start}" aria-label="${description}" title="${description}"><span class="trend-bar-value">${unknownTexts.has(value) ? '—' : metric === 'durationSeconds' ? (period[metric] / 3600).toFixed(1) : metrics[metric].format(period[metric])}</span><span class="trend-bar-track"><span style="height:${Math.max(2, (period[metric] ?? 0) / maximum * 100).toFixed(2)}%"></span></span><span class="trend-bar-label">${label}</span></button>`;
   }).join('');
   const pages = Math.max(1, Math.ceil(active.count / pageSize));
   const currentPage = Math.min(page, pages);

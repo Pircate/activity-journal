@@ -183,12 +183,12 @@ test('首屏摘要固定最近七天，保留多次活动、缺失距离及未�
   assert.match(summary, /<dd>3<small>次/);
   assert.match(summary, /<dd>0\.30<small>公里/);
   assert.match(summary, /1:30:03/);
-  assert.match(summary, /1 次运动未提供距离/);
-  assert.match(summary, /另有 1 次运动详情无法读取/);
+  assert.match(summary, /1 次运动指标缺失（距离未提供）/);
+  assert.match(summary, /另有 1 条详情不可读取/);
   assert.equal(createJournal(data, data.period.end, '2024').recentSummary, summary);
   const rolled = createJournal(data, '2026-10-16').recentSummary;
   assert.match(rolled, /<dd>2<small>次/);
-  assert.match(rolled, /部分日期尚未同步/);
+  assert.match(rolled, /部分日期未同步/);
   const missing = createJournal({...data, activities:[{...activity, distanceKm:null}], unavailableActivities:[]}).recentSummary;
   assert.match(missing, /<dd>—<small>公里/);
   const empty = createJournal({...data, activities:[], unavailableActivities:[]}).recentSummary;

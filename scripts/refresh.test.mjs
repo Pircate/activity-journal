@@ -34,8 +34,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       set innerHTML(html) {
         this.html = html;
         this.writes++;
-        if (selector === '.day-grid') this.children = [...html.matchAll(/<button class="day-cell"[^>]*data-date="([^"]+)"/g)]
-          .map(([,date]) => ({dataset:{date}, setAttribute() {}, matches:() => true, scrollIntoView() {}, focus() { document.activeElement = this; }}));
+        if (selector === '.day-grid') this.children = [...html.matchAll(/<button class="day-cell"[^>]*data-date="([^"]+)" data-level="([^"]*)" data-state="([^"]*)" data-unavailable="([^"]*)"/g)]
+          .map(([,date, level, state, unavailable]) => ({dataset:{date, level, state, unavailable}, setAttribute() {}, matches:() => true, scrollIntoView() {}, focus() { document.activeElement = this; }}));
       },
       get innerHTML() { return this.html; },
     };
@@ -119,10 +119,10 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
   assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/, '跨天刷新保留选中周期和指标');
   assert.equal(element('#selected-date').max, '2026-10-16');
-  assert.match(element('#calendar-days').innerHTML, /data-date="2026-10-16" data-level="missing"/, '月历跨天保留未同步状态');
+  assert.match(element('#calendar-days').innerHTML, /data-date="2026-10-16" data-level="missing" data-state="pending"/, '月历跨天保留未同步状态');
   assert.equal(element('.records-grid').innerHTML.includes('record-card'), false, '最近一周剔除过期记录');
   assert.equal(grid.children.at(-1).dataset.date, '2026-10-16');
-  assert.match(grid.children.at(-1).title, /尚未同步/);
+  assert.match(grid.children.at(-1).title, /未同步/);
   assert.match(status.textContent, /最近成功同步/);
 
   respond = async () => { throw new Error('offline'); };
@@ -187,6 +187,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       if (range === '2025') assert.match(trends.innerHTML, /2025\.12\.29 — 2026\.01\.04/, '年度末周展示完整自然周');
       assert.equal(element('#selected-date').min, range === 'recent' ? '2025-10-19' : range + '-01-01');
       assert.equal(element('#selected-date').max, range === 'recent' ? '2026-10-18' : range + '-12-31');
+      assert.match(element('#stat-notes-body').innerHTML, new RegExp(range === 'recent' ? '最近一年' : range + ' 年'), '折叠说明跟随年度范围');
       assert.match(groups.get('.metric-value')[0].innerHTML, range === '2025' ? /0\.00/ : /25\.00/);
       assert.match(element('#day-description').textContent, range === '2025' ? /2025-12-31/ : /2026-10-09/);
       assert.equal(element('#day-records').hidden, range === '2025');
@@ -227,6 +228,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     assert.equal(document.activeElement, sport, '重绘筛选后恢复键盘焦点');
     assert.match(element('#sport-filter-status').textContent, /^已筛选：骑行/);
     assert.match(filter.innerHTML, /data-sport="骑行" aria-pressed="true"/);
+    assert.match(element('#stat-notes-body').innerHTML, /历史记录查询只列出详情可读取的 <strong>\d+<\/strong> 条活动/, '折叠说明跟随类型筛选更新');
+    assert.match(element('#stat-notes-body').innerHTML, /详情不可读取的记录没有运动类型，未计入所选类型/, '筛选时说明排除的不可读取记录');
     assert.equal(trends.writes, trendWrites + 1, '趋势跟随年度范围重建并应用类型筛选');
     filter.events.get('click')({target:{closest:() => sport}});
     assert.equal(grid.writes, gridWrites + 2, '再次点击清除筛选');
@@ -297,7 +300,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     assert.equal(year.value, 'recent');
     assert.equal(date.value, '2026-10-18');
     assert.equal(element('#calendar-month').textContent, '2026 年 10 月');
-    assert.match(element('#day-description').textContent, /尚未同步/);
+    assert.match(element('#day-description').textContent, /未同步/);
     assert.equal(element('#day-records').hidden, true);
   });
+
 });

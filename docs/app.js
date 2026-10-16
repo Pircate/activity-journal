@@ -1,6 +1,6 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
-const {createJournal, beijingDate, formatTime, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetrics, dayMetricState, describeDay} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {createJournal, beijingDate, formatTime, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetrics, dayMetricState, describeDay, dayStateLabels, statNotesCounts, statNotesHint, renderStatNotesBody} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
 const {renderCalendar, moveCalendarDate} = await import('./calendar.mjs' + (version ? '?v=' + version : ''));
 const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + version : ''));
@@ -11,6 +11,8 @@ const dateInput = document.getElementById('selected-date');
 const description = document.getElementById('day-description');
 const dayRecords = document.getElementById('day-records');
 const explanation = document.getElementById('metric-explanation');
+const statNotesHintElement = document.getElementById('stat-notes-hint');
+const statNotesBodyElement = document.getElementById('stat-notes-body');
 const yearSelect = document.getElementById('activity-year');
 const updateHistory = initializeHistory(data);
 const updateTrends = initializeTrends(data);
@@ -57,7 +59,8 @@ function render() {
     const button = buttonByDate.get(day.date);
     const state = dayMetricState(day, metric);
     button.dataset.level = state.level;
-    button.dataset.missing = String(state.missing);
+    button.dataset.state = state.state;
+    button.dataset.unavailable = String(state.unavailable);
     button.setAttribute('aria-label', state.label);
     button.title = describeDay(day);
   }
@@ -152,7 +155,7 @@ function renderJournal() {
   const snapshot = JSON.stringify(data);
   const updateRecent = snapshot !== renderedData || today !== renderedDate;
   if (updateRecent) document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
-  const {period, distance, duration, activities, recent, activeDays, missingDistance, missingLoad, unavailableCount, unavailableExcluded} = journal;
+  const {period, distance, duration, activities, recent, activeDays, missingDistance, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');
   const rangeLabel = range === 'recent' ? '最近一年' : range + ' 年';
   document.querySelector('.overview-range').textContent = rangeLabel;
@@ -168,9 +171,9 @@ function renderJournal() {
   values[1].setAttribute('aria-label', Math.floor(duration / 3600) + ' 小时 ' + Math.floor(duration % 3600 / 60) + ' 分 ' + duration % 60 + ' 秒');
   values[2].innerHTML = activities.length + '<small>次</small>';
   const notes = document.querySelectorAll('.metric-note');
-  notes[0].textContent = missingDistance ? '已记录距离 · ' + missingDistance + ' 次运动未提供距离' : '可读取运动的总距离';
+  notes[0].textContent = missingDistance ? '已记录距离 · ' + missingDistance + ' 次运动' + dayStateLabels.missing + '（距离未提供）' : '可读取运动的总距离';
   notes[1].textContent = '精确时长 ' + formatTime(duration);
-  notes[2].textContent = activeDays + ' 天记录了运动' + (unavailableCount ? ' · 另有 ' + unavailableCount + ' 次详情无法读取' : '');
+  notes[2].textContent = activeDays + ' 天记录了运动' + (unavailableCount ? ' · 另有 ' + unavailableCount + ' 条' + dayStateLabels.unavailable : '');
   grid.innerHTML = journal.cells;
   document.querySelector('.heatmap').style.setProperty('--columns', journal.columns);
   document.querySelector('.month-labels').innerHTML = journal.monthLabels;
@@ -182,7 +185,11 @@ function renderJournal() {
     renderedGear = gear;
   }
   if (updateRecent) document.querySelector('.records-section .section-head p').textContent = recent.length ? '共 ' + recent.length + ' 条 · 最新记录在前' : '最近一周还没有运动记录';
-  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供或该日期尚未同步。训练负荷为 Intervals.icu 的活动统计值，不构成训练建议。' + (missingLoad ? ' ' + missingLoad + ' 次运动未提供负荷，统计时保留缺失标记。' : '') + (unavailableCount ? ' 另有 ' + unavailableCount + ' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。' : '') + (unavailableExcluded ? ' 另有 ' + unavailableExcluded + ' 次详情无法读取的运动没有类型信息，未计入所选类型。' : '');
+  // 分散的长说明收敛到折叠区域，这里只保留一行图例提示；具体口径在“统计说明”里展开。
+  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计；斜纹区分' + dayStateLabels.pending + '、' + dayStateLabels.missing + '与' + dayStateLabels.unavailable + '，具体口径见下方“统计说明”。';
+  const statCounts = statNotesCounts(journal, rangeLabel, data.unavailableActivities.length);
+  statNotesHintElement.textContent = statNotesHint(statCounts);
+  statNotesBodyElement.innerHTML = renderStatNotesBody(statCounts);
   dateInput.min = period.start;
   dateInput.max = period.end;
   daily = journal.daily;

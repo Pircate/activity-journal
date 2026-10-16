@@ -86,7 +86,20 @@ test('部分指标缺失只阻止该指标比较，受限记录和未同步日�
   month = createTrends(data, '2026', 'month', '2026-10-16').at(-1);
   assert.equal(month.pending, true);
   assert.equal(compareTrend(month, month.previous, 'count'), '数据不完整，暂不比较');
-  assert.match(renderTrendContent([month]), /部分日期尚未同步/);
+  assert.match(renderTrendContent([month]), /未同步：部分日期不在已同步日期范围内，或晚于北京时间今天/);
+  assert.match(renderTrendContent([month]), /<span>未同步<\/span>/, '周期内无可读取记录时明确区分未同步');
+});
+
+test('趋势明细区分未同步与详情不可读取，指标缺失只说指标缺失', () => {
+  const data = snapshot([activity('2026-02-01', null, '1:00:00', 20)]);
+  const januaryUnavailable = createTrends({...data, unavailableActivities:[{date:'2026-01-15'}]}, '2026', 'month', '2026-10-16')[0];
+  const januaryHtml = renderTrendContent([januaryUnavailable]);
+  assert.match(januaryHtml, /详情不可读取 1 条（平台只返回当地日期，没有距离、时长和运动类型），未计入统计/);
+  assert.doesNotMatch(januaryHtml, /未同步：/);
+  const februaryMissing = createTrends(data, '2026', 'month', '2026-10-16')[1];
+  const februaryHtml = renderTrendContent([februaryMissing]);
+  assert.match(februaryHtml, /指标缺失：1 次未提供距离/);
+  assert.doesNotMatch(februaryHtml, /未同步：/);
 });
 
 test('最近一年显示相交的完整自然月，不输出未来周期；空周期可查看', () => {

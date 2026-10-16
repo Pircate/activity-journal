@@ -1,5 +1,5 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml, beijingDate, dayMetricState, describeDay} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml, beijingDate, dayMetricState, dayStateShort, describeDay} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const shift = (date, days) => new Date(Date.parse(date + 'T00:00:00Z') + days * 86400000).toISOString().slice(0, 10);
 const weekday = date => (new Date(date + 'T00:00:00Z').getUTCDay() + 6) % 7;
 
@@ -33,8 +33,9 @@ export function renderCalendar(daily, selectedDate, metric = 'distanceKm', today
     const state = dayMetricState(day, metric);
     const isToday = date === today;
     const label = state.label + (isToday ? '，今天' : '');
-    const count = day.pending ? '待同步' : day.count ? day.count + ' 次' : day.unavailable ? '缺详情' : '—';
-    cells.push(`<button type="button" class="calendar-day" data-date="${date}" data-level="${state.level}" data-missing="${state.missing}" aria-pressed="${date === selectedDate}"${isToday ? ' aria-current="date"' : ''} tabindex="${date === selectedDate ? '0' : '-1'}" aria-label="${escapeHtml(label)}" title="${escapeHtml(describeDay(day))}"><span class="calendar-number" aria-hidden="true">${number}${isToday ? '<small class="calendar-today">今</small>' : ''}</span><span class="calendar-count" aria-hidden="true">${count}</span></button>`);
+    // 三类缺失在月历里各有措辞和纹理：未同步、指标缺失、详情不可读取。
+    const summary = state.state === 'pending' ? dayStateShort.pending : state.state === 'unavailable' ? dayStateShort.unavailable : state.state === 'missing' ? dayStateShort.missing : day.count + ' 次';
+    cells.push(`<button type="button" class="calendar-day" data-date="${date}" data-level="${state.level}" data-state="${state.state}" data-unavailable="${state.unavailable}" aria-pressed="${date === selectedDate}"${isToday ? ' aria-current="date"' : ''} tabindex="${date === selectedDate ? '0' : '-1'}" aria-label="${escapeHtml(label)}" title="${escapeHtml(describeDay(day))}"><span class="calendar-number" aria-hidden="true">${number}${isToday ? '<small class="calendar-today">今</small>' : ''}</span><span class="calendar-count" aria-hidden="true">${summary}</span></button>`);
   }
   return cells.join('');
 }
