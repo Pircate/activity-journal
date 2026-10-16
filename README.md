@@ -10,7 +10,7 @@
 
 拉取并保存 Intervals.icu 的全部历史运动记录。页面默认展示截至北京时间当天最近 365 天的累计距离、运动时长、运动次数和活动热力图；“全年活动”的“查看范围”可选择最近一年或任一已同步年份，切换时同步更新概览和热力图。自然年显示 1 月 1 日至 12 月 31 日，闰年含 366 天；当前年份尚未同步的日期标注为“未同步”，不当作没有运动。
 
-最近一周的运动记录始终按北京时间当天回看 7 天，不随年份切换。卡片与当天列表使用统一层级：主指标为距离，力量训练为组数；副指标按运动类型显示平均配速、平均速度或平均心率，缺少距离或时长时显示“未提供”，不推断数值。跑步、越野跑、虚拟跑步、步行和徒步显示每公里配速，游泳显示每百米配速，其余有距离的运动显示平均速度。可切换距离、时长和 Intervals.icu 训练负荷，也可用日期选择器或方向键查看每天的指标；选中日期后，下方列出当天全部可读取的运动记录，包括日期、运动类型、主指标、运动时间和副指标，无记录时隐藏列表。桌面以表格展示，宽度不超过 600px 时按活动显示纵向卡片，无需横向滚动；全年热力图仍可横向滑动。点击最近一周的活动卡片或当天列表中的运动行或卡片，会在新标签页打开 Intervals.icu 对应运动记录；也支持 Tab 聚焦、Enter 打开，查看权限由 Intervals.icu 控制。训练负荷来自 Intervals.icu 的活动统计值，仅用于对照单次运动的训练投入，不构成训练建议。
+最近一周的运动记录始终按北京时间当天回看 7 天，不随年份切换。卡片与当天列表使用统一层级：主指标为距离，力量训练为组数；副指标按运动类型显示平均配速、平均速度或平均心率，缺少距离或时长时显示“未提供”，不推断数值。跑步、越野跑、虚拟跑步、步行和徒步显示每公里配速，游泳显示每百米配速，其余有距离的运动显示平均速度。可切换距离、时长和 Intervals.icu 训练负荷，也可用日期选择器或方向键查看每天的指标；选中日期后，下方列出当天全部可读取的运动记录，包括日期、运动类型、主指标、运动时间和副指标，无记录时隐藏列表。桌面以表格展示，宽度不超过 600px 时按活动显示纵向卡片，无需横向滚动；全年热力图仍可横向滑动。点击最近一周的活动卡片或当天列表中的运动行或卡片，会在新标签页打开 Strava 对应运动记录；也支持 Tab 聚焦、Enter 打开，查看权限由 Strava 控制。没有 Strava 关联的记录不提供跳转。训练负荷来自 Intervals.icu 的活动统计值，仅用于对照单次运动的训练投入，不构成训练建议。
 
 运动趋势下方依次是个人最佳成绩和运动装备库。运动装备库按自行车展示在用配件和累计里程，不受最近 365 天范围限制。配件列表默认折叠，点击自行车标题栏可独立展开或折叠，也支持键盘操作。切换年度或刷新时，只要装备内容未变化，就保留各车辆的展开状态和装备区域内的焦点。链条、前胎、后胎按 5000 km，飞轮按 10000 km，牙盘按 30000 km 显示更换进度；达到 80% 提示“接近建议更换里程”，达到建议里程提示“已达建议更换里程”，超出后保留实际里程。该里程仅为维护参考，不代表实际磨损程度。折叠标题直接显示已达建议更换里程、接近建议更换里程及更换里程或提醒信息待完善的配件数量，展开后优先展示需要关注的配件。共享配件标注所属车辆名称，关系由平台配件标识解析，不按名称推断。
 
@@ -90,7 +90,7 @@
 
 页面先展示 HTML 内嵌的最近一次构建快照，再在打开、从后台返回时向服务器验证 `docs/activities.json` 是否更新；页面可见时每 5 分钟再检查一次。请求使用 `no-cache`，允许浏览器通过 ETag 或 Last-Modified 验证并复用缓存；服务器不支持验证时正常下载完整数据。完整数据与北京时间日期均未变化时不重新渲染，保留装备展开状态和当前焦点，但仍更新同步状态提示。最近一年和最近一周随北京时间跨天滚动，即使请求失败也使用已有快照更新日期，尚未同步的日期不算作已确认没有运动的日期。
 
-每条公开活动记录包含北京时间日期、中文运动类型、距离、运动时长、训练负荷和活动页面链接 `activityUrl`（含对应活动 ID）。力量训练额外公开 `sets`（组数）和 `averageHeartRate`（平均心率，bpm），缺失时为 `null`。装备仅公开名称、类型、里程和更换摘要；不发布坐标、心率明细、账号信息、额外的活动标识字段、装备标识、装备备注或凭据。
+每条公开活动记录包含北京时间日期、中文运动类型、距离、运动时长、训练负荷和 Intervals.icu 活动链接 `activityUrl`（用于成绩、组数关联），有 Strava 关联时额外包含 `stravaUrl`，供运动卡片和列表跳转。两个链接各自包含对应平台的活动 ID。力量训练额外公开 `sets`（组数）和 `averageHeartRate`（平均心率，bpm），缺失时为 `null`。装备仅公开名称、类型、里程和更换摘要；不发布坐标、心率明细、账号信息、额外的活动标识字段、装备标识、装备备注或凭据。
 
 ## 同步脚本
 
@@ -113,7 +113,7 @@ node scripts/build.mjs
 node --test scripts/*.test.mjs
 ```
 
-`update-personal-bests.mjs` 在 `update-data.mjs` 之后运行：最远骑行和成绩对应日期都取自刚更新的活动快照。它并发查询全历史配速曲线（`athlete/0/pace-curves.json?type=Run&curves=all`）与功率曲线（`athlete/0/power-curves.json?type=Ride&curves=all`），跑步成绩取曲线上首个不短于目标距离的累计用时，功率取 300 秒与 1200 秒处的原始最佳努力值，再按活动链接关联日期。任一请求或解析失败都会保留上一版 `docs/personal-bests.json`。该文件顶层为 `source`、`syncedAt`、`records`；每条记录含 `sport`、`event`、`result`、`date`、`activityUrl`，`date` 在活动快照中查不到时为 `null`。
+`update-personal-bests.mjs` 在 `update-data.mjs` 之后运行：最远骑行和成绩对应日期都取自刚更新的活动快照。它并发查询全历史配速曲线（`athlete/0/pace-curves.json?type=Run&curves=all`）与功率曲线（`athlete/0/power-curves.json?type=Ride&curves=all`），跑步成绩取曲线上首个不短于目标距离的累计用时，功率取 300 秒与 1200 秒处的原始最佳努力值，再按 Intervals.icu 活动链接精确关联日期与 Strava 跳转链接。任一请求或解析失败都会保留上一版 `docs/personal-bests.json`。该文件顶层为 `source`、`syncedAt`、`records`；每条记录含 `sport`、`event`、`result`、`date`、`activityUrl`，`date` 在活动快照中查不到时为 `null`。有 Strava 关联时额外包含 `stravaUrl`，成绩卡片在新标签页打开该活动；缺失时显示“Strava 链接未提供”，不生成跳转。
 
 字段来自 [官方 API 文档](https://intervals.icu/api-docs.html)：`distance` 从米转为公里，`moving_time` 为运动秒数，`icu_training_load` 为活动训练负荷；力量训练的平均心率来自 `average_heartrate`，零值或缺失值记为 `null`。使用 UTC 开始时间 `start_date` 转换北京时间日期；API 从 1900-01-01 起查询历史活动，上界比北京时间今天扩大一天，再按北京时间裁剪；达到单次 10000 条上限时自动二分为不重叠的日期范围，直至每段结果可确认完整。保留同一天的多次运动，不按日期去重。
 
@@ -121,7 +121,7 @@ API 不提供部分 Strava 来源活动的完整内容；这些记录仅在 `una
 
 `period.start` 为最早记录所在年的元旦（至少覆盖最近一年），`period.end` 为同步时的北京时间当天；年份选项包含此范围内的所有年份，空年也可查看。
 
-`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。活动的 `activityUrl` 只接受 `https://intervals.icu/activities/` 加平台活动 ID；兼容尚无链接的旧活动快照，这些卡片不提供跳转。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件含 `name`、`type`、`distanceKm`、`replacement`；共享配件额外含 `sharedBy` 车辆名称数组和 `sharedGroup` 正整数分组号；分组号仅在本份快照内标记同一共享配件，按平台原始配件关系生成，不含原始装备标识。同名、同里程的不同配件仍有不同分组，不按名称猜测共享关系；共享分组的归属和使用信息必须一致，否则拒绝更新。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
+`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。活动的 `activityUrl` 只接受 `https://intervals.icu/activities/` 加平台活动 ID；运动跳转使用可选字段 `stravaUrl`，只接受 `https://www.strava.com/activities/` 加正整数活动 ID；该链接由 API 的 `strava_id` 精确生成，缺失时不提供跳转，不使用 Intervals.icu ID 拼接 Strava 链接。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件含 `name`、`type`、`distanceKm`、`replacement`；共享配件额外含 `sharedBy` 车辆名称数组和 `sharedGroup` 正整数分组号；分组号仅在本份快照内标记同一共享配件，按平台原始配件关系生成，不含原始装备标识。同名、同里程的不同配件仍有不同分组，不按名称猜测共享关系；共享分组的归属和使用信息必须一致，否则拒绝更新。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
 
 同步与构建成功后，将更新文件提交并推送到 `main`，GitHub Pages 从 `docs/` 自动发布。网页只读取同源公开 JSON，凭据仅在本机脚本运行时使用。
 

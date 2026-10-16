@@ -19,26 +19,31 @@ test('北京时间边界、米到公里、零负荷、缺失值及同日多次�
   ]);
 });
 
-test('活动链接精确区分同日运动，兼容旧快照并拒绝非平台链接', () => {
-  const activities = normalizeActivities([record, {...record, id:123}], period);
+test('Strava 链接精确区分同日运动，无关联时不跳转并拒绝非平台链接', () => {
+  const activities = normalizeActivities([{...record, strava_id:'901'}, {...record, id:123, strava_id:'902'}], period);
   const data = {period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]};
   validateData(data);
   const cards = createJournal(data).cards;
-  for (const id of ['i1', '123']) assert.ok(cards.includes(`href="https://intervals.icu/activities/${id}" target="_blank" rel="noopener noreferrer"`));
+  for (const id of ['901', '902']) assert.ok(cards.includes(`href="https://www.strava.com/activities/${id}" target="_blank" rel="noopener noreferrer"`));
   assert.match(cards, /新标签页/);
   for (const activityUrl of ['javascript:alert(1)', 'https://evil.test/activities/i1', 'https://intervals.icu/activities/i1/../../settings', 'https://intervals.icu/activities/i1?x=1', null]) {
     assert.throws(() => validateData({...data, activities:[{...activities[0], activityUrl}]}), /运动记录格式无效/);
   }
-  const {activityUrl, ...legacy} = activities[0];
-  validateData({...data, activities:[legacy]});
-  assert.doesNotMatch(createJournal({...data, activities:[legacy]}).cards, /record-link/);
+  const {stravaUrl, ...unlinked} = activities[0];
+  validateData({...data, activities:[unlinked]});
+  assert.doesNotMatch(createJournal({...data, activities:[unlinked]}).cards, /record-link/);
+  for (const stravaUrl of ['javascript:alert(1)', 'https://evil.test/activities/1', 'https://www.strava.com/activities/1?x=1', 'https://www.strava.com/activities/i1', 'https://www.strava.com/activities/0', null]) {
+    assert.throws(() => validateData({...data, activities:[{...activities[0], stravaUrl}]}), /运动记录格式无效/);
+  }
+  for (const strava_id of ['i1', '', '1/../../settings', 123, 0]) assert.throws(() => normalizeActivities([{...record, strava_id}], period), /Strava 活动标识无效/);
+  assert.doesNotMatch(cards, /href="https:\/\/intervals\.icu/);
   for (const id of ['../settings', {}, 'i1" onclick="alert(1)', null]) assert.throws(() => normalizeActivities([{...record, id}], period));
 });
 
 test('全年日期保留当天全部记录及各自链接，空日期和不可读取记录不生成卡片', () => {
   const activities = normalizeActivities([
-    {...record, start_date:'2026-06-01T02:00:00Z'},
-    {...record, id:'i2', start_date:'2026-06-01T10:00:00Z', distance:null, icu_training_load:null},
+    {...record, start_date:'2026-06-01T02:00:00Z', strava_id:'901'},
+    {...record, id:'i2', start_date:'2026-06-01T10:00:00Z', strava_id:'902', distance:null, icu_training_load:null},
     {...record, id:'i3'},
   ], period);
   const data = {period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[{date:'2026-06-02'}], gearLibrary:[]};
@@ -48,13 +53,13 @@ test('全年日期保留当天全部记录及各自链接，空日期和不可�
   assert.deepEqual(day.records, activities.filter(activity => activity.date === day.date));
   assert.equal(journal.recent.length, 1);
   const cards = renderDayRecords(day.records);
-  for (const id of ['i1', 'i2']) assert.ok(cards.includes(`href="https://intervals.icu/activities/${id}"`));
+  for (const id of ['901', '902']) assert.ok(cards.includes(`href="https://www.strava.com/activities/${id}"`));
   assert.doesNotMatch(cards, /activities\/i3/);
   assert.match(cards, /未提供/);
   assert.match(cards, /<table class="activity-table" role="table">/);
   assert.equal((cards.match(/<tr class="activity-row/g) ?? []).length, 2);
   assert.equal(renderDayRecords([]), '');
-  const {activityUrl, ...legacy} = day.records[0];
+  const {stravaUrl, ...legacy} = day.records[0];
   assert.doesNotMatch(renderDayRecords([legacy]), /activity-link/);
   assert.match(renderDayRecords([{...legacy, sport:'<script>骑行</script>'}]), /&lt;script&gt;/);
   for (const date of ['2026-06-02', '2026-06-03']) assert.deepEqual(journal.daily.find(day => day.date === date).records, []);
@@ -80,6 +85,7 @@ test('使用账号 ID 查询全部历史，包含时区边界且只输出公开�
   assert.deepEqual(data.period, {start:'2025-01-01', end:period.end});
   assert.equal(calls[0].options.headers.Authorization, 'Basic ' + Buffer.from('API_KEY:test-key').toString('base64'));
   assert.equal(calls[1].url.pathname, '/api/v1/athlete/i123/activities');
+  assert.ok(calls[1].url.searchParams.get('fields').split(',').includes('strava_id'));
   assert.equal(calls[2].url.pathname, '/api/v1/athlete/i123/gear');
   assert.equal(calls[1].url.searchParams.get('oldest'), '1900-01-01');
   assert.equal(calls[1].url.searchParams.get('newest'), '2026-10-16T23:59:59');

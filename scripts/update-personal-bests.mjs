@@ -72,14 +72,14 @@ export function longestRide(activities) {
 }
 
 export function buildPersonalBests({activities = [], paceCurves, powerCurves, now = new Date()} = {}) {
-  const dateByUrl = new Map();
-  for (const activity of activities) {
-    if (activity?.activityUrl && activity.date && !dateByUrl.has(activity.activityUrl)) dateByUrl.set(activity.activityUrl, activity.date);
-  }
-  // 曲线覆盖范围早于本地快照，查不到对应记录时日期留空，卡片显示“日期未提供”。
-  const withDate = records => records.map(record => ({...record, date:record.activityUrl ? dateByUrl.get(record.activityUrl) ?? null : null}));
+  const activityByUrl = new Map(activities.filter(activity => activity?.activityUrl).map(activity => [activity.activityUrl, activity]));
+  // 按 Intervals.icu 活动链接精确关联；查不到时不猜测日期或 Strava 链接。
+  const withActivity = records => records.map(record => {
+    const activity = activityByUrl.get(record.activityUrl);
+    return {...record, date:activity?.date ?? null, ...(activity?.stravaUrl ? {stravaUrl:activity.stravaUrl} : {})};
+  });
   const ride = longestRide(activities);
-  const records = [...withDate(paceRecords(paceCurves)), ...(ride ? [ride] : []), ...withDate(powerRecords(powerCurves))];
+  const records = withActivity([...paceRecords(paceCurves), ...(ride ? [ride] : []), ...powerRecords(powerCurves)]);
   if (!records.some(record => record.sport === '跑步') && !records.some(record => record.sport === '骑行')) throw new Error('未取得任何个人最佳成绩，未更新数据');
   return {source:'Intervals.icu', syncedAt:now.toISOString(), records};
 }

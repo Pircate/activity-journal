@@ -29,11 +29,11 @@ test('缺少距离或时长时不换算、不编造，显示未提供', () => {
 });
 
 test('卡片层级展示运动类型、主指标标签与副指标标签', () => {
-  const html = cards([activity('跑步', 10, '0:50:00', {activityUrl:'https://intervals.icu/activities/i1'})]);
+  const html = cards([activity('跑步', 10, '0:50:00', {stravaUrl:'https://www.strava.com/activities/123'})]);
   assert.match(html, /<p class="record-top"><span class="record-sport">.*?跑步<\/span><\/p>/);
   assert.match(html, /<span class="record-metric-label">距离<\/span><span class="record-metric-value">10\.00<small>km<\/small>/);
   assert.match(html, /<span class="record-meta-label">平均配速<\/span>5:00<small>\/km<\/small>/);
-  assert.match(html, /aria-label="2026-10-15 跑步，距离 10\.00 km，平均配速 5:00 \/km，时长 0:50:00，在 Intervals\.icu 查看（新标签页）"/);
+  assert.match(html, /aria-label="2026-10-15 跑步，距离 10\.00 km，平均配速 5:00 \/km，时长 0:50:00，在 Strava 查看（新标签页）"/);
   const strength = cards([activity('力量训练', null, '0:30:00', {sets:12, averageHeartRate:131})]);
   assert.match(strength, /<span class="record-metric-label">组数<\/span><span class="record-metric-value">12<small>组<\/small>/);
   assert.match(strength, /<span class="record-meta-label">平均心率<\/span>131<small>bpm<\/small>/);

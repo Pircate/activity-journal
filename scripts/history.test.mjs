@@ -51,7 +51,7 @@ test('历史列表分页、组合筛选、校验、重置与新快照更新', t 
   const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
   Object.defineProperty(globalThis, 'document', {configurable:true, value:{getElementById:get}});
   t.after(() => originalDocument ? Object.defineProperty(globalThis, 'document', originalDocument) : delete globalThis.document);
-  const data = {activities:Array.from({length:45}, (_, index) => ({...activity('2026-10-12', index), activityUrl:'https://intervals.icu/activities/i' + index})), unavailableActivities:[{date:'2026-10-12'}]};
+  const data = {activities:Array.from({length:45}, (_, index) => ({...activity('2026-10-12', index), stravaUrl:'https://www.strava.com/activities/' + (1000 + index)})), unavailableActivities:[{date:'2026-10-12'}]};
   const update = initializeHistory(data);
   const click = id => get(id).events.get('click')();
   const apply = () => get('history-filters').events.get('submit')({preventDefault() {}});
@@ -69,7 +69,7 @@ test('历史列表分页、组合筛选、校验、重置与新快照更新', t 
   get('history-sort').value = 'distance-desc';
   apply();
   assert.equal(get('history-count').textContent, '共 5 条 · 显示第 1–5 条');
-  assert.ok(get('history-results').innerHTML.indexOf('/i44"') < get('history-results').innerHTML.indexOf('/i40"'));
+  assert.ok(get('history-results').innerHTML.indexOf('/1044"') < get('history-results').innerHTML.indexOf('/1040"'));
   assert.equal(get('history-page').textContent, '第 1 / 1 页');
   get('history-max-distance').value = '10';
   apply();

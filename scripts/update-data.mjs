@@ -56,6 +56,7 @@ export function normalizeActivities(records, period, strengthSets = []) {
       return value;
     };
     const distance = number(record.distance, '距离');
+    if (record.strava_id != null && (typeof record.strava_id !== 'string' || !/^[1-9]\d*$/.test(record.strava_id))) throw new Error('Strava 活动标识无效');
     return {
       date:beijingDate(instant),
       sport:sports[record.type] ?? `其他运动（${record.type}）`,
@@ -63,6 +64,7 @@ export function normalizeActivities(records, period, strengthSets = []) {
       duration:formatTime(record.moving_time),
       trainingLoad:number(record.icu_training_load, '训练负荷'),
       activityUrl:'https://intervals.icu/activities/' + record.id,
+      ...(record.strava_id ? {stravaUrl:'https://www.strava.com/activities/' + record.strava_id} : {}),
       ...(record.type === 'WeightTraining' ? {sets:setsByActivity.get('https://intervals.icu/activities/' + record.id) ?? null, averageHeartRate:number(record.average_heartrate, '平均心率') || null} : {}),
     };
   }).filter(a => a.date >= period.start && a.date <= period.end)
@@ -181,7 +183,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   // 从历史起点获取全部记录；达到条数上限时二分当地日期范围，不使用可能截断的结果。
   const fetchRange = async (oldest, newest) => {
     const params = new URLSearchParams({oldest, newest:newest + 'T23:59:59',
-      limit:'10000', fields:'id,type,start_date,moving_time,distance,icu_training_load,average_heartrate,source,start_date_local'});
+      limit:'10000', fields:'id,type,start_date,moving_time,distance,icu_training_load,average_heartrate,source,start_date_local,strava_id'});
     const records = await get(`athlete/${encodeURIComponent(athlete.id)}/activities?${params}`);
     if (!Array.isArray(records)) throw new Error('活动列表无效，未更新数据');
     if (records.length < 10000) return records;

@@ -18,10 +18,11 @@ export function validatePersonalBests(data) {
   } else if (typeof data.syncedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(data.syncedAt) || !Number.isFinite(Date.parse(data.syncedAt)) || new Date(data.syncedAt).toISOString() !== data.syncedAt) fail();
   const keys = new Set();
   for (const record of data.records) {
-    if (!record || Object.keys(record).sort().join(',') !== 'activityUrl,date,event,result,sport' ||
+    if (!record || Object.keys(record).filter(key => key !== 'stravaUrl').sort().join(',') !== 'activityUrl,date,event,result,sport' ||
       !['sport', 'event', 'result'].every(key => typeof record[key] === 'string' && record[key].trim()) ||
       !Object.hasOwn(personalBestEvents, record.sport) || eventSport.get(record.event) !== record.sport ||
       record.date !== null && !isDate(record.date) ||
+      Object.hasOwn(record, 'stravaUrl') && (typeof record.stravaUrl !== 'string' || !/^https:\/\/www\.strava\.com\/activities\/[1-9]\d*$/.test(record.stravaUrl)) ||
       record.activityUrl !== null && (typeof record.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(record.activityUrl))) fail();
     const key = JSON.stringify([record.sport, record.event]);
     if (keys.has(key)) fail();
@@ -43,8 +44,8 @@ export function renderPersonalBests(data) {
     const eventLabel = {CP5:'5 分钟功率', CP20:'20 分钟功率'}[record.event] ?? record.event;
     const units = /^(\d+(?:\.\d+)?)(\s+)(km|W)$/.exec(record.result);
     const value = units ? `${esc(units[1])}${units[2]}<small class="pb-unit">${units[3]}</small>` : esc(record.result);
-    const result = record.activityUrl ? `<a class="pb-link" href="${esc(record.activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sport + ' ' + eventLabel + '，' + record.result + '，' + (record.date ?? '日期未提供') + '，在 Intervals.icu 查看（新标签页）')}">${value}<span class="pb-arrow" aria-hidden="true">↗</span></a>` : value;
-    return `<article class="pb-card" data-event="${esc(record.event)}"><h4>${esc(eventLabel)}</h4><p class="pb-result">${result}</p><p class="pb-meta">${date}${record.activityUrl ? '' : '<span>活动链接未提供</span>'}</p></article>`;
+    const result = record.stravaUrl ? `<a class="pb-link" href="${esc(record.stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sport + ' ' + eventLabel + '，' + record.result + '，' + (record.date ?? '日期未提供') + '，在 Strava 查看（新标签页）')}">${value}<span class="pb-arrow" aria-hidden="true">↗</span></a>` : value;
+    return `<article class="pb-card" data-event="${esc(record.event)}"><h4>${esc(eventLabel)}</h4><p class="pb-result">${result}</p><p class="pb-meta">${date}${record.stravaUrl ? '' : '<span>Strava 链接未提供</span>'}</p></article>`;
   }).join('')}</div></section>`).join('');
 }
 

@@ -122,16 +122,16 @@ function activityMetrics(activity) {
 }
 
 function recordCard(activity) {
-  const {date, sport, duration, trainingLoad, activityUrl} = activity;
+  const {date, sport, duration, trainingLoad, stravaUrl} = activity;
   const {primaryLabel, primary, secondaryLabel, secondary} = activityMetrics(activity);
   const weekday = new Intl.DateTimeFormat('zh-CN', {timeZone:'UTC', weekday:'long'}).format(new Date(date + 'T00:00:00Z'));
   const heading = `<span class="record-metric-label">${primaryLabel}</span><span class="record-metric-value">${primary.html}</span>`;
   return `<article class="record-card${sport === '徒步' ? ' hike' : ''}">
     <div class="record-body">
       <p class="record-top"><span class="record-sport">${sportIcon(sport)}${escapeHtml(sport)}</span></p>
-      <h3 class="record-distance">${activityUrl ? `<a class="record-link" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + '，' + primaryLabel + ' ' + primary.text + '，' + secondaryLabel + ' ' + secondary.text + '，时长 ' + duration)}，在 Intervals.icu 查看（新标签页）">${heading}</a>` : heading}</h3>
+      <h3 class="record-distance">${stravaUrl ? `<a class="record-link" href="${escapeHtml(stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + '，' + primaryLabel + ' ' + primary.text + '，' + secondaryLabel + ' ' + secondary.text + '，时长 ' + duration)}，在 Strava 查看（新标签页）">${heading}</a>` : heading}</h3>
       <div class="record-meta"><span><span class="record-meta-label">时长</span>${escapeHtml(duration)}</span><span><span class="record-meta-label">${secondaryLabel}</span>${secondary.html}</span></div>
-      <p class="record-details"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</time><span>${weekday}</span>${activityUrl ? '<span class="record-open" aria-hidden="true">Intervals.icu ↗</span>' : ''}</p>
+      <p class="record-details"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</time><span>${weekday}</span>${stravaUrl ? '<span class="record-open" aria-hidden="true">Strava ↗</span>' : ''}</p>
     </div>
     <div class="record-load"><span class="record-load-value${trainingLoad === null ? ' missing' : ''}">${trainingLoad ?? '未记录'}</span><span class="record-load-label">训练负荷</span></div>
   </article>`;
@@ -140,19 +140,19 @@ export function renderDayRecords(records, title = '当天运动记录') {
   if (!records.length) return '';
   const metricsByRecord = records.map(activity => ({activity, metric:activityMetrics(activity)}));
   const rows = metricsByRecord.map(({activity, metric:{primaryLabel, primary, secondaryLabel, secondary}}) => {
-    const {date, sport, duration, trainingLoad, activityUrl} = activity;
+    const {date, sport, duration, trainingLoad, stravaUrl} = activity;
     const name = sportIcon(sport) + '<span>' + escapeHtml(sport) + '</span>';
     const aria = date + ' ' + sport + ' ' + duration + '，' + primaryLabel + ' ' + primary.text + '，' + secondaryLabel + ' ' + secondary.text;
     return `<tr class="activity-row${sport === '徒步' ? ' hike' : ''}" role="row">
       <td role="cell"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日<small>${date.slice(0, 4)}</small></time></td>
-      <td role="cell">${activityUrl ? `<a class="activity-link activity-name" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(aria)}，在 Intervals.icu 查看（新标签页）">${name}<span class="activity-open" aria-hidden="true">↗</span></a>` : `<span class="activity-name">${name}</span>`}</td>
+      <td role="cell">${stravaUrl ? `<a class="activity-link activity-name" href="${escapeHtml(stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(aria)}，在 Strava 查看（新标签页）">${name}<span class="activity-open" aria-hidden="true">↗</span></a>` : `<span class="activity-name">${name}</span>`}</td>
       <td role="cell" data-label="${primaryLabel}">${primary.html}</td>
       <td role="cell" data-label="运动时间">${escapeHtml(duration)}</td><td role="cell" data-label="${secondaryLabel}">${secondary.html}</td><td role="cell" data-label="训练负荷">${trainingLoad ?? '未提供'}</td>
     </tr>`;
   }).join('');
   const labels = metricsByRecord.map(({metric}) => metric);
   return `<div class="day-records-heading"><span>${escapeHtml(title)}</span><span>${records.length} 条活动</span></div>
-    <div class="activity-table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(title)}"><table class="activity-table" role="table"><caption class="sr-only">${escapeHtml(title)}，点击运动可在新标签页打开 Intervals.icu 详情。训练负荷为 Intervals.icu 的统计值，不含训练建议。</caption><thead role="rowgroup"><tr role="row"><th scope="col">日期</th><th scope="col">运动</th><th scope="col">${orderedLabels(primaryOrder, labels.map(metric => metric.primaryLabel))}</th><th scope="col">运动时间</th><th scope="col">${orderedLabels(secondaryOrder, labels.map(metric => metric.secondaryLabel))}</th><th scope="col">训练负荷</th></tr></thead><tbody role="rowgroup">${rows}</tbody></table></div>`;
+    <div class="activity-table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(title)}"><table class="activity-table" role="table"><caption class="sr-only">${escapeHtml(title)}，点击运动可在新标签页打开 Strava 详情。训练负荷为 Intervals.icu 的统计值，不含训练建议。</caption><thead role="rowgroup"><tr role="row"><th scope="col">日期</th><th scope="col">运动</th><th scope="col">${orderedLabels(primaryOrder, labels.map(metric => metric.primaryLabel))}</th><th scope="col">运动时间</th><th scope="col">${orderedLabels(secondaryOrder, labels.map(metric => metric.secondaryLabel))}</th><th scope="col">训练负荷</th></tr></thead><tbody role="rowgroup">${rows}</tbody></table></div>`;
 }
 export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit'}).format(date);
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));
@@ -297,7 +297,7 @@ export function validateData(data) {
   if (!Array.isArray(data.unavailableActivities) || data.unavailableActivities.some(a => !a || Object.keys(a).join(',') !== 'date' || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end)) throw new Error('无法读取的活动日期无效');
   for (const a of data.activities) {
     const keys = a?.sport === '力量训练' ? 'averageHeartRate,date,distanceKm,duration,sets,sport,trainingLoad' : 'date,distanceKm,duration,sport,trainingLoad';
-    if (!a || Object.keys(a).filter(key => key !== 'activityUrl').sort().join(',') !== keys || Object.hasOwn(a, 'activityUrl') && (typeof a.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(a.activityUrl)) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !a.sport || typeof a.duration !== 'string' || !/^\d+(?::[0-5]\d){1,2}$/.test(a.duration) || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0) ||
+    if (!a || Object.keys(a).filter(key => !['activityUrl', 'stravaUrl'].includes(key)).sort().join(',') !== keys || Object.hasOwn(a, 'activityUrl') && (typeof a.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(a.activityUrl)) || Object.hasOwn(a, 'stravaUrl') && (typeof a.stravaUrl !== 'string' || !/^https:\/\/www\.strava\.com\/activities\/[1-9]\d*$/.test(a.stravaUrl)) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !a.sport || typeof a.duration !== 'string' || !/^\d+(?::[0-5]\d){1,2}$/.test(a.duration) || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0) ||
         a.sport === '力量训练' && (a.sets !== null && (!Number.isInteger(a.sets) || a.sets < 0) || a.averageHeartRate !== null && (typeof a.averageHeartRate !== 'number' || !Number.isFinite(a.averageHeartRate) || a.averageHeartRate <= 0))) throw new Error('运动记录格式无效');
   }
 }

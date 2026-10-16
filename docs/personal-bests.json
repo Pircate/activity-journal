@@ -1,6 +1,6 @@
 {
   "source": "Intervals.icu",
-  "syncedAt": "2026-10-16T08:57:52.554Z",
+  "syncedAt": "2026-10-16T10:07:53.251Z",
   "records": [
     {
       "sport": "跑步",
@@ -28,28 +28,32 @@
       "event": "全程马拉松",
       "result": "2:57:09",
       "date": "2023-11-19",
-      "activityUrl": "https://intervals.icu/activities/i27581543"
+      "activityUrl": "https://intervals.icu/activities/i27581543",
+      "stravaUrl": "https://www.strava.com/activities/10242864989"
     },
     {
       "sport": "骑行",
       "event": "最远距离",
       "result": "154.86 km",
       "date": "2025-05-11",
-      "activityUrl": "https://intervals.icu/activities/i77934321"
+      "activityUrl": "https://intervals.icu/activities/i77934321",
+      "stravaUrl": "https://www.strava.com/activities/14441762148"
     },
     {
       "sport": "骑行",
       "event": "CP5",
       "result": "288 W",
       "date": "2026-05-10",
-      "activityUrl": "https://intervals.icu/activities/i146848137"
+      "activityUrl": "https://intervals.icu/activities/i146848137",
+      "stravaUrl": "https://www.strava.com/activities/18445078306"
     },
     {
       "sport": "骑行",
       "event": "CP20",
       "result": "233 W",
       "date": "2026-10-02",
-      "activityUrl": "https://intervals.icu/activities/i192532318"
+      "activityUrl": "https://intervals.icu/activities/i192532318",
+      "stravaUrl": "https://www.strava.com/activities/20416696791"
     }
   ]
 }

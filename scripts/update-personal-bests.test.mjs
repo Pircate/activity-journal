@@ -49,13 +49,17 @@ test('最远骑行包含虚拟骑行，并按活动快照给出日期与链接',
   assert.equal(longestRide(virtualOnly).date, '2026-02-02');
 });
 
-test('组装成绩固定顺序，并用活动快照补全日期', () => {
-  const data = buildPersonalBests({activities, paceCurves, powerCurves, now:new Date('2026-10-16T04:00:00Z')});
+test('组装成绩固定顺序，并用活动快照精确关联日期及 Strava 链接', () => {
+  const linkedActivities = activities.map((activity, index) => ({...activity, stravaUrl:'https://www.strava.com/activities/' + (9000 + index)}));
+  const data = buildPersonalBests({activities:linkedActivities, paceCurves, powerCurves, now:new Date('2026-10-16T04:00:00Z')});
   assert.equal(data.source, 'Intervals.icu');
   assert.equal(data.syncedAt, '2026-10-16T04:00:00.000Z');
   assert.deepEqual(data.records.map(record => record.sport + ' ' + record.event), ['跑步 5 公里', '跑步 10 公里', '跑步 半程马拉松', '跑步 全程马拉松', '骑行 最远距离', '骑行 CP5', '骑行 CP20']);
   assert.equal(data.records[0].date, '2022-11-06');
   assert.equal(data.records[4].date, '2025-05-11');
+  assert.deepEqual(data.records.map(record => record.stravaUrl), [9002, 9002, 9003, 9004, 9000, 9005, 9006].map(id => 'https://www.strava.com/activities/' + id));
+  const unlinked = buildPersonalBests({activities, paceCurves, powerCurves});
+  assert.ok(unlinked.records.every(record => !Object.hasOwn(record, 'stravaUrl')));
   // 曲线覆盖范围早于本地快照，查不到记录时日期留空。
   assert.equal(buildPersonalBests({activities:[], paceCurves, powerCurves, now:new Date('2026-10-16T04:00:00Z')}).records[0].date, null);
 });

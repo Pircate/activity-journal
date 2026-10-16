@@ -27,15 +27,15 @@ node scripts/update-personal-bests.mjs
 node scripts/build.mjs
 ```
 
-`update-personal-bests.mjs` 必须在上面的活动同步之后运行：它并发查询全历史配速曲线（`athlete/0/pace-curves.json?type=Run&curves=all`）与功率曲线（`athlete/0/power-curves.json?type=Ride&curves=all`），最远骑行和成绩对应日期都取自刚写入的活动快照。跑步成绩取曲线上首个不短于目标距离的累计用时（5 公里、10 公里、半程马拉松 21097.5 米、全程马拉松 42195 米），骑行最远距离按快照中全部骑行类活动（含虚拟骑行）的最大距离，功率取 300 秒与 1200 秒处的原始最佳努力值。曲线按运动大类聚合，因此 `type=Run` 已含越野跑与虚拟跑步，`type=Ride` 已含虚拟骑行；不要按子类型重复查询或重复计项。功率值只能用秒数精确定位，曲线上存在小幅回弹，不做插值或单调性推断。任一请求、结构校验或解析失败时整次失败并保留旧文件。公开 JSON 顶层仅含 `source`、`syncedAt`、`records`；每条记录仅含 `sport`、`event`、`result`、`date`、`activityUrl`，日期在活动快照中查不到时为 `null`；不发布曲线返回的体重、w/kg、功率模型、活动原始标识或其他字段。
+`update-personal-bests.mjs` 必须在上面的活动同步之后运行：它并发查询全历史配速曲线（`athlete/0/pace-curves.json?type=Run&curves=all`）与功率曲线（`athlete/0/power-curves.json?type=Ride&curves=all`），最远骑行、成绩对应日期与 Strava 链接都取自刚写入的活动快照，以 Intervals.icu 活动链接精确关联。跑步成绩取曲线上首个不短于目标距离的累计用时（5 公里、10 公里、半程马拉松 21097.5 米、全程马拉松 42195 米），骑行最远距离按快照中全部骑行类活动（含虚拟骑行）的最大距离，功率取 300 秒与 1200 秒处的原始最佳努力值。曲线按运动大类聚合，因此 `type=Run` 已含越野跑与虚拟跑步，`type=Ride` 已含虚拟骑行；不要按子类型重复查询或重复计项。功率值只能用秒数精确定位，曲线上存在小幅回弹，不做插值或单调性推断。任一请求、结构校验或解析失败时整次失败并保留旧文件。公开 JSON 顶层仅含 `source`、`syncedAt`、`records`；每条记录含 `sport`、`event`、`result`、`date`、`activityUrl`，有 Strava 关联时额外包含 `stravaUrl`，供成绩卡片跳转；无关联时不生成跳转并显示“Strava 链接未提供”。日期在活动快照中查不到时为 `null`；不发布曲线返回的体重、w/kg、功率模型、活动原始标识或其他字段。
 
-脚本先通过 `/athlete/0` 解析账号，再查询截至北京时间今天的全部历史活动，以及 `/athlete/{id}/gear` 装备列表，全部成功后原子替换同一份快照。API 字段为 `distance`（米）、`moving_time`（运动秒数）、`icu_training_load`、`average_heartrate`（仅力量训练使用）；日期由 UTC 开始时间转换为北京时间。从 1900-01-01 起查询，上界扩大一天，再按北京时间裁剪至今天。单次达到 10000 条上限时自动二分不重叠的当地日期范围，递归查询至每段未达到上限；单日仍达上限时停止并保留旧快照。period.start 保存最早记录所在年的元旦，至少覆盖最近一年；period.end 保存同步当天。页面默认最近 365 天，可选择各自然年，历史记录不能裁剪掉。装备累计里程直接使用平台统计，不按年度活动重算。
+脚本先通过 `/athlete/0` 解析账号，再查询截至北京时间今天的全部历史活动，以及 `/athlete/{id}/gear` 装备列表，全部成功后原子替换同一份快照。API 字段为 `distance`（米）、`moving_time`（运动秒数）、`icu_training_load`、`average_heartrate`（仅力量训练使用）、`strava_id`（生成 Strava 跳转链接）；日期由 UTC 开始时间转换为北京时间。从 1900-01-01 起查询，上界扩大一天，再按北京时间裁剪至今天。单次达到 10000 条上限时自动二分不重叠的当地日期范围，递归查询至每段未达到上限；单日仍达上限时停止并保留旧快照。period.start 保存最早记录所在年的元旦，至少覆盖最近一年；period.end 保存同步当天。页面默认最近 365 天，可选择各自然年，历史记录不能裁剪掉。装备累计里程直接使用平台统计，不按年度活动重算。
 
 只有活动与装备查询都成功、列表未达到上限、所有记录有效时才写入。API 失败、授权过期、超时、缺失运动时长、重复 ID、装备关联不完整或循环、无效里程或疑似截断时保留旧文件并报告；不得把失败当作零条记录，不得复用 COROS 负荷补缺。同一天多次运动保留实际条数。
 
 Strava API 明确返回的受限空壳只保留当地日期，在页面标注详情缺失，不计入总量；不得猜测详情或把它当成没有运动。
 
-公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动含 date、sport、distanceKm、duration、trainingLoad、activityUrl；力量训练额外含 sets（组数）和 averageHeartRate（平均心率，bpm），缺失时为 null。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，供最近一周卡片跳转，包含活动 ID；不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、原始装备标识、账号信息、装备备注、坐标、心率明细、原始文件链接或凭据。
+公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动含 date、sport、distanceKm、duration、trainingLoad、activityUrl；力量训练额外含 sets（组数）和 averageHeartRate（平均心率，bpm），缺失时为 null。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，用于成绩与组数关联。有 strava_id 时额外保存 stravaUrl，为 https://www.strava.com/activities/ 加该 Strava 活动 ID，供最近一周、当天明细和历史查询跳转；无关联时省略 stravaUrl，不提供跳转。不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、原始装备标识、账号信息、装备备注、坐标、心率明细、原始文件链接或凭据。
 
 gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm、components；配件含 name、type、distanceKm、replacement；共享配件另含 sharedBy 车辆名称数组和 sharedGroup 正整数分组号。sharedGroup 由 normalizeGear 按同一原始平台配件的实际关联生成，仅在当前快照内标记共享实例，不写入原始装备标识，不按名称或数值推断共享。共享配件的各份使用信息和所属车辆必须一致，否则拒绝更新。首次尚未同步的仓库快照使用 null，禁止在同步失败时改为 null 或空列表。已退役装备隐藏，component_ids 只在脚本内部用于递归解析归属，不发布原始标识。
 
