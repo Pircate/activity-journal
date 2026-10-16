@@ -1,9 +1,9 @@
 {
   "period": {
     "start": "2021-01-01",
-    "end": "2026-10-15"
+    "end": "2026-10-16"
   },
-  "syncedAt": "2026-10-15 22:30:13 +08:00",
+  "syncedAt": "2026-10-16 11:25:25 +08:00",
   "activities": [
     {
       "date": "2026-10-15",
@@ -1566,14 +1566,6 @@
       "activityUrl": "https://intervals.icu/activities/i114646090"
     },
     {
-      "date": "2025-12-30",
-      "sport": "虚拟骑行",
-      "distanceKm": 33.43,
-      "duration": "1:06:38",
-      "trainingLoad": 83,
-      "activityUrl": "https://intervals.icu/activities/i129439764"
-    },
-    {
       "date": "2025-12-29",
       "sport": "虚拟骑行",
       "distanceKm": 30.14,
@@ -1636,14 +1628,6 @@
       "duration": "1:08:18",
       "trainingLoad": 87,
       "activityUrl": "https://intervals.icu/activities/i112632681"
-    },
-    {
-      "date": "2025-12-18",
-      "sport": "虚拟骑行",
-      "distanceKm": 30.21,
-      "duration": "1:08:18",
-      "trainingLoad": 83,
-      "activityUrl": "https://intervals.icu/activities/i129439699"
     },
     {
       "date": "2025-12-17",
@@ -4571,7 +4555,9 @@
       "distanceKm": null,
       "duration": "0:11:39",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i28821291"
+      "activityUrl": "https://intervals.icu/activities/i28821291",
+      "sets": 1,
+      "averageHeartRate": 137
     },
     {
       "date": "2023-12-12",
@@ -4603,7 +4589,9 @@
       "distanceKm": null,
       "duration": "0:14:55",
       "trainingLoad": 9,
-      "activityUrl": "https://intervals.icu/activities/i28706194"
+      "activityUrl": "https://intervals.icu/activities/i28706194",
+      "sets": 1,
+      "averageHeartRate": 140
     },
     {
       "date": "2023-12-09",
@@ -7011,7 +6999,9 @@
       "distanceKm": null,
       "duration": "0:15:48",
       "trainingLoad": 9,
-      "activityUrl": "https://intervals.icu/activities/i17229736"
+      "activityUrl": "https://intervals.icu/activities/i17229736",
+      "sets": 12,
+      "averageHeartRate": 131
     },
     {
       "date": "2023-03-25",
@@ -8843,7 +8833,9 @@
       "distanceKm": null,
       "duration": "0:29:53",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17229069"
+      "activityUrl": "https://intervals.icu/activities/i17229069",
+      "sets": 23,
+      "averageHeartRate": 98
     },
     {
       "date": "2022-08-26",
@@ -8867,7 +8859,9 @@
       "distanceKm": null,
       "duration": "0:30:15",
       "trainingLoad": 7,
-      "activityUrl": "https://intervals.icu/activities/i17229063"
+      "activityUrl": "https://intervals.icu/activities/i17229063",
+      "sets": 23,
+      "averageHeartRate": 103
     },
     {
       "date": "2022-08-25",
@@ -8915,7 +8909,9 @@
       "distanceKm": null,
       "duration": "0:30:00",
       "trainingLoad": 8,
-      "activityUrl": "https://intervals.icu/activities/i17229054"
+      "activityUrl": "https://intervals.icu/activities/i17229054",
+      "sets": 23,
+      "averageHeartRate": 107
     },
     {
       "date": "2022-08-23",
@@ -8939,7 +8935,9 @@
       "distanceKm": null,
       "duration": "0:31:08",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17229049"
+      "activityUrl": "https://intervals.icu/activities/i17229049",
+      "sets": 23,
+      "averageHeartRate": 91
     },
     {
       "date": "2022-08-18",
@@ -8955,7 +8953,9 @@
       "distanceKm": null,
       "duration": "0:25:11",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17229047"
+      "activityUrl": "https://intervals.icu/activities/i17229047",
+      "sets": 19,
+      "averageHeartRate": 93
     },
     {
       "date": "2022-08-16",
@@ -9035,7 +9035,9 @@
       "distanceKm": null,
       "duration": "0:25:52",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17229030"
+      "activityUrl": "https://intervals.icu/activities/i17229030",
+      "sets": 19,
+      "averageHeartRate": 85
     },
     {
       "date": "2022-08-06",
@@ -9051,7 +9053,9 @@
       "distanceKm": null,
       "duration": "0:26:00",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17229027"
+      "activityUrl": "https://intervals.icu/activities/i17229027",
+      "sets": 19,
+      "averageHeartRate": 89
     },
     {
       "date": "2022-08-05",
@@ -9107,7 +9111,9 @@
       "distanceKm": null,
       "duration": "0:26:26",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17229017"
+      "activityUrl": "https://intervals.icu/activities/i17229017",
+      "sets": 19,
+      "averageHeartRate": 97
     },
     {
       "date": "2022-08-01",
@@ -9195,7 +9201,9 @@
       "distanceKm": null,
       "duration": "0:16:30",
       "trainingLoad": 2,
-      "activityUrl": "https://intervals.icu/activities/i17228996"
+      "activityUrl": "https://intervals.icu/activities/i17228996",
+      "sets": 12,
+      "averageHeartRate": 84
     },
     {
       "date": "2022-07-23",
@@ -9211,7 +9219,9 @@
       "distanceKm": null,
       "duration": "0:25:02",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17228994"
+      "activityUrl": "https://intervals.icu/activities/i17228994",
+      "sets": 18,
+      "averageHeartRate": 91
     },
     {
       "date": "2022-07-21",
@@ -9259,7 +9269,9 @@
       "distanceKm": null,
       "duration": "0:31:58",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17228985"
+      "activityUrl": "https://intervals.icu/activities/i17228985",
+      "sets": 23,
+      "averageHeartRate": 95
     },
     {
       "date": "2022-07-16",
@@ -9291,7 +9303,9 @@
       "distanceKm": null,
       "duration": "0:24:33",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17228980"
+      "activityUrl": "https://intervals.icu/activities/i17228980",
+      "sets": 18,
+      "averageHeartRate": 93
     },
     {
       "date": "2022-07-12",
@@ -9315,7 +9329,9 @@
       "distanceKm": null,
       "duration": "0:32:42",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17228976"
+      "activityUrl": "https://intervals.icu/activities/i17228976",
+      "sets": 23,
+      "averageHeartRate": 97
     },
     {
       "date": "2022-07-10",
@@ -9355,7 +9371,9 @@
       "distanceKm": null,
       "duration": "0:31:35",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17228966"
+      "activityUrl": "https://intervals.icu/activities/i17228966",
+      "sets": 23,
+      "averageHeartRate": 97
     },
     {
       "date": "2022-07-04",
@@ -9363,7 +9381,9 @@
       "distanceKm": null,
       "duration": "0:30:21",
       "trainingLoad": 7,
-      "activityUrl": "https://intervals.icu/activities/i17228964"
+      "activityUrl": "https://intervals.icu/activities/i17228964",
+      "sets": 22,
+      "averageHeartRate": 99
     },
     {
       "date": "2022-07-03",
@@ -9419,7 +9439,9 @@
       "distanceKm": null,
       "duration": "0:28:50",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228949"
+      "activityUrl": "https://intervals.icu/activities/i17228949",
+      "sets": 22,
+      "averageHeartRate": 95
     },
     {
       "date": "2022-06-27",
@@ -9467,7 +9489,9 @@
       "distanceKm": null,
       "duration": "0:26:04",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228935"
+      "activityUrl": "https://intervals.icu/activities/i17228935",
+      "sets": 20,
+      "averageHeartRate": 100
     },
     {
       "date": "2022-06-21",
@@ -9491,7 +9515,9 @@
       "distanceKm": null,
       "duration": "0:46:17",
       "trainingLoad": 9,
-      "activityUrl": "https://intervals.icu/activities/i17228928"
+      "activityUrl": "https://intervals.icu/activities/i17228928",
+      "sets": 36,
+      "averageHeartRate": 96
     },
     {
       "date": "2022-06-19",
@@ -9547,7 +9573,9 @@
       "distanceKm": null,
       "duration": "0:29:33",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17228916"
+      "activityUrl": "https://intervals.icu/activities/i17228916",
+      "sets": 22,
+      "averageHeartRate": 97
     },
     {
       "date": "2022-06-12",
@@ -9571,7 +9599,9 @@
       "distanceKm": null,
       "duration": "0:24:25",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17228911"
+      "activityUrl": "https://intervals.icu/activities/i17228911",
+      "sets": 18,
+      "averageHeartRate": 94
     },
     {
       "date": "2022-06-10",
@@ -9603,7 +9633,9 @@
       "distanceKm": null,
       "duration": "0:29:19",
       "trainingLoad": 8,
-      "activityUrl": "https://intervals.icu/activities/i17228906"
+      "activityUrl": "https://intervals.icu/activities/i17228906",
+      "sets": 22,
+      "averageHeartRate": 110
     },
     {
       "date": "2022-06-07",
@@ -9635,7 +9667,9 @@
       "distanceKm": null,
       "duration": "0:43:25",
       "trainingLoad": 10,
-      "activityUrl": "https://intervals.icu/activities/i17228900"
+      "activityUrl": "https://intervals.icu/activities/i17228900",
+      "sets": 34,
+      "averageHeartRate": 102
     },
     {
       "date": "2022-06-03",
@@ -9643,7 +9677,9 @@
       "distanceKm": null,
       "duration": "0:24:24",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17228899"
+      "activityUrl": "https://intervals.icu/activities/i17228899",
+      "sets": 18,
+      "averageHeartRate": 89
     },
     {
       "date": "2022-06-02",
@@ -9667,7 +9703,9 @@
       "distanceKm": null,
       "duration": "0:21:29",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228894"
+      "activityUrl": "https://intervals.icu/activities/i17228894",
+      "sets": 16,
+      "averageHeartRate": 105
     },
     {
       "date": "2022-06-01",
@@ -9691,7 +9729,9 @@
       "distanceKm": null,
       "duration": "0:43:44",
       "trainingLoad": 10,
-      "activityUrl": "https://intervals.icu/activities/i17228886"
+      "activityUrl": "https://intervals.icu/activities/i17228886",
+      "sets": 34,
+      "averageHeartRate": 102
     },
     {
       "date": "2022-05-29",
@@ -9747,7 +9787,9 @@
       "distanceKm": null,
       "duration": "0:43:18",
       "trainingLoad": 15,
-      "activityUrl": "https://intervals.icu/activities/i17228873"
+      "activityUrl": "https://intervals.icu/activities/i17228873",
+      "sets": 34,
+      "averageHeartRate": 113
     },
     {
       "date": "2022-05-22",
@@ -9755,7 +9797,9 @@
       "distanceKm": null,
       "duration": "0:23:30",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228869"
+      "activityUrl": "https://intervals.icu/activities/i17228869",
+      "sets": 18,
+      "averageHeartRate": 103
     },
     {
       "date": "2022-05-22",
@@ -9811,7 +9855,9 @@
       "distanceKm": null,
       "duration": "0:21:21",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228862"
+      "activityUrl": "https://intervals.icu/activities/i17228862",
+      "sets": 15,
+      "averageHeartRate": 104
     },
     {
       "date": "2022-05-17",
@@ -9827,7 +9873,9 @@
       "distanceKm": null,
       "duration": "0:42:37",
       "trainingLoad": 15,
-      "activityUrl": "https://intervals.icu/activities/i17228858"
+      "activityUrl": "https://intervals.icu/activities/i17228858",
+      "sets": 34,
+      "averageHeartRate": 113
     },
     {
       "date": "2022-05-14",
@@ -9835,7 +9883,9 @@
       "distanceKm": null,
       "duration": "0:23:23",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228856"
+      "activityUrl": "https://intervals.icu/activities/i17228856",
+      "sets": 18,
+      "averageHeartRate": 83
     },
     {
       "date": "2022-05-14",
@@ -9875,7 +9925,9 @@
       "distanceKm": null,
       "duration": "0:23:33",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17228842"
+      "activityUrl": "https://intervals.icu/activities/i17228842",
+      "sets": 18,
+      "averageHeartRate": 97
     },
     {
       "date": "2022-05-10",
@@ -9891,7 +9943,9 @@
       "distanceKm": null,
       "duration": "0:29:24",
       "trainingLoad": 9,
-      "activityUrl": "https://intervals.icu/activities/i17228840"
+      "activityUrl": "https://intervals.icu/activities/i17228840",
+      "sets": 22,
+      "averageHeartRate": 106
     },
     {
       "date": "2022-05-08",
@@ -9915,7 +9969,9 @@
       "distanceKm": null,
       "duration": "0:43:12",
       "trainingLoad": 15,
-      "activityUrl": "https://intervals.icu/activities/i17228834"
+      "activityUrl": "https://intervals.icu/activities/i17228834",
+      "sets": 34,
+      "averageHeartRate": 117
     },
     {
       "date": "2022-05-05",
@@ -9931,7 +9987,9 @@
       "distanceKm": null,
       "duration": "0:23:52",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228829"
+      "activityUrl": "https://intervals.icu/activities/i17228829",
+      "sets": 18,
+      "averageHeartRate": 99
     },
     {
       "date": "2022-05-04",
@@ -9955,7 +10013,9 @@
       "distanceKm": null,
       "duration": "0:42:39",
       "trainingLoad": 12,
-      "activityUrl": "https://intervals.icu/activities/i17228825"
+      "activityUrl": "https://intervals.icu/activities/i17228825",
+      "sets": 34,
+      "averageHeartRate": 106
     },
     {
       "date": "2022-05-02",
@@ -9971,7 +10031,9 @@
       "distanceKm": null,
       "duration": "0:25:45",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17228822"
+      "activityUrl": "https://intervals.icu/activities/i17228822",
+      "sets": 20,
+      "averageHeartRate": 103
     },
     {
       "date": "2022-05-01",
@@ -10003,7 +10065,9 @@
       "distanceKm": null,
       "duration": "0:46:05",
       "trainingLoad": 13,
-      "activityUrl": "https://intervals.icu/activities/i17228814"
+      "activityUrl": "https://intervals.icu/activities/i17228814",
+      "sets": 36,
+      "averageHeartRate": 109
     },
     {
       "date": "2022-04-27",
@@ -10011,7 +10075,9 @@
       "distanceKm": null,
       "duration": "0:25:45",
       "trainingLoad": 9,
-      "activityUrl": "https://intervals.icu/activities/i17228811"
+      "activityUrl": "https://intervals.icu/activities/i17228811",
+      "sets": 20,
+      "averageHeartRate": 118
     },
     {
       "date": "2022-04-27",
@@ -10035,7 +10101,9 @@
       "distanceKm": null,
       "duration": "0:45:21",
       "trainingLoad": 10,
-      "activityUrl": "https://intervals.icu/activities/i17228806"
+      "activityUrl": "https://intervals.icu/activities/i17228806",
+      "sets": 36,
+      "averageHeartRate": 100
     },
     {
       "date": "2022-04-24",
@@ -10059,7 +10127,9 @@
       "distanceKm": null,
       "duration": "0:48:20",
       "trainingLoad": 14,
-      "activityUrl": "https://intervals.icu/activities/i17228798"
+      "activityUrl": "https://intervals.icu/activities/i17228798",
+      "sets": 38,
+      "averageHeartRate": 111
     },
     {
       "date": "2022-04-22",
@@ -10075,7 +10145,9 @@
       "distanceKm": null,
       "duration": "0:44:54",
       "trainingLoad": 11,
-      "activityUrl": "https://intervals.icu/activities/i17228795"
+      "activityUrl": "https://intervals.icu/activities/i17228795",
+      "sets": 36,
+      "averageHeartRate": 103
     },
     {
       "date": "2022-04-21",
@@ -10083,7 +10155,9 @@
       "distanceKm": null,
       "duration": "0:42:31",
       "trainingLoad": 8,
-      "activityUrl": "https://intervals.icu/activities/i17228792"
+      "activityUrl": "https://intervals.icu/activities/i17228792",
+      "sets": 34,
+      "averageHeartRate": 98
     },
     {
       "date": "2022-04-20",
@@ -10091,7 +10165,9 @@
       "distanceKm": null,
       "duration": "0:39:06",
       "trainingLoad": 8,
-      "activityUrl": "https://intervals.icu/activities/i17228786"
+      "activityUrl": "https://intervals.icu/activities/i17228786",
+      "sets": 32,
+      "averageHeartRate": 100
     },
     {
       "date": "2022-04-19",
@@ -10107,7 +10183,9 @@
       "distanceKm": null,
       "duration": "0:38:56",
       "trainingLoad": 16,
-      "activityUrl": "https://intervals.icu/activities/i17228774"
+      "activityUrl": "https://intervals.icu/activities/i17228774",
+      "sets": 32,
+      "averageHeartRate": 123
     },
     {
       "date": "2022-04-18",
@@ -10123,7 +10201,9 @@
       "distanceKm": null,
       "duration": "0:34:34",
       "trainingLoad": 11,
-      "activityUrl": "https://intervals.icu/activities/i17228770"
+      "activityUrl": "https://intervals.icu/activities/i17228770",
+      "sets": 28,
+      "averageHeartRate": 116
     },
     {
       "date": "2022-04-17",
@@ -10155,7 +10235,9 @@
       "distanceKm": null,
       "duration": "0:24:00",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228758"
+      "activityUrl": "https://intervals.icu/activities/i17228758",
+      "sets": 18,
+      "averageHeartRate": 99
     },
     {
       "date": "2022-04-13",
@@ -10163,7 +10245,9 @@
       "distanceKm": null,
       "duration": "0:21:00",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228755"
+      "activityUrl": "https://intervals.icu/activities/i17228755",
+      "sets": 16,
+      "averageHeartRate": 93
     },
     {
       "date": "2022-04-12",
@@ -10179,7 +10263,9 @@
       "distanceKm": null,
       "duration": "0:35:10",
       "trainingLoad": 10,
-      "activityUrl": "https://intervals.icu/activities/i17228742"
+      "activityUrl": "https://intervals.icu/activities/i17228742",
+      "sets": 28,
+      "averageHeartRate": 111
     },
     {
       "date": "2022-04-10",
@@ -10203,7 +10289,9 @@
       "distanceKm": null,
       "duration": "0:34:56",
       "trainingLoad": 11,
-      "activityUrl": "https://intervals.icu/activities/i17228731"
+      "activityUrl": "https://intervals.icu/activities/i17228731",
+      "sets": 28,
+      "averageHeartRate": 113
     },
     {
       "date": "2022-04-08",
@@ -10243,7 +10331,9 @@
       "distanceKm": null,
       "duration": "0:35:03",
       "trainingLoad": 8,
-      "activityUrl": "https://intervals.icu/activities/i17228711"
+      "activityUrl": "https://intervals.icu/activities/i17228711",
+      "sets": 28,
+      "averageHeartRate": 100
     },
     {
       "date": "2022-04-03",
@@ -10331,7 +10421,9 @@
       "distanceKm": null,
       "duration": "0:35:42",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17228670"
+      "activityUrl": "https://intervals.icu/activities/i17228670",
+      "sets": 28,
+      "averageHeartRate": 93
     },
     {
       "date": "2022-03-21",
@@ -10347,7 +10439,9 @@
       "distanceKm": null,
       "duration": "0:35:25",
       "trainingLoad": 9,
-      "activityUrl": "https://intervals.icu/activities/i17228659"
+      "activityUrl": "https://intervals.icu/activities/i17228659",
+      "sets": 28,
+      "averageHeartRate": 104
     },
     {
       "date": "2022-03-19",
@@ -10371,7 +10465,9 @@
       "distanceKm": null,
       "duration": "0:31:09",
       "trainingLoad": 8,
-      "activityUrl": "https://intervals.icu/activities/i17228647"
+      "activityUrl": "https://intervals.icu/activities/i17228647",
+      "sets": 24,
+      "averageHeartRate": 106
     },
     {
       "date": "2022-03-15",
@@ -10411,7 +10507,9 @@
       "distanceKm": null,
       "duration": "0:31:00",
       "trainingLoad": 11,
-      "activityUrl": "https://intervals.icu/activities/i17228627"
+      "activityUrl": "https://intervals.icu/activities/i17228627",
+      "sets": 24,
+      "averageHeartRate": 117
     },
     {
       "date": "2022-03-08",
@@ -10491,7 +10589,9 @@
       "distanceKm": null,
       "duration": "0:32:16",
       "trainingLoad": 7,
-      "activityUrl": "https://intervals.icu/activities/i17228590"
+      "activityUrl": "https://intervals.icu/activities/i17228590",
+      "sets": 26,
+      "averageHeartRate": 101
     },
     {
       "date": "2022-02-27",
@@ -10539,7 +10639,9 @@
       "distanceKm": null,
       "duration": "0:32:13",
       "trainingLoad": 10,
-      "activityUrl": "https://intervals.icu/activities/i17228576"
+      "activityUrl": "https://intervals.icu/activities/i17228576",
+      "sets": 26,
+      "averageHeartRate": 112
     },
     {
       "date": "2022-02-20",
@@ -10563,7 +10665,9 @@
       "distanceKm": null,
       "duration": "0:32:11",
       "trainingLoad": 11,
-      "activityUrl": "https://intervals.icu/activities/i17228573"
+      "activityUrl": "https://intervals.icu/activities/i17228573",
+      "sets": 26,
+      "averageHeartRate": 114
     },
     {
       "date": "2022-02-16",
@@ -10619,7 +10723,9 @@
       "distanceKm": null,
       "duration": "0:32:17",
       "trainingLoad": 13,
-      "activityUrl": "https://intervals.icu/activities/i17228543"
+      "activityUrl": "https://intervals.icu/activities/i17228543",
+      "sets": 26,
+      "averageHeartRate": 122
     },
     {
       "date": "2022-02-09",
@@ -10635,7 +10741,9 @@
       "distanceKm": null,
       "duration": "0:32:00",
       "trainingLoad": 13,
-      "activityUrl": "https://intervals.icu/activities/i17228541"
+      "activityUrl": "https://intervals.icu/activities/i17228541",
+      "sets": 26,
+      "averageHeartRate": 121
     },
     {
       "date": "2022-02-07",
@@ -10659,7 +10767,9 @@
       "distanceKm": null,
       "duration": "0:32:00",
       "trainingLoad": 9,
-      "activityUrl": "https://intervals.icu/activities/i17228536"
+      "activityUrl": "https://intervals.icu/activities/i17228536",
+      "sets": 26,
+      "averageHeartRate": 110
     },
     {
       "date": "2022-02-03",
@@ -10683,7 +10793,9 @@
       "distanceKm": null,
       "duration": "0:31:00",
       "trainingLoad": 9,
-      "activityUrl": "https://intervals.icu/activities/i17228528"
+      "activityUrl": "https://intervals.icu/activities/i17228528",
+      "sets": 26,
+      "averageHeartRate": 109
     },
     {
       "date": "2022-01-30",
@@ -10715,7 +10827,9 @@
       "distanceKm": null,
       "duration": "0:32:00",
       "trainingLoad": 13,
-      "activityUrl": "https://intervals.icu/activities/i17228514"
+      "activityUrl": "https://intervals.icu/activities/i17228514",
+      "sets": 30,
+      "averageHeartRate": 122
     },
     {
       "date": "2022-01-26",
@@ -10771,7 +10885,9 @@
       "distanceKm": null,
       "duration": "0:06:21",
       "trainingLoad": 1,
-      "activityUrl": "https://intervals.icu/activities/i17228493"
+      "activityUrl": "https://intervals.icu/activities/i17228493",
+      "sets": 6,
+      "averageHeartRate": 98
     },
     {
       "date": "2022-01-17",
@@ -10779,7 +10895,9 @@
       "distanceKm": null,
       "duration": "0:30:30",
       "trainingLoad": 7,
-      "activityUrl": "https://intervals.icu/activities/i17228491"
+      "activityUrl": "https://intervals.icu/activities/i17228491",
+      "sets": 25,
+      "averageHeartRate": 102
     },
     {
       "date": "2022-01-16",
@@ -10899,7 +11017,9 @@
       "distanceKm": null,
       "duration": "0:30:00",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17228442"
+      "activityUrl": "https://intervals.icu/activities/i17228442",
+      "sets": 26,
+      "averageHeartRate": 96
     },
     {
       "date": "2021-12-22",
@@ -11043,7 +11163,9 @@
       "distanceKm": null,
       "duration": "0:30:00",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228404"
+      "activityUrl": "https://intervals.icu/activities/i17228404",
+      "sets": 26,
+      "averageHeartRate": 92
     },
     {
       "date": "2021-11-30",
@@ -11083,7 +11205,9 @@
       "distanceKm": null,
       "duration": "0:18:29",
       "trainingLoad": 2,
-      "activityUrl": "https://intervals.icu/activities/i17228390"
+      "activityUrl": "https://intervals.icu/activities/i17228390",
+      "sets": 15,
+      "averageHeartRate": 80
     },
     {
       "date": "2021-11-24",
@@ -11131,7 +11255,9 @@
       "distanceKm": null,
       "duration": "0:26:00",
       "trainingLoad": 6,
-      "activityUrl": "https://intervals.icu/activities/i17228369"
+      "activityUrl": "https://intervals.icu/activities/i17228369",
+      "sets": 22,
+      "averageHeartRate": 103
     },
     {
       "date": "2021-11-15",
@@ -11195,7 +11321,9 @@
       "distanceKm": null,
       "duration": "0:24:00",
       "trainingLoad": 5,
-      "activityUrl": "https://intervals.icu/activities/i17228339"
+      "activityUrl": "https://intervals.icu/activities/i17228339",
+      "sets": 20,
+      "averageHeartRate": 102
     },
     {
       "date": "2021-11-08",
@@ -11211,7 +11339,9 @@
       "distanceKm": null,
       "duration": "0:24:00",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17228335"
+      "activityUrl": "https://intervals.icu/activities/i17228335",
+      "sets": 20,
+      "averageHeartRate": 92
     },
     {
       "date": "2021-11-07",
@@ -11283,7 +11413,9 @@
       "distanceKm": null,
       "duration": "0:20:00",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228323"
+      "activityUrl": "https://intervals.icu/activities/i17228323",
+      "sets": 16,
+      "averageHeartRate": 90
     },
     {
       "date": "2021-10-27",
@@ -11339,7 +11471,9 @@
       "distanceKm": null,
       "duration": "0:20:00",
       "trainingLoad": 4,
-      "activityUrl": "https://intervals.icu/activities/i17228314"
+      "activityUrl": "https://intervals.icu/activities/i17228314",
+      "sets": 16,
+      "averageHeartRate": 96
     },
     {
       "date": "2021-10-20",
@@ -11363,7 +11497,9 @@
       "distanceKm": null,
       "duration": "0:20:00",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228311"
+      "activityUrl": "https://intervals.icu/activities/i17228311",
+      "sets": 16,
+      "averageHeartRate": 92
     },
     {
       "date": "2021-10-17",
@@ -11379,7 +11515,9 @@
       "distanceKm": null,
       "duration": "0:20:00",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228309"
+      "activityUrl": "https://intervals.icu/activities/i17228309",
+      "sets": 16,
+      "averageHeartRate": 89
     },
     {
       "date": "2021-10-15",
@@ -11403,7 +11541,9 @@
       "distanceKm": null,
       "duration": "0:15:00",
       "trainingLoad": 2,
-      "activityUrl": "https://intervals.icu/activities/i17228304"
+      "activityUrl": "https://intervals.icu/activities/i17228304",
+      "sets": 11,
+      "averageHeartRate": 92
     },
     {
       "date": "2021-10-11",
@@ -11427,7 +11567,9 @@
       "distanceKm": null,
       "duration": "0:15:00",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228297"
+      "activityUrl": "https://intervals.icu/activities/i17228297",
+      "sets": 11,
+      "averageHeartRate": 97
     },
     {
       "date": "2021-10-08",
@@ -11499,7 +11641,9 @@
       "distanceKm": null,
       "duration": "0:15:30",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228280"
+      "activityUrl": "https://intervals.icu/activities/i17228280",
+      "sets": 11,
+      "averageHeartRate": 92
     },
     {
       "date": "2021-09-26",
@@ -11539,7 +11683,9 @@
       "distanceKm": null,
       "duration": "0:15:30",
       "trainingLoad": 2,
-      "activityUrl": "https://intervals.icu/activities/i17228273"
+      "activityUrl": "https://intervals.icu/activities/i17228273",
+      "sets": 11,
+      "averageHeartRate": 86
     },
     {
       "date": "2021-09-20",
@@ -11587,7 +11733,9 @@
       "distanceKm": null,
       "duration": "0:03:59",
       "trainingLoad": 1,
-      "activityUrl": "https://intervals.icu/activities/i17228258"
+      "activityUrl": "https://intervals.icu/activities/i17228258",
+      "sets": 3,
+      "averageHeartRate": 97
     },
     {
       "date": "2021-09-15",
@@ -11603,7 +11751,9 @@
       "distanceKm": null,
       "duration": "0:13:30",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228254"
+      "activityUrl": "https://intervals.icu/activities/i17228254",
+      "sets": 11,
+      "averageHeartRate": 101
     },
     {
       "date": "2021-09-14",
@@ -11651,7 +11801,9 @@
       "distanceKm": null,
       "duration": "0:05:24",
       "trainingLoad": 1,
-      "activityUrl": "https://intervals.icu/activities/i17228247"
+      "activityUrl": "https://intervals.icu/activities/i17228247",
+      "sets": 4,
+      "averageHeartRate": 97
     },
     {
       "date": "2021-09-09",
@@ -11667,7 +11819,9 @@
       "distanceKm": null,
       "duration": "0:12:59",
       "trainingLoad": 2,
-      "activityUrl": "https://intervals.icu/activities/i17228245"
+      "activityUrl": "https://intervals.icu/activities/i17228245",
+      "sets": 7,
+      "averageHeartRate": 95
     },
     {
       "date": "2021-09-08",
@@ -11683,7 +11837,9 @@
       "distanceKm": null,
       "duration": "0:11:09",
       "trainingLoad": 2,
-      "activityUrl": "https://intervals.icu/activities/i17228243"
+      "activityUrl": "https://intervals.icu/activities/i17228243",
+      "sets": 6,
+      "averageHeartRate": 90
     },
     {
       "date": "2021-09-05",
@@ -11715,7 +11871,9 @@
       "distanceKm": null,
       "duration": "0:10:38",
       "trainingLoad": 1,
-      "activityUrl": "https://intervals.icu/activities/i17228238"
+      "activityUrl": "https://intervals.icu/activities/i17228238",
+      "sets": 6,
+      "averageHeartRate": 85
     },
     {
       "date": "2021-09-04",
@@ -11755,7 +11913,9 @@
       "distanceKm": null,
       "duration": "0:11:31",
       "trainingLoad": 3,
-      "activityUrl": "https://intervals.icu/activities/i17228232"
+      "activityUrl": "https://intervals.icu/activities/i17228232",
+      "sets": 7,
+      "averageHeartRate": 101
     },
     {
       "date": "2021-08-31",
@@ -11763,7 +11923,9 @@
       "distanceKm": null,
       "duration": "0:09:30",
       "trainingLoad": 2,
-      "activityUrl": "https://intervals.icu/activities/i17228231"
+      "activityUrl": "https://intervals.icu/activities/i17228231",
+      "sets": 6,
+      "averageHeartRate": 101
     },
     {
       "date": "2021-08-29",

@@ -3,43 +3,51 @@ export const formatTime = seconds => Math.floor(seconds / 3600) + ':' + String(M
 const sportIcon = sport => {
   const paths = sport === '徒步'
     ? '<circle cx="17" cy="4" r="2" fill="currentColor" stroke="none"/><path d="m14 9-3 7-5 4m8-11 5 5 5 1m-10-6 4 10-1 9m-4-10-3 10m14-14 2 14M9 8l-2 7 4 1"/>'
+    : sport === '力量训练'
+      ? '<path d="M10 16h12M5 12v8m4-11v14m14-14v14m4-11v8M5 16H3m26 0h-2"/>'
     : sport.includes('骑行')
       ? '<circle cx="7" cy="23" r="6"/><circle cx="25" cy="23" r="6"/><circle cx="22" cy="5" r="2" fill="currentColor" stroke="none"/><path d="m16 8-5 6 7 4-2 7m0-17 6 6h5m-6 0 4 9M7 23l5-9"/>'
       : '<path d="M2 17h6l4-11 7 21 4-10h7"/>';
-  return '<svg class="record-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+  return '<svg class="record-icon' + (sport === '力量训练' ? ' strength-icon' : '') + '" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
 };
 
 function recordCard(activity) {
-  const {date, sport, distanceKm, duration, trainingLoad, activityUrl} = activity;
+  const {date, sport, distanceKm, duration, trainingLoad, activityUrl, sets, averageHeartRate} = activity;
+  const strength = sport === '力量训练';
   const seconds = duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
   const speed = distanceKm !== null && seconds > 0 ? (distanceKm * 3600 / seconds).toFixed(1) : null;
   const weekday = new Intl.DateTimeFormat('zh-CN', {timeZone:'UTC', weekday:'long'}).format(new Date(date + 'T00:00:00Z'));
   const distance = distanceKm === null ? '<span class="record-distance-missing">未记录距离</span>' : distanceKm.toFixed(2) + '<small>km</small>';
-  const heading = `${sportIcon(sport)}<span><span class="sr-only">距离 </span>${distance}</span>`;
+  const primary = strength ? (sets == null ? '<span class="record-distance-missing">未提供组数</span>' : escapeHtml(sets) + '<small>组</small>') : distance;
+  const heartRate = averageHeartRate == null ? '未提供心率' : escapeHtml(averageHeartRate) + '<small>bpm</small>';
+  const heading = `${sportIcon(sport)}<span><span class="sr-only">${strength ? '组数' : '距离'} </span>${primary}</span>`;
   return `<article class="record-card${sport === '徒步' ? ' hike' : ''}">
     <div class="record-body">
       <h3 class="record-distance">${activityUrl ? `<a class="record-link" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + ' ' + duration)}，在 Intervals.icu 查看（新标签页）">${heading}</a>` : heading}</h3>
-      <div class="record-meta"><span><span class="sr-only">运动时长 </span>${escapeHtml(duration)}</span>${speed === null ? '' : '<span><span class="sr-only">平均速度 </span>' + speed + '<small>km/h</small></span>'}</div>
+      <div class="record-meta"><span><span class="sr-only">运动时长 </span>${escapeHtml(duration)}</span>${strength ? '<span><span class="sr-only">平均心率 </span>' + heartRate + '</span>' : speed === null ? '' : '<span><span class="sr-only">平均速度 </span>' + speed + '<small>km/h</small></span>'}</div>
       <p class="record-details"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</time><span>${weekday}</span><span class="record-sport">${escapeHtml(sport)}</span>${activityUrl ? '<span class="record-open" aria-hidden="true">Intervals.icu ↗</span>' : ''}</p>
     </div>
     <div class="record-load"><span class="record-load-value${trainingLoad === null ? ' missing' : ''}">${trainingLoad ?? '未记录'}</span><span class="record-load-label">训练负荷</span></div>
   </article>`;
 }
-export function renderDayRecords(records) {
+export function renderDayRecords(records, title = '当天运动记录') {
   if (!records.length) return '';
-  const rows = records.map(({date, sport, distanceKm, duration, trainingLoad, activityUrl}) => {
+  const allStrength = records.every(activity => activity.sport === '力量训练');
+  const mixedStrength = !allStrength && records.some(activity => activity.sport === '力量训练');
+  const rows = records.map(({date, sport, distanceKm, duration, trainingLoad, activityUrl, sets, averageHeartRate}) => {
+    const strength = sport === '力量训练';
     const seconds = duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
     const speed = distanceKm !== null && seconds > 0 ? (distanceKm * 3600 / seconds).toFixed(1) + '<small>km/h</small>' : '未提供';
     const name = sportIcon(sport) + '<span>' + escapeHtml(sport) + '</span>';
     return `<tr class="activity-row${sport === '徒步' ? ' hike' : ''}" role="row">
       <td role="cell"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日<small>${date.slice(0, 4)}</small></time></td>
       <td role="cell">${activityUrl ? `<a class="activity-link activity-name" href="${escapeHtml(activityUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + ' ' + duration)}，在 Intervals.icu 查看（新标签页）">${name}<span class="activity-open" aria-hidden="true">↗</span></a>` : `<span class="activity-name">${name}</span>`}</td>
-      <td role="cell" data-label="距离">${distanceKm === null ? '未提供' : distanceKm.toFixed(2) + '<small>km</small>'}</td>
-      <td role="cell" data-label="运动时间">${escapeHtml(duration)}</td><td role="cell" data-label="平均速度">${speed}</td><td role="cell" data-label="训练负荷">${trainingLoad ?? '未提供'}</td>
+      <td role="cell" data-label="${strength ? '组数' : '距离'}">${strength ? sets == null ? '未提供' : escapeHtml(sets) + '<small>组</small>' : distanceKm === null ? '未提供' : distanceKm.toFixed(2) + '<small>km</small>'}</td>
+      <td role="cell" data-label="运动时间">${escapeHtml(duration)}</td><td role="cell" data-label="${strength ? '平均心率' : '平均速度'}">${strength ? averageHeartRate == null ? '未提供' : escapeHtml(averageHeartRate) + '<small>bpm</small>' : speed}</td><td role="cell" data-label="训练负荷">${trainingLoad ?? '未提供'}</td>
     </tr>`;
   }).join('');
-  return `<div class="day-records-heading"><span>当天运动记录</span><span>${records.length} 条活动</span></div>
-    <div class="activity-table-scroll" tabindex="0" role="region" aria-label="当天运动记录"><table class="activity-table" role="table"><caption class="sr-only">当天的运动记录，点击运动可在新标签页打开 Intervals.icu 详情</caption><thead role="rowgroup"><tr role="row"><th scope="col">日期</th><th scope="col">运动</th><th scope="col">距离</th><th scope="col">运动时间</th><th scope="col">平均速度</th><th scope="col">训练负荷</th></tr></thead><tbody role="rowgroup">${rows}</tbody></table></div>`;
+  return `<div class="day-records-heading"><span>${escapeHtml(title)}</span><span>${records.length} 条活动</span></div>
+    <div class="activity-table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(title)}"><table class="activity-table" role="table"><caption class="sr-only">${escapeHtml(title)}，点击运动可在新标签页打开 Intervals.icu 详情</caption><thead role="rowgroup"><tr role="row"><th scope="col">日期</th><th scope="col">运动</th><th scope="col">${allStrength ? '组数' : mixedStrength ? '距离 / 组数' : '距离'}</th><th scope="col">运动时间</th><th scope="col">${allStrength ? '平均心率' : mixedStrength ? '平均速度 / 心率' : '平均速度'}</th><th scope="col">训练负荷</th></tr></thead><tbody role="rowgroup">${rows}</tbody></table></div>`;
 }
 export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit'}).format(date);
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));
@@ -132,7 +140,9 @@ export function validateData(data) {
   validateGearLibrary(data.gearLibrary);
   if (!Array.isArray(data.unavailableActivities) || data.unavailableActivities.some(a => !a || Object.keys(a).join(',') !== 'date' || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end)) throw new Error('无法读取的活动日期无效');
   for (const a of data.activities) {
-    if (!a || Object.keys(a).filter(key => key !== 'activityUrl').sort().join(',') !== 'date,distanceKm,duration,sport,trainingLoad' || Object.hasOwn(a, 'activityUrl') && (typeof a.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(a.activityUrl)) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !a.sport || typeof a.duration !== 'string' || !/^\d+(?::[0-5]\d){1,2}$/.test(a.duration) || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0)) throw new Error('运动记录格式无效');
+    const keys = a?.sport === '力量训练' ? 'averageHeartRate,date,distanceKm,duration,sets,sport,trainingLoad' : 'date,distanceKm,duration,sport,trainingLoad';
+    if (!a || Object.keys(a).filter(key => key !== 'activityUrl').sort().join(',') !== keys || Object.hasOwn(a, 'activityUrl') && (typeof a.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(a.activityUrl)) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !a.sport || typeof a.duration !== 'string' || !/^\d+(?::[0-5]\d){1,2}$/.test(a.duration) || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0) ||
+        a.sport === '力量训练' && (a.sets !== null && (!Number.isInteger(a.sets) || a.sets < 0) || a.averageHeartRate !== null && (typeof a.averageHeartRate !== 'number' || !Number.isFinite(a.averageHeartRate) || a.averageHeartRate <= 0))) throw new Error('运动记录格式无效');
   }
 }
 export function shiftDate(date, days) {

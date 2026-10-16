@@ -147,6 +147,10 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     const recent = element('.records-grid');
     const recentWrites = recent.writes;
     const summaryWrites = element('.recent-summary').writes;
+    const historyResults = element('#history-results');
+    element('#history-min-distance').value = '30';
+    element('#history-filters').events.get('submit')({preventDefault() {}});
+    const historyWrites = historyResults.writes;
     const summary = element('装备标题');
     summary.focus();
     for (const range of ['2025', '2026', 'recent']) {
@@ -156,6 +160,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       assert.equal(gear.writes, gearWrites, '不替换装备节点，保留原有展开状态');
       assert.equal(recent.writes, recentWrites, '年度筛选不重建最近一周记录');
       assert.equal(element('.recent-summary').writes, summaryWrites, '年度筛选不重建最近七天摘要');
+      assert.equal(historyResults.writes, historyWrites, '年度筛选不重建历史列表');
+      assert.equal(element('#history-min-distance').value, '30', '历史筛选独立保留');
       assert.equal(document.activeElement, summary, '不移除装备区域内的焦点');
       assert.equal(grid.writes, previousGridWrites + 1, '年度热力图正常更新');
       assert.equal(element('.overview-range').textContent, range === 'recent' ? '最近一年' : range + ' 年');

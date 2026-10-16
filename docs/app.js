@@ -1,6 +1,7 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
 const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, availableYears} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
 let renderedData, renderedDate, renderedGear;
@@ -9,6 +10,7 @@ const description = document.getElementById('day-description');
 const dayRecords = document.getElementById('day-records');
 const explanation = document.getElementById('metric-explanation');
 const yearSelect = document.getElementById('activity-year');
+const updateHistory = initializeHistory(data);
 const metrics = {
   distanceKm: { label: '距离', thresholds: [10, 30, 60], format: value => value.toFixed(2) + ' 公里', missing: 'missingDistance' },
   durationSeconds: { label: '时长', thresholds: [1800, 3600, 7200], format: formatTime },
@@ -141,6 +143,7 @@ function renderJournal() {
   syncTime.dateTime = data.syncedAt.replace(' ', 'T').replace(' +08:00', '+08:00');
   render();
   if (focusedDate) buttonByDate.get(focusedDate)?.focus({preventScroll:true});
+  if (renderedData !== undefined && snapshot !== renderedData) updateHistory(data);
   renderedData = snapshot;
   renderedDate = today;
 }

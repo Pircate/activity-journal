@@ -99,3 +99,33 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
   .legend{gap:6px;margin-top:14px}
 }
 @media print{.legend-item{background:#eee}.legend-item strong,.year-number{color:#111}}
+
+/* 历史记录使用独立筛选，沿用活动表格及手机卡片。 */
+.record-icon.strength-icon{color:#d778ff}
+.history-panel{margin-top:20px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.history-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;list-style:none;font-size:.875rem;font-weight:600}
+.history-heading::-webkit-details-marker{display:none}
+.history-heading>span:last-child{display:flex;align-items:center;gap:14px;font-size:.75rem;font-weight:400;color:var(--muted)}
+.history-toggle{font-size:1.25rem;line-height:1}
+.history-panel[open] .history-toggle{transform:rotate(180deg)}
+.history-heading:hover{color:var(--accent-soft)}
+.history-content{padding:0 20px 20px}
+.history-intro{margin:0 0 16px;font-size:.75rem;color:var(--muted)}
+.history-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 16px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.history-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.history-field label{font-size:.75rem;color:var(--muted)}
+.history-field input,.history-field select{width:100%;min-width:0;min-height:44px;padding:9px 10px;border:1px solid #4f4f4f;border-radius:7px;background:var(--bg);color:var(--text);font:inherit;font-size:.8125rem}
+.history-field input::placeholder{color:var(--muted)}
+.history-panel button{min-height:44px;padding:8px 16px;border:1px solid #4f4f4f;border-radius:7px;background:#282828;color:var(--text);font:inherit;font-size:.8125rem;cursor:pointer}
+.history-panel button:hover:not(:disabled){border-color:var(--accent-soft);color:var(--accent-soft)}
+.history-panel button:disabled{opacity:.4;cursor:default}
+.history-panel button:focus-visible,.history-field select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.history-panel .history-apply{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.history-panel button.history-apply:hover:not(:disabled){background:var(--accent-soft);color:var(--bg)}
+.history-actions{display:flex;gap:10px;grid-column:1/-1}
+.history-count{font-size:.8125rem;margin:16px 0;color:var(--text);font-variant-numeric:tabular-nums}
+.history-error{font-size:.8125rem;color:#ff9b8f;margin:12px 0 0}
+.history-empty{padding:28px 12px;border:1px dashed var(--line);border-radius:8px;text-align:center;color:var(--muted);font-size:.875rem}
+.history-pagination{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:16px;font-size:.75rem;font-variant-numeric:tabular-nums}
+.history-pagination+#history-note{margin:16px 0 0}
+@media(max-width:600px){.history-heading{padding:16px}.history-content{padding:0 16px 16px}.history-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.history-field input,.history-field select{font-size:1rem}.history-pagination{gap:10px}.history-panel button{padding:8px 12px}}

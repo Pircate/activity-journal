@@ -15,7 +15,7 @@
 
 ## 取数与构建
 
-数据源为 Intervals.icu，网站更新不再从 COROS 连接器取数，也不再接收手工规范化 JSON。
+运动基础数据来自 Intervals.icu；力量训练组数通过下述 COROS 补充流程取得。
 
 凭据保存在本机 `~/.config/interval-icu/config.json` 的 `INTERVALS_ICU_API_KEY` 字段中，脚本运行时直接读取配置文件；目录权限为 `700`，文件权限为 `600`。禁止把密钥写入仓库、公开文件、自动化提示词或日志。配置缺失、无效或授权失败时停止网站更新并报告，不得切回 COROS。
 
@@ -26,13 +26,13 @@ node scripts/update-data.mjs
 node scripts/build.mjs
 ```
 
-脚本先通过 `/athlete/0` 解析账号，再查询截至北京时间今天的全部历史活动，以及 `/athlete/{id}/gear` 装备列表，全部成功后原子替换同一份快照。API 字段为 `distance`（米）、`moving_time`（运动秒数）、`icu_training_load`；日期由 UTC 开始时间转换为北京时间。从 1900-01-01 起查询，上界扩大一天，再按北京时间裁剪至今天。单次达到 10000 条上限时自动二分不重叠的当地日期范围，递归查询至每段未达到上限；单日仍达上限时停止并保留旧快照。period.start 保存最早记录所在年的元旦，至少覆盖最近一年；period.end 保存同步当天。页面默认最近 365 天，可选择各自然年，历史记录不能裁剪掉。装备累计里程直接使用平台统计，不按年度活动重算。
+脚本先通过 `/athlete/0` 解析账号，再查询截至北京时间今天的全部历史活动，以及 `/athlete/{id}/gear` 装备列表，全部成功后原子替换同一份快照。API 字段为 `distance`（米）、`moving_time`（运动秒数）、`icu_training_load`、`average_heartrate`（仅力量训练使用）；日期由 UTC 开始时间转换为北京时间。从 1900-01-01 起查询，上界扩大一天，再按北京时间裁剪至今天。单次达到 10000 条上限时自动二分不重叠的当地日期范围，递归查询至每段未达到上限；单日仍达上限时停止并保留旧快照。period.start 保存最早记录所在年的元旦，至少覆盖最近一年；period.end 保存同步当天。页面默认最近 365 天，可选择各自然年，历史记录不能裁剪掉。装备累计里程直接使用平台统计，不按年度活动重算。
 
 只有活动与装备查询都成功、列表未达到上限、所有记录有效时才写入。API 失败、授权过期、超时、缺失运动时长、重复 ID、装备关联不完整或循环、无效里程或疑似截断时保留旧文件并报告；不得把失败当作零条记录，不得复用 COROS 负荷补缺。同一天多次运动保留实际条数。
 
 Strava API 明确返回的受限空壳只保留当地日期，在页面标注详情缺失，不计入总量；不得猜测详情或把它当成没有运动。
 
-公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动仅含 date、sport、distanceKm、duration、trainingLoad、activityUrl。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，供最近一周卡片跳转，包含活动 ID；不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、装备标识、账号信息、装备备注、坐标、心率、原始文件链接或凭据。
+公开 JSON 顶层仅含 period:{start,end}、syncedAt、activities、unavailableActivities（仅含 date 的受限活动列表）、gearLibrary。每条活动含 date、sport、distanceKm、duration、trainingLoad、activityUrl；力量训练额外含 sets（组数）和 averageHeartRate（平均心率，bpm），缺失时为 null。activityUrl 为 https://intervals.icu/activities/ 加该条平台活动 ID，供最近一周卡片跳转，包含活动 ID；不得按日期猜测或混用其他平台 ID。缺失距离和负荷保留为 null。不发布额外的活动标识字段、装备标识、账号信息、装备备注、坐标、心率明细、原始文件链接或凭据。
 
 gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm、components；配件仅含 name、type、distanceKm、replacement。首次尚未同步的仓库快照使用 null，禁止在同步失败时改为 null 或空列表。已退役装备隐藏，component_ids 只在脚本内部用于递归解析归属，不发布原始标识。
 
@@ -42,7 +42,16 @@ gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm�
 
 用户在 Intervals.icu 换件后重置“更换”提醒。前后外胎分别建 Tyre 配件，名称以“前胎”“后胎”开头；未识别位置时只提示，不猜测。网站固定目标为链条及前后胎 5000 km、飞轮 10000 km、牙盘 30000 km，不改写平台提醒。青野的链条与牙盘同时关联青野和 R200，以平台共享配件计数累计室内外里程；外胎仅关联青野。
 
-检查 git diff，日常数据更新应仅涉及 docs/activities.json 与 docs/index.html；出现异常删除先复核查询完整性。
+检查 git diff，日常数据更新应仅涉及 data/strength-sets.json、docs/activities.json 与 docs/index.html；出现异常删除先复核查询完整性。
+
+## 力量训练组数补充
+
+`data/strength-sets.json` 是 COROS 组数的独立来源文件，仅保存 `{activityUrl, sets}` 数组；同步脚本会按活动链接合并，重复链接、非法链接或无效组数导致更新失败并保留旧快照。
+
+1. 在执行同步脚本前，使用 COROS 连接器查询力量训练（sportTypeCodes=[402]），从最早已同步年份至今天分段查询，确保每段返回数量小于请求上限；保留每条记录的 labelId 和实际 Sets。查询失败时停止更新并报告，已有来源文件保留。
+2. 使用同一 Intervals.icu 账号查询对应日期范围的原始活动字段 id、type、source、external_id；沿用同步脚本的查询完整性检查，达到 10000 条时继续拆分范围。凭据仅在本机内存中使用。
+3. 调用 `scripts/update-data.mjs` 导出的 `matchCorosStrengthSets(intervalsRecords, corosRecords)`，其中 corosRecords 仅含 `{labelId:字符串, sets:非负整数}`。它只匹配 WeightTraining、source=COROS 且 external_id 与 labelId 完全相同的记录；关联不唯一时停止。仅将返回的 `{activityUrl, sets}` 合并到来源文件，不发布 COROS 标识或完整响应。查询范围内已核对的值使用本次结果更新，范围外条目保留；未匹配记录保留未知并在报告中说明。
+4. 完成来源文件更新后，再运行上面的数据同步与构建命令。验证已匹配组数与 COROS 一致；平均心率、时长和训练负荷仍使用 Intervals.icu 的值。
 
 ## 提交与发布
 

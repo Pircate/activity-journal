@@ -15,8 +15,30 @@ const sports = {
   Soccer:'足球', Tennis:'网球', Badminton:'羽毛球', Basketball:'篮球', Golf:'高尔夫',
 };
 
-export function normalizeActivities(records, period) {
+// COROS 原始标识只用于内存中的精确关联，补充文件仅保留网站已有链接和组数。
+export function matchCorosStrengthSets(records, corosRecords) {
+  const sets = new Map();
+  for (const row of corosRecords) {
+    if (!row || typeof row.labelId !== 'string' || !/^\d+$/.test(row.labelId) || sets.has(row.labelId) || !Number.isInteger(row.sets) || row.sets < 0) throw new Error('COROS 组数记录无效或重复');
+    sets.set(row.labelId, row.sets);
+  }
+  const matched = new Set();
+  return records.filter(record => record.type === 'WeightTraining' && record.source === 'COROS' && sets.has(record.external_id)).map(record => {
+    if (matched.has(record.external_id) || !/^(?:i)?\d+$/.test(String(record.id))) throw new Error('力量训练来源关联不唯一或活动标识无效');
+    matched.add(record.external_id);
+    return {activityUrl:'https://intervals.icu/activities/' + record.id, sets:sets.get(record.external_id)};
+  });
+}
+
+export function normalizeActivities(records, period, strengthSets = []) {
   if (!Array.isArray(records)) throw new Error('Intervals.icu 返回的活动列表无效');
+  if (!Array.isArray(strengthSets)) throw new Error('力量训练组数补充数据无效');
+  const setsByActivity = new Map();
+  for (const row of strengthSets) {
+    if (!row || Object.keys(row).sort().join(',') !== 'activityUrl,sets' || typeof row.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(row.activityUrl) ||
+        setsByActivity.has(row.activityUrl) || !Number.isInteger(row.sets) || row.sets < 0) throw new Error('力量训练组数补充数据无效或重复');
+    setsByActivity.set(row.activityUrl, row.sets);
+  }
   const ids = new Set();
   return records.map(record => {
     // Strava 空壳与缺失时长不能视为零运动；整次同步失败，保留已发布的数据。
@@ -41,6 +63,7 @@ export function normalizeActivities(records, period) {
       duration:formatTime(record.moving_time),
       trainingLoad:number(record.icu_training_load, '训练负荷'),
       activityUrl:'https://intervals.icu/activities/' + record.id,
+      ...(record.type === 'WeightTraining' ? {sets:setsByActivity.get('https://intervals.icu/activities/' + record.id) ?? null, averageHeartRate:number(record.average_heartrate, '平均心率') || null} : {}),
     };
   }).filter(a => a.date >= period.start && a.date <= period.end)
     .sort((a,b) => b.date.localeCompare(a.date));
@@ -130,7 +153,7 @@ export async function readConfig(configPath = join(homedir(), '.config/interval-
   return config;
 }
 
-export async function fetchAllActivities({config, fetchImpl = fetch, now = new Date()} = {}) {
+export async function fetchAllActivities({config, fetchImpl = fetch, now = new Date(), strengthSets = []} = {}) {
   config ??= await readConfig();
   if (typeof config?.INTERVALS_ICU_API_KEY !== 'string' || !config.INTERVALS_ICU_API_KEY.trim()) {
     throw new Error('请配置 ~/.config/interval-icu/config.json 中的 INTERVALS_ICU_API_KEY');
@@ -150,7 +173,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   // 从历史起点获取全部记录；达到条数上限时二分当地日期范围，不使用可能截断的结果。
   const fetchRange = async (oldest, newest) => {
     const params = new URLSearchParams({oldest, newest:newest + 'T23:59:59',
-      limit:'10000', fields:'id,type,start_date,moving_time,distance,icu_training_load,source,start_date_local'});
+      limit:'10000', fields:'id,type,start_date,moving_time,distance,icu_training_load,average_heartrate,source,start_date_local'});
     const records = await get(`athlete/${encodeURIComponent(athlete.id)}/activities?${params}`);
     if (!Array.isArray(records)) throw new Error('活动列表无效，未更新数据');
     if (records.length < 10000) return records;
@@ -172,7 +195,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   for (const a of unavailable) {
     if (!/^\d{4}-\d{2}-\d{2}T/.test(a.start_date_local ?? '') || !isDate(a.start_date_local.slice(0,10))) throw new Error('无法读取的活动缺少有效日期');
   }
-  const data = {period, syncedAt, activities:normalizeActivities(records.filter(a => !unavailable.includes(a)), period), unavailableActivities, gearLibrary};
+  const data = {period, syncedAt, activities:normalizeActivities(records.filter(a => !unavailable.includes(a)), period, strengthSets), unavailableActivities, gearLibrary};
   const firstDate = [...data.activities, ...unavailableActivities].reduce((first, a) => a.date < first ? a.date : first, shiftDate(end, -364));
   period.start = firstDate.slice(0,4) + '-01-01';
   validateData(data);
@@ -181,7 +204,8 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.length > 2) throw new Error('用法：node scripts/update-data.mjs（获取 Intervals.icu 全部历史数据）');
-  const data = await fetchAllActivities();
+  const strengthSets = JSON.parse(await readFile(new URL('../data/strength-sets.json', import.meta.url), 'utf8'));
+  const data = await fetchAllActivities({strengthSets});
   const target = new URL('../docs/activities.json', import.meta.url);
   const temporary = new URL('../docs/activities.json.tmp', import.meta.url);
   try {
