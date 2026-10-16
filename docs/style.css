@@ -128,4 +128,23 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 .history-empty{padding:28px 12px;border:1px dashed var(--line);border-radius:8px;text-align:center;color:var(--muted);font-size:.875rem}
 .history-pagination{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:16px;font-size:.75rem;font-variant-numeric:tabular-nums}
 .history-pagination+#history-note{margin:16px 0 0}
+/* 自然周／月趋势与周期活动 */
+.trend-panel{margin-top:16px;padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--panel);min-width:0}
+.trend-heading,.trend-controls,.trend-period{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.trend-heading h3{margin:0;font-size:1rem;font-weight:600}.trend-controls{justify-content:flex-end}
+.trend-controls select{font:inherit;font-size:.8125rem;min-height:40px;padding:7px 28px 7px 10px;border:1px solid #4f4f4f;border-radius:8px;background:var(--bg);color:var(--text)}
+.trend-intro,.trend-guide,.trend-previous,.trend-note{font-size:.75rem;color:var(--muted);margin:10px 0;line-height:1.6}
+.trend-guide{margin:18px 0 8px}.trend-scroll{overflow-x:auto;padding:4px 3px 10px;scrollbar-width:thin;scrollbar-color:#5a5a5a transparent}
+.trend-bars{display:grid;grid-template-columns:repeat(var(--periods),minmax(64px,1fr));gap:8px;min-width:100%;width:max-content}
+.trend-bar{display:flex;flex-direction:column;gap:8px;padding:8px 6px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;font:inherit;font-size:.6875rem;min-width:64px;font-variant-numeric:tabular-nums}
+.trend-bar:hover{background:#282828}.trend-bar[aria-pressed=true]{border-color:var(--accent);background:#302016;color:var(--text)}
+.trend-bar-value,.trend-bar-label{align-self:center;white-space:nowrap}.trend-bar-track{display:flex;align-items:flex-end;width:100%;height:128px;border-bottom:1px solid #555;background:repeating-linear-gradient(to top,transparent 0,transparent calc(25% - 1px),#353535 25%)}
+.trend-bar-track>span{display:block;width:100%;border-radius:3px 3px 0 0;background:#af4215;min-height:2px}.trend-bar[aria-pressed=true] .trend-bar-track>span{background:var(--accent)}
+.trend-bar.incomplete .trend-bar-track>span{background-image:repeating-linear-gradient(135deg,transparent 0,transparent 4px,#ffffff66 4px,#ffffff66 6px)}
+.trend-selection{border-top:1px solid var(--line);margin-top:14px;padding-top:16px}.trend-period h4{margin:0;font-size:.9375rem;font-weight:600;font-variant-numeric:tabular-nums}.trend-period>span{font-size:.75rem;color:var(--accent-soft)}
+.trend-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:16px 0}.trend-stats dt{font-size:.75rem;color:var(--muted)}.trend-stats dd{margin:4px 0;font-size:1.25rem;font-weight:600;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.trend-stats p{margin:2px 0;font-size:.75rem;color:var(--muted);font-weight:400}.trend-stats p.trend-change{color:var(--accent-soft)}
+.trend-records{margin-top:20px}.trend-pagination{justify-content:center;align-items:center;gap:12px;margin-top:16px;font-size:.75rem;flex-wrap:wrap}
+.trend-pagination button{min-height:44px;padding:8px 12px;border:1px solid #4f4f4f;border-radius:7px;background:#282828;color:var(--text);font:inherit;cursor:pointer}.trend-pagination button:disabled{opacity:.4;cursor:default}
+.trend-panel button:focus-visible,.trend-scroll:focus-visible,.trend-controls select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:600px){.trend-panel{padding:16px;border-radius:12px}.trend-heading{align-items:flex-start}.trend-controls{gap:8px}.trend-controls select{font-size:1rem;min-height:44px}.trend-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 12px}.trend-stats dd{font-size:1.125rem}.trend-period{gap:6px}.trend-bars{gap:4px}}
 @media(max-width:600px){.history-heading{padding:16px}.history-content{padding:0 16px 16px}.history-filters{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 10px}.history-field input,.history-field select{font-size:1rem}.history-pagination{gap:10px}.history-panel button{padding:8px 12px}}

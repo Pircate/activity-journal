@@ -28,6 +28,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       addEventListener(name, callback) { this.events.set(name, callback); },
       setAttribute(name, value) { this.attributes.set(name, value); },
       querySelectorAll() { return this.children; },
+      querySelector() { return null; },
       matches() { return Boolean(this.dataset.date); },
       focus() { document.activeElement = this; },
       set innerHTML(html) {
@@ -61,10 +62,12 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   await setImmediate();
   const grid = element('.day-grid');
   const gear = element('.gear-library');
+  const trends = element('#trend-content');
   const status = element('#sync-status');
   const refresh = async () => { intervals[0].callback(); await setImmediate(); };
 
   assert.equal(grid.writes, 1, '首次 JSON 与内嵌快照相同时不重绘');
+  assert.equal(trends.writes, 1);
   assert.equal(intervals[0].delay, 5 * 60000);
   assert.equal(requests[0].options.cache, 'no-cache');
   assert.ok(requests[0].options.signal instanceof AbortSignal);
@@ -74,6 +77,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   await refresh();
   assert.equal(grid.writes, 1);
   assert.equal(gear.writes, 1);
+  assert.equal(trends.writes, 1, '数据未变化时不重建趋势');
   assert.equal(document.activeElement, focused);
   assert.equal(status.textContent, '已读取最新已同步数据');
 
@@ -84,6 +88,12 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   await refresh();
   assert.equal(grid.writes, 3, '同步时间相同但内容变化也刷新');
   assert.match(groups.get('.metric-value')[0].innerHTML, /25\.00/);
+  const chooseTrend = (selector, dataset) => element('.trend-panel').events.get('click')({target:{closest:query => query === selector ? {dataset} : null}});
+  chooseTrend('[data-trend-mode]', {trendMode:'week'});
+  chooseTrend('[data-period]', {period:'2026-10-05'});
+  element('#trend-metric').events.get('change')({target:{value:'durationSeconds'}});
+  assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
+  assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/);
 
   latest = structuredClone(initial);
   await refresh();
@@ -101,6 +111,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   t.mock.timers.setTime(Date.parse('2026-10-16T04:00:00Z'));
   await refresh();
   assert.equal(grid.writes, 4);
+  assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
+  assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/, '跨天刷新保留选中周期和指标');
   assert.equal(element('#selected-date').max, '2026-10-16');
   assert.equal(element('.records-grid').innerHTML.includes('record-card'), false, '最近一周剔除过期记录');
   assert.equal(grid.children.at(-1).dataset.date, '2026-10-16');
@@ -165,6 +177,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       assert.equal(document.activeElement, summary, '不移除装备区域内的焦点');
       assert.equal(grid.writes, previousGridWrites + 1, '年度热力图正常更新');
       assert.equal(element('.overview-range').textContent, range === 'recent' ? '最近一年' : range + ' 年');
+      assert.match(trends.innerHTML, /周一至周日汇总 · 时长/, '切换年度保留趋势周期和指标');
+      if (range === '2025') assert.match(trends.innerHTML, /2025\.12\.29 — 2026\.01\.04/, '年度末周展示完整自然周');
       assert.equal(element('#selected-date').min, range === 'recent' ? '2025-10-19' : range + '-01-01');
       assert.equal(element('#selected-date').max, range === 'recent' ? '2026-10-18' : range + '-12-31');
       assert.match(groups.get('.metric-value')[0].innerHTML, range === '2025' ? /0\.00/ : /25\.00/);

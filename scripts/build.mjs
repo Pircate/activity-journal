@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 const data=JSON.parse(await readFile(new URL('../docs/activities.json',import.meta.url),'utf8'));
 import {createJournal, formatTime as time, escapeHtml as esc, validateData, renderGearLibrary, renderDayRecords, renderYearOptions} from '../docs/journal.mjs';
 import {filterActivities, historyPageSize} from '../docs/history.mjs';
+import {renderTrendPanel} from '../docs/trends.mjs';
 validateData(data);
 const {activities,recent,recentSummary,period,syncedAt,daily,distance,duration,activeDays,missingDistance,missingLoad,unavailableCount,sports,columns,cells,monthLabels,cards,initialDate}=createJournal(data);
 const pretty=d=>d.replaceAll('-','.');
@@ -13,7 +14,7 @@ const historySports=[...new Set(data.activities.map(activity=>activity.sport))].
 assert.equal(daily.length,365);
 assert.equal(Math.round(daily.reduce((s,d)=>s+d.distanceKm,0)*100),Math.round(distance*100));
 // 用内容哈希做缓存失效：改样式或脚本后，浏览器一定会重新拉取。
-const assetFiles=['style.css','app.js','journal.mjs','history.mjs'];
+const assetFiles=['style.css','app.js','journal.mjs','history.mjs','trends.mjs'];
 const assetVersion=createHash('sha256').update((await Promise.all(assetFiles.map(name=>readFile(new URL('../docs/'+name,import.meta.url))))).join('\0')).digest('hex').slice(0,8);
 const favicon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#fc4c02"/><path d="M6 22V16M12 22V10M18 22V6M24 22V13" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
 const html=`<!DOCTYPE html><html lang="zh-CN"><head>
@@ -49,7 +50,7 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <div class="heatmap-bottom"><p id="metric-explanation">颜色越亮，代表当天累计距离越多。</p><div class="heatmap-scale" aria-label="活动强度从少到多"><span>少</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><i class="level-4"></i><span>多</span></div></div><p class="mobile-hint">可横向滑动查看全年记录。</p>
 <div class="day-inspector"><label for="selected-date">查看某一天</label><input id="selected-date" type="date" min="${period.start}" max="${period.end}" value="${initialDate}"><p id="day-description" aria-live="polite"></p></div>
 <div id="day-records"${initialRecords.length ? '' : ' hidden'}>${renderDayRecords(initialRecords)}</div>
-<p class="chart-caption">每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供。负荷为 Intervals.icu 的活动训练负荷。${missingLoad?' '+missingLoad+' 次运动未提供负荷，统计时保留缺失标记。':''}${unavailableCount?' 另有 '+unavailableCount+' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。':''}</p><noscript><p>启用 JavaScript 后可查看热力图和切换指标；上方为最近一周的运动记录。</p></noscript></div></section>
+<p class="chart-caption">每格代表一天，同一天的多次运动合并统计。灰色表示没有运动记录；斜线表示该指标未提供。负荷为 Intervals.icu 的活动训练负荷。${missingLoad?' '+missingLoad+' 次运动未提供负荷，统计时保留缺失标记。':''}${unavailableCount?' 另有 '+unavailableCount+' 次 Strava 运动详情无法读取，未计入距离、时长和次数；对应日期按平台当地日期标注缺失。':''}</p><noscript><p>启用 JavaScript 后可查看热力图和切换指标；上方为最近一周的运动记录。</p></noscript></div>${renderTrendPanel(data)}</section>
 <section class="gear-section" id="gear" aria-labelledby="gear-title"><div class="section-head"><h2 id="gear-title"><span class="section-number">03</span>运动装备库</h2><p>累计使用 · 独立于年度统计</p></div>
 <div class="gear-library">${renderGearLibrary(data.gearLibrary)}</div>
 <p class="gear-caption">建议更换里程：链条、前后胎 5000 km，飞轮 10000 km，牙盘 30000 km。以上里程仅为维护参考，不代表实际磨损程度。更换后，在 Intervals.icu 重置配件的“更换”提醒；日期和里程随每日同步更新。</p></section>

@@ -2,6 +2,7 @@
 const version = new URL(import.meta.url).searchParams.get('v');
 const {createJournal, beijingDate, formatTime, escapeHtml, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, availableYears} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
+const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + version : ''));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
 let renderedData, renderedDate, renderedGear;
@@ -11,6 +12,7 @@ const dayRecords = document.getElementById('day-records');
 const explanation = document.getElementById('metric-explanation');
 const yearSelect = document.getElementById('activity-year');
 const updateHistory = initializeHistory(data);
+const updateTrends = initializeTrends(data);
 const metrics = {
   distanceKm: { label: '距离', thresholds: [10, 30, 60], format: value => value.toFixed(2) + ' 公里', missing: 'missingDistance' },
   durationSeconds: { label: '时长', thresholds: [1800, 3600, 7200], format: formatTime },
@@ -98,6 +100,7 @@ function renderJournal() {
   yearSelect.innerHTML = renderYearOptions(data, today);
   yearSelect.value = range;
   const journal = createJournal(data, today, range);
+  updateTrends(data, range, today);
   const snapshot = JSON.stringify(data);
   const updateRecent = snapshot !== renderedData || today !== renderedDate;
   if (updateRecent) document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
