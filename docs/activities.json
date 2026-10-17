@@ -1,10 +1,28 @@
 {
   "period": {
     "start": "2021-01-01",
-    "end": "2026-10-16"
+    "end": "2026-10-17"
   },
-  "syncedAt": "2026-10-16 23:03:16 +08:00",
+  "syncedAt": "2026-10-17 09:47:20 +08:00",
   "activities": [
+    {
+      "date": "2026-10-17",
+      "sport": "骑行",
+      "distanceKm": 6.19,
+      "duration": "0:14:10",
+      "trainingLoad": 10,
+      "activityUrl": "https://intervals.icu/activities/i198161569",
+      "stravaUrl": "https://www.strava.com/activities/20615298142"
+    },
+    {
+      "date": "2026-10-17",
+      "sport": "骑行",
+      "distanceKm": 38.64,
+      "duration": "1:09:06",
+      "trainingLoad": 103,
+      "activityUrl": "https://intervals.icu/activities/i198161622",
+      "stravaUrl": "https://www.strava.com/activities/20615298190"
+    },
     {
       "date": "2026-10-15",
       "sport": "虚拟骑行",
@@ -16141,56 +16159,56 @@
     {
       "name": "TCR Pro Max",
       "type": "Bike",
-      "distanceKm": 10138.334,
+      "distanceKm": 10183.161,
       "components": [
         {
           "name": "TCR 链条",
           "type": "Chain",
-          "distanceKm": 3064.059,
+          "distanceKm": 3108.885,
           "replacement": {
             "status": "available",
             "date": "2025-10-07",
-            "distanceKm": 3064.059
+            "distanceKm": 3108.885
           }
         },
         {
           "name": "TCR 飞轮",
           "type": "Cassette",
-          "distanceKm": 3064.059,
+          "distanceKm": 3108.885,
           "replacement": {
             "status": "available",
             "date": "2025-10-07",
-            "distanceKm": 3064.059
+            "distanceKm": 3108.885
           }
         },
         {
           "name": "前胎 · TCR",
           "type": "Tyre",
-          "distanceKm": 1498.7641,
+          "distanceKm": 1543.5901999999999,
           "replacement": {
             "status": "available",
             "date": "2026-06-10",
-            "distanceKm": 1498.7641
+            "distanceKm": 1543.5901999999999
           }
         },
         {
           "name": "后胎 · TCR",
           "type": "Tyre",
-          "distanceKm": 1498.7641,
+          "distanceKm": 1543.5901999999999,
           "replacement": {
             "status": "available",
             "date": "2026-06-10",
-            "distanceKm": 1498.7641
+            "distanceKm": 1543.5901999999999
           }
         },
         {
           "name": "TCR 牙盘",
           "type": "Chainrings",
-          "distanceKm": 10138.33,
+          "distanceKm": 10183.157,
           "replacement": {
             "status": "available",
             "date": "2024-03-30",
-            "distanceKm": 10138.33
+            "distanceKm": 10183.157
           }
         }
       ]
