@@ -57,6 +57,27 @@ gearLibrary 成功同步后为自行车数组，仅含 name、type、distanceKm�
 
 全量补录后，必须验证 Strava 所有 ID 均被快照覆盖，核对最早开始日期，并确认跨平台已关联活动没有重复新增；不能仅以 `unavailableActivities` 为空判定完整。网站可保留其他平台独有的活动，因此网站总数不要求等于 Strava 总数。
 
+## 悦跑圈历史迁移
+
+本次范围为北京时间 2021-09-01 之前，不包含 9 月 1 日。通过 [running_page 悦跑圈导出实现](https://github.com/yihong0618/running_page/blob/master/run_page/joyrun_sync.py) 使用的接口读取全部记录，再按原始 UTC 开始时间转换北京时间筛选。认证仅在本机使用；原始详情只保存 `runrecord`，不保存接口响应中的会话字段。
+
+1. 将筛选后的原始详情保存为 `output/joyrun/raw/<fid>.json`。核对清单数量、最早日期和详情中的开始时间、距离、时长与类型，列表或详情失败时停止，不将缺失视为无活动。
+2. 按精确开始时间、来源、指标及重叠区间逐组核对重复，不能只按日期去重。本次用户选择手机优先、两块表时 COROS 优先，确认 `type=7` 为室内跑。Strava 已有记录通过开始时间和指标交叉核对后保留；存在指标差异时记录到本地复核清单，不覆盖旧活动。
+3. 将尚未导入的选择保存为 `output/joyrun/strava-plan.json`，结构为 `{"selected":[{"fid":"原始记录标识"}]}`。脚本只转换已选记录，不负责猜测重复关系，也不登录或上传。
+
+```sh
+uv run --with fit-tool==0.9.16 --with geopy==2.5.0 python scripts/joyrun-to-fit.py \
+  output/joyrun/raw output/joyrun/strava-plan.json output/joyrun/fit
+uv run --with fit-tool==0.9.16 --with geopy==2.5.0 --with garmin-fit-sdk==21.218.0 \
+  python scripts/joyrun-to-fit.test.py
+```
+
+4. 使用 Strava Upload API 上传，`external_id` 使用各自 FIT 文件名。先上传样本，核对北京时间、距离和轨迹，再继续批量；每次取得 upload ID 后立即保存，最终必须确认 `activity_id`。请求超时后先查询已知 upload ID 和对应活动，不盲目重新上传。上传结果清单存放于 `output/joyrun/strava-import/manifest.csv`。
+5. 旧记录没有逐点时间，转换时按等间隔采样与已知暂停还原，对齐起止时刻；GPS 坐标保留原值，累计轨迹距离按原始总距离归一化。FIT 会分别写入原始运动时长与总历时，但 Strava 会自行重算移动时间与配速。用户已选择保留轨迹并接受重算，原始距离、运动时长和总历时写入 Strava 说明。起始暂停时 Strava 采用首个轨迹点作为开始时刻，应在说明中补充原始开始时间。室内跑没有坐标，文件仅保存已知起止时间、距离及汇总。
+6. 完成后分页读取 Strava，逐个检查新增 ID、开始时间、类型和距离；起始暂停导致的时刻差异必须与原始暂停相符，并确认北京时间日期一致。列表没有 `summary_polyline` 时继续检查活动详情的完整 `polyline`，不能直接判定轨迹丢失。将已核对的真实活动链接与 Strava 指标加入 `data/strava-activities.json`，训练负荷为 `null`，没有真实 Intervals.icu 关联则省略 `activityUrl`。继续运行上面的同步与构建命令，验证最早日期和每个新增 Strava ID 的覆盖情况。
+
+所有原始数据、轨迹文件和上传结果均在 Git 忽略目录中；凭据和登录会话不得写入公开文件。网站使用 Strava 重算后的运动时长，不能宣称与悦跑圈原始总时长完全一致。
+
 ## 力量训练组数补充
 
 `data/strength-sets.json` 是 COROS 组数的独立来源文件，仅保存 `{activityUrl, sets}` 数组；同步脚本会按活动链接合并，重复链接、非法链接或无效组数导致更新失败并保留旧快照。
