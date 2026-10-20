@@ -52,7 +52,7 @@ test('同日多次活动只占一个日期，选中态和今天标记彼此独�
   assert.equal((html.match(/data-date="2026-10-15"/g) ?? []).length, 1);
   assert.equal((html.match(/aria-pressed="true"/g) ?? []).length, 1);
   assert.equal((html.match(/tabindex="0"/g) ?? []).length, 1);
-  assert.match(html, /2026-10-15，2 次运动，距离 50\.00 公里/);
+  assert.match(html, /2026-10-15，2 次运动，距离 50\.00 km/);
   assert.match(html, /data-date="2026-10-16"[^>]*aria-current="date"/);
   assert.match(html, />2 次</);
 });
@@ -60,7 +60,7 @@ test('同日多次活动只占一个日期，选中态和今天标记彼此独�
 test('月历与热力图共用分级及缺失标记，切换指标只更改统计颜色与描述', () => {
   const data = journal([activity('2026-10-15', null), activity('2026-10-15', 30, null)], '2026', '2026-10-16', [{date:'2026-10-14'}]);
   const day = data.daily.find(day => day.date === '2026-10-15');
-  assert.deepEqual(dayMetricState(day, 'distanceKm'), {level:'3', state:'partial', missing:true, unavailable:false, label:'2026-10-15，2 次运动，距离 30.00 公里（1 次未提供）（部分指标缺失）'});
+  assert.deepEqual(dayMetricState(day, 'distanceKm'), {level:'3', state:'partial', missing:true, unavailable:false, label:'2026-10-15，2 次运动，距离 30.00 km（1 次未提供）（部分指标缺失）'});
   let html = renderCalendar(data.daily, '2026-10-15', 'distanceKm');
   assert.match(html, /data-date="2026-10-15" data-level="3" data-state="partial" data-unavailable="false"/);
   assert.match(html, /data-date="2026-10-14" data-level="missing" data-state="unavailable" data-unavailable="true"/);

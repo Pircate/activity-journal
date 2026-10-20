@@ -121,7 +121,7 @@ test('趋势保留周期合计，不展示活动列表和分页', () => {
   const periods = createTrends(snapshot(records), '2026', 'month', '2026-10-16');
   const first = renderTrendContent(periods, {selected:'2026-01-01'});
   assert.match(first, /<span>45 次<\/span>/);
-  assert.match(first, /<span>990 公里<\/span>/);
+  assert.match(first, /<span>990\.00 km<\/span>/);
   assert.doesNotMatch(first, /trend-records|trend-pagination|activity-row|data-trend-page|intervals\.icu\/activities/);
   assert.doesNotMatch(first, /NaN|Infinity/);
 });

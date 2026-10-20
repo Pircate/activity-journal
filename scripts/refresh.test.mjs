@@ -81,9 +81,12 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   const grid = element('.day-grid');
   const gear = element('.gear-library');
   const trends = element('#trend-content');
+  const milestones = element('#milestone-content');
   const status = element('#sync-status');
   const refresh = async () => { intervals[0].callback(); await setImmediate(); };
 
+  assert.equal(element('.metric-value1').innerHTML, '1:00:00');
+  assert.equal(element('.metric-note1').textContent, '时:分:秒 · 累计运动时间');
   assert.equal(grid.writes, 1, '首次 JSON 与内嵌快照相同时不重绘');
   assert.equal(trends.writes, 1);
   assert.equal(intervals[0].delay, 5 * 60000);
@@ -96,6 +99,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.equal(grid.writes, 1);
   assert.equal(gear.writes, 1);
   assert.equal(trends.writes, 1, '数据未变化时不重建趋势');
+  assert.equal(milestones.writes, 1);
   assert.equal(document.activeElement, focused);
   assert.equal(bests.writes, 1, 'PB 内容相同时保留节点和焦点');
   assert.equal(status.textContent, '已读取最新已同步数据');
@@ -200,6 +204,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       year.value = range;
       year.events.get('change')();
       assert.equal(gear.writes, gearWrites, '不替换装备节点，保留原有展开状态');
+  assert.equal(milestones.writes, 2, '年度筛选不重建独立里程碑');
       assert.equal(recent.writes, recentWrites, '年度筛选不重建最近一周记录');
       assert.equal(element('.recent-summary').writes, summaryWrites, '年度筛选不重建最近七天摘要');
       assert.equal(historyResults.writes, historyWrites, '年度筛选不重建历史列表');
@@ -225,7 +230,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     respond = async () => ({ok:true, json:async () => structuredClone(latest)});
     await refresh();
     assert.equal(gear.writes, gearWrites + 1);
-    assert.match(gear.innerHTML, /<strong>123 km<\/strong>/);
+    assert.match(gear.innerHTML, /<strong>123\.00 km<\/strong>/);
     assert.match(gear.innerHTML, /公路车/);
   });
 
@@ -286,19 +291,30 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     year.events.get('change')();
     chooseTrend('[data-period]', {period:'2026-10-05'});
     assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
-    assert.match(trends.innerHTML, /<span>25 公里<\/span>/);
+    assert.match(trends.innerHTML, /<span>25\.00 km<\/span>/);
     // 合法但该范围内没有记录的类型应呈现零合计，不回退到全部运动。
     latest.activities.push({...latest.activities[0], date:'2025-01-01', sport:'跑步', distanceKm:5, activityUrl:'https://intervals.icu/activities/i2'});
     await refresh();
     sport.value = '跑步';
     sport.events.get('change')();
     assert.match(trends.innerHTML, /<span>0 次<\/span>/);
-    assert.doesNotMatch(trends.innerHTML, /<span>25 公里<\/span>/);
+    assert.doesNotMatch(trends.innerHTML, /<span>25\.00 km<\/span>/);
     assert.match(sport.innerHTML, /value="跑步"/);
     sport.value = '';
     sport.events.get('change')();
     latest.activities.pop();
     await refresh();
+  });
+
+  await t.test('活动数据变化时更新里程里程碑，不重建装备节点', async () => {
+    const gearWrites = gear.writes;
+    const writes = milestones.writes;
+    latest.activities[0].distanceKm = 5010;
+    respond = async () => ({ok:true, json:async () => structuredClone(latest)});
+    await refresh();
+    assert.equal(milestones.writes, writes + 1);
+    assert.match(milestones.innerHTML, /5,010\.00/);
+    assert.equal(gear.writes, gearWrites);
   });
 
   await t.test('维护入口展开目标车辆并聚焦配件，年度切换及无变化刷新保留状态', async () => {

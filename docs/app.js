@@ -1,10 +1,11 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
-const {createJournal, beijingDate, formatTime, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetrics, dayMetricState, describeDay, dayStateLabels, statNotesCounts, statNotesHint, renderStatNotesBody} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {createJournal, beijingDate, formatTime, formatDistance, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetrics, dayMetricState, describeDay, dayStateLabels, statNotesCounts, statNotesHint, renderStatNotesBody} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
 const {renderCalendar, moveCalendarDate} = await import('./calendar.mjs' + (version ? '?v=' + version : ''));
 const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + version : ''));
 const {initializePersonalBests} = await import('./personal-bests.mjs' + (version ? '?v=' + version : ''));
+const {initializeMilestones} = await import('./milestones.mjs' + (version ? '?v=' + version : ''));
 const {initializeReports} = await import('./reports.mjs' + (version ? '?v=' + version : ''));
 const refreshPersonalBests = initializePersonalBests(JSON.parse(document.getElementById('personal-bests-data').textContent));
 let data = JSON.parse(document.getElementById('journal-data').textContent);
@@ -20,6 +21,7 @@ const statNotesBodyElement = document.getElementById('stat-notes-body');
 const yearSelect = document.getElementById('activity-year');
 const updateHistory = initializeHistory(data);
 const updateTrends = initializeTrends(data);
+const updateMilestones = initializeMilestones(data);
 const updateReports = initializeReports(data, document.getElementById('title').textContent);
 // 先展开所属车辆，再由原生锚点定位；其余车辆保持各自的展开状态。
 document.querySelector('.gear-library').addEventListener('click', event => {
@@ -159,6 +161,7 @@ function renderJournal() {
   const snapshot = JSON.stringify(data);
   const updateRecent = snapshot !== renderedData || today !== renderedDate;
   if (updateRecent) updateTrends(data, today);
+  if (updateRecent) updateMilestones(data);
   if (renderedData !== undefined && updateRecent) updateReports(data, today);
   if (updateRecent) document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
   const {period, distance, duration, activities, recent, activeDays, missingDistance, unavailableCount} = journal;
@@ -172,13 +175,13 @@ function renderJournal() {
   document.getElementById('sport-filter').innerHTML = renderSportFilter(journal.sports, sport);
   document.getElementById('sport-filter-status').textContent = sport ? '已筛选：' + sport + ' · 该范围内 ' + activities.length + ' 条记录' : '点选类型筛选年度范围，次数为该范围全部记录';
   const values = document.querySelectorAll('.metric-value');
-  values[0].innerHTML = distance.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2}) + '<small>公里</small>';
-  values[1].innerHTML = Math.floor(duration / 3600) + '<small>小时</small>';
+  values[0].innerHTML = formatDistance(distance) + '<small>km</small>';
+  values[1].innerHTML = formatTime(duration);
   values[1].setAttribute('aria-label', Math.floor(duration / 3600) + ' 小时 ' + Math.floor(duration % 3600 / 60) + ' 分 ' + duration % 60 + ' 秒');
   values[2].innerHTML = activities.length + '<small>次</small>';
   const notes = document.querySelectorAll('.metric-note');
   notes[0].textContent = missingDistance ? '已记录距离 · ' + missingDistance + ' 次运动' + dayStateLabels.missing + '（距离未提供）' : '可读取运动的总距离';
-  notes[1].textContent = '精确时长 ' + formatTime(duration);
+  notes[1].textContent = '时:分:秒 · 累计运动时间';
   notes[2].textContent = activeDays + ' 天记录了运动' + (unavailableCount ? ' · 另有 ' + unavailableCount + ' 条' + dayStateLabels.unavailable : '');
   grid.innerHTML = journal.cells;
   document.querySelector('.heatmap').style.setProperty('--columns', journal.columns);

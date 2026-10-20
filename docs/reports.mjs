@@ -1,12 +1,14 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {beijingDate, availableYears, createJournal, durationSeconds, formatTime, hasMissingMetric} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {beijingDate, availableYears, createJournal, durationSeconds, formatTime, formatDistance, formatLoad, hasMissingMetric} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const pretty = date => date.replaceAll('-', '.');
 const reportMetrics = {
-  distanceKm:{label:'距离', unit:'公里', missing:'missingDistance'},
+  distanceKm:{label:'距离', unit:'km', missing:'missingDistance'},
   durationSeconds:{label:'时长', unit:'小时'},
   count:{label:'次数', unit:'次'},
   trainingLoad:{label:'负荷', unit:'TL', missing:'missingLoad'},
 };
+const distanceNumber = value => value === null ? '—' : formatDistance(value);
+const loadNumber = value => value === null ? '—' : formatLoad(value);
 const number = value => value === null ? '—' : value.toLocaleString('zh-CN', {maximumFractionDigits:2});
 function summarize(records, unknown = false) {
   const distance = records.filter(activity => activity.distanceKm !== null && activity.sport !== '力量训练');
@@ -62,9 +64,9 @@ export function createReport(data, mode, selection, today = beijingDate()) {
 }
 
 export function reportSummary(report) {
-  const distance = report.distanceKm === null ? '未提供' : report.distanceKm.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' 公里';
-  const sports = report.sports.map(item => `${item.sport} ${item.count} 次 / ${number(item.distanceKm)} 公里 / ${formatTime(item.durationSeconds)} / ${number(item.trainingLoad)} TL`).join('；');
-  return `${report.title}，${pretty(report.start)} 至 ${pretty(report.end)}${report.ongoing ? '（周期进行中）' : ''}。已记录距离 ${distance}，运动时长 ${report.durationSeconds === null ? '未提供' : formatTime(report.durationSeconds)}，总负荷 ${number(report.trainingLoad)} TL，运动 ${report.count ?? '未知'} 次，活跃 ${report.activeDays ?? '未知'} 天。${sports ? '各运动统计：' + sports + '。' : ''}${report.notes.join('；')}。`;
+  const distance = report.distanceKm === null ? '未提供' : formatDistance(report.distanceKm) + ' km';
+  const sports = report.sports.map(item => `${item.sport} ${item.count} 次 / ${distanceNumber(item.distanceKm)} km / ${formatTime(item.durationSeconds)} / ${loadNumber(item.trainingLoad)} TL`).join('；');
+  return `${report.title}，${pretty(report.start)} 至 ${pretty(report.end)}${report.ongoing ? '（周期进行中）' : ''}。已记录距离 ${distance}，运动时长 ${report.durationSeconds === null ? '未提供' : formatTime(report.durationSeconds)}，总负荷 ${loadNumber(report.trainingLoad)} TL，运动 ${report.count ?? '未知'} 次，活跃 ${report.activeDays ?? '未知'} 天。${sports ? '各运动统计：' + sports + '。' : ''}${report.notes.join('；')}。`;
 }
 
 export function drawReport(canvas, report, name, metric = 'distanceKm') {
@@ -87,12 +89,12 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
   text(report.title, 72, 208, 54, '#f5f5f5', 700);
   text(`${pretty(report.start)} — ${pretty(report.end)}${report.ongoing ? ' · 截至今日' : ''}`, 72, 260, 25, '#b5b5b5');
   line(296);
-  text('已记录距离 / 公里', 72, 349, 26, '#b5b5b5');
-  text(report.distanceKm === null ? '—' : report.distanceKm.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2}), 72, 459, 102, '#fc4c02', 700);
+  text('已记录距离 / km', 72, 349, 26, '#b5b5b5');
+  text(report.distanceKm === null ? '—' : formatDistance(report.distanceKm), 72, 459, 102, '#fc4c02', 700);
   const metrics = [
     ['运动时长', report.durationSeconds === null ? '—' : formatTime(report.durationSeconds)],
     ['运动次数', report.count === null ? '—' : report.count + ' 次'],
-    ['总负荷 / TL', number(report.trainingLoad)],
+    ['总负荷 / TL', loadNumber(report.trainingLoad)],
   ];
   metrics.forEach(([label, value], index) => {
     const x = 72 + index * 320;
@@ -135,15 +137,15 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
   text('空心框：未同步／详情不可读取／所选指标缺失', 72, 956, 22, '#b5b5b5');
   line(982);
   text('各运动统计', 72, 1033, 28, '#f5f5f5', 600);
-  [['运动 / 次数',72], ['距离 / 公里',350], ['时长',590], ['负荷 / TL',850]].forEach(([label,x]) => text(label, x, 1077, 22, '#b5b5b5'));
+  [['运动 / 次数',72], ['距离 / km',350], ['时长',590], ['负荷 / TL',850]].forEach(([label,x]) => text(label, x, 1077, 22, '#b5b5b5'));
   if (!report.sports.length) text(report.pendingDays || report.unavailable ? '暂无可读取记录，数据不完整' : '本周期没有运动记录', 72, 1130, 26, '#b5b5b5');
   report.sports.forEach((item, index) => {
     const y = 1124 + index * 68;
     text(item.sport, 72, y, 25, '#f5f5f5', 600, 250);
     text(item.count + ' 次', 72, y + 26, 20, '#b5b5b5');
-    text(number(item.distanceKm), 350, y + 9, 27, '#f5f5f5', 600, 215);
+    text(distanceNumber(item.distanceKm), 350, y + 9, 27, '#f5f5f5', 600, 215);
     text(formatTime(item.durationSeconds), 590, y + 9, 27, '#f5f5f5', 600, 235);
-    text(number(item.trainingLoad), 850, y + 9, 27, '#f5f5f5', 600, 158);
+    text(loadNumber(item.trainingLoad), 850, y + 9, 27, '#f5f5f5', 600, 158);
   });
   line(notesY - 15);
   report.notes.forEach((note, index) => text(note, 72, notesY + 22 + index * 30, 22, '#b5b5b5'));
@@ -156,7 +158,7 @@ function yearOptions(data, today) {
 }
 
 export function renderReportPanel(data, today = beijingDate()) {
-  return `<section class="report-section" id="reports" aria-labelledby="report-title"><div class="section-head"><h2 id="report-title"><span class="section-number">05</span>月报／年报分享</h2><p>把这一程，存成一张图片</p></div>
+  return `<section class="report-section" id="reports" aria-labelledby="report-title"><div class="section-head"><h2 id="report-title"><span class="section-number">06</span>月报／年报分享</h2><p>把这一程，存成一张图片</p></div>
     <div class="report-panel"><p class="report-intro">选择自然月或自然年，生成全部运动的分享图片。本月／本年截至北京时间今天，数据缺失会随图片注明。</p>
     <form id="report-form" class="report-controls"><div class="history-field"><label for="report-mode">报表类型</label><select id="report-mode"><option value="month">运动月报</option><option value="year">运动年报</option></select></div>
     <div class="history-field" id="report-month-field"><label for="report-month">月份</label><input id="report-month" type="month" required min="${data.period.start.slice(0, 7)}" max="${today.slice(0, 7)}" value="${(data.period.end < today ? data.period.end : today).slice(0, 7)}"></div>

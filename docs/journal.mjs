@@ -1,4 +1,8 @@
 export const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// 只统一展示，不改变快照精度；距离固定两位、速度固定一位、负荷最多一位。
+export const formatDistance = new Intl.NumberFormat('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2}).format;
+export const formatSpeed = new Intl.NumberFormat('zh-CN', {minimumFractionDigits:1, maximumFractionDigits:1}).format;
+export const formatLoad = new Intl.NumberFormat('zh-CN', {maximumFractionDigits:1}).format;
 export const formatTime = seconds => Math.floor(seconds / 3600) + ':' + String(Math.floor(seconds % 3600 / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
 export const durationSeconds = duration => duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
 export const formatPace = secondsPerUnit => {
@@ -15,16 +19,16 @@ export function sportMetric({sport, distanceKm, duration}) {
   const measurable = distanceKm !== null && distanceKm > 0 && seconds > 0;
   if (paceSports.has(sport)) return {label:'平均配速', ...measurable ? measuredMetric(formatPace(seconds / distanceKm) + ' /km', formatPace(seconds / distanceKm) + '<small>/km</small>') : missingMetric};
   if (sport === '游泳') return {label:'每百米配速', ...measurable ? measuredMetric(formatPace(seconds / (distanceKm * 10)) + ' /100m', formatPace(seconds / (distanceKm * 10)) + '<small>/100m</small>') : missingMetric};
-  return {label:'平均速度', ...measurable ? measuredMetric((distanceKm * 3600 / seconds).toFixed(1) + ' km/h', (distanceKm * 3600 / seconds).toFixed(1) + '<small>km/h</small>') : missingMetric};
+  return {label:'平均速度', ...measurable ? measuredMetric(formatSpeed(distanceKm * 3600 / seconds) + ' km/h', formatSpeed(distanceKm * 3600 / seconds) + '<small>km/h</small>') : missingMetric};
 }
 const primaryOrder = ['距离', '组数'];
 const secondaryOrder = ['平均配速', '每百米配速', '平均速度', '平均心率'];
 const orderedLabels = (order, labels) => order.filter(label => labels.includes(label)).join(' / ');
 export const trainingLoadNote = '训练负荷来自 Intervals.icu，用于对照单次运动的训练投入，仅作统计参考，不构成训练建议。';
 export const dayMetrics = {
-  distanceKm:{label:'距离', thresholds:[10, 30, 60], format:value => value.toFixed(2) + ' 公里', missing:'missingDistance'},
+  distanceKm:{label:'距离', thresholds:[10, 30, 60], format:value => formatDistance(value) + ' km', missing:'missingDistance'},
   durationSeconds:{label:'时长', thresholds:[1800, 3600, 7200], format:formatTime},
-  trainingLoad:{label:'负荷', thresholds:[50, 150, 300], format:String, missing:'missingLoad'},
+  trainingLoad:{label:'负荷', thresholds:[50, 150, 300], format:formatLoad, missing:'missingLoad'},
 };
 export function formatDayMetric(day, key) {
   const spec = dayMetrics[key];
@@ -118,7 +122,7 @@ function activityMetrics(activity) {
     secondary:activity.averageHeartRate === null ? missingMetric : measuredMetric(activity.averageHeartRate + ' bpm', escapeHtml(activity.averageHeartRate) + '<small>bpm</small>'),
   };
   const metric = sportMetric(activity);
-  return {primaryLabel:'距离', primary:activity.distanceKm === null ? missingMetric : measuredMetric(activity.distanceKm.toFixed(2) + ' km', activity.distanceKm.toFixed(2) + '<small>km</small>'), secondaryLabel:metric.label, secondary:metric};
+  return {primaryLabel:'距离', primary:activity.distanceKm === null ? missingMetric : measuredMetric(formatDistance(activity.distanceKm) + ' km', formatDistance(activity.distanceKm) + '<small>km</small>'), secondaryLabel:metric.label, secondary:metric};
 }
 
 function recordCard(activity) {
@@ -133,7 +137,7 @@ function recordCard(activity) {
       <div class="record-meta"><span><span class="record-meta-label">时长</span>${escapeHtml(duration)}</span><span><span class="record-meta-label">${secondaryLabel}</span>${secondary.html}</span></div>
       <p class="record-details"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</time><span>${weekday}</span>${stravaUrl ? '<span class="record-open" aria-hidden="true">Strava ↗</span>' : ''}</p>
     </div>
-    <div class="record-load"><span class="record-load-value${trainingLoad === null ? ' missing' : ''}">${trainingLoad ?? '未记录'}</span><span class="record-load-label">训练负荷</span></div>
+    <div class="record-load"><span class="record-load-value${trainingLoad === null ? ' missing' : ''}">${trainingLoad === null ? '未提供' : formatLoad(trainingLoad)}</span><span class="record-load-label">训练负荷</span></div>
   </article>`;
 }
 export function renderDayRecords(records, title = '当天运动记录') {
@@ -147,7 +151,7 @@ export function renderDayRecords(records, title = '当天运动记录') {
       <td role="cell"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日<small>${date.slice(0, 4)}</small></time></td>
       <td role="cell">${stravaUrl ? `<a class="activity-link activity-name" href="${escapeHtml(stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(aria)}，在 Strava 查看（新标签页）">${name}<span class="activity-open" aria-hidden="true">↗</span></a>` : `<span class="activity-name">${name}</span>`}</td>
       <td role="cell" data-label="${primaryLabel}">${primary.html}</td>
-      <td role="cell" data-label="运动时间">${escapeHtml(duration)}</td><td role="cell" data-label="${secondaryLabel}">${secondary.html}</td><td role="cell" data-label="训练负荷">${trainingLoad ?? '未提供'}</td>
+      <td role="cell" data-label="运动时间">${escapeHtml(duration)}</td><td role="cell" data-label="${secondaryLabel}">${secondary.html}</td><td role="cell" data-label="训练负荷">${trainingLoad === null ? '未提供' : formatLoad(trainingLoad)}</td>
     </tr>`;
   }).join('');
   const labels = metricsByRecord.map(({metric}) => metric);
@@ -212,8 +216,7 @@ const gearTypes = {
 const gearType = part => part.type === 'Tyre'
   ? part.name.startsWith('前胎') ? '前胎' : part.name.startsWith('后胎') ? '后胎' : '外胎'
   : Object.hasOwn(gearTypes, part.type) ? gearTypes[part.type] : part.type;
-const kilometers = value => value.toLocaleString('zh-CN', {maximumFractionDigits:2});
-const gearDistance = value => value === null ? '未提供' : kilometers(value) + ' km';
+const gearDistance = value => value === null ? '未提供' : formatDistance(value) + ' km';
 const componentState = part => !part.replacement ? 'untracked' : part.replacement.distanceKm === null ? 'unknown'
   : part.replacement.distanceKm >= replacementTargets[part.type] ? 'due'
   : part.replacement.distanceKm >= replacementTargets[part.type] * .8 ? 'soon' : part.replacement.date === null ? 'unknown' : 'normal';
@@ -237,12 +240,12 @@ function componentCard(part, bikeName, id) {
   const warning = status === 'missing-reminder' ? '未设置更换提醒' : status === 'duplicate-reminder' ? '“更换”提醒重名，请保留一个' : null;
   const state = componentState(part);
   const label = warning ?? (distanceKm === null ? '更换后里程未提供' : state === 'due' ? '已达建议更换里程' : state === 'soon' ? '接近建议更换里程' : date === null ? '最近更换日期未记录' : '使用中');
-  const remaining = distanceKm === null ? '建议更换里程 ' + kilometers(target) + ' km'
+  const remaining = distanceKm === null ? '建议更换里程 ' + formatDistance(target) + ' km'
     : distanceKm > target ? '已超出建议里程 ' + gearDistance(distanceKm - target) : '距建议里程 ' + gearDistance(target - distanceKm);
-  const progress = distanceKm === null ? '' : `<div class="gear-progress" role="progressbar" aria-label="${escapeHtml(bikeName + ' · ' + type + ' · ' + part.name + '更换里程')}" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(distanceKm,target)}" aria-valuetext="已使用 ${gearDistance(distanceKm)}，建议更换里程 ${kilometers(target)} km，${remaining}"><span style="width:${Math.min(distanceKm / target * 100,100)}%"></span></div>`;
+  const progress = distanceKm === null ? '' : `<div class="gear-progress" role="progressbar" aria-label="${escapeHtml(bikeName + ' · ' + type + ' · ' + part.name + '更换里程')}" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(distanceKm,target)}" aria-valuetext="已使用 ${gearDistance(distanceKm)}，建议更换里程 ${formatDistance(target)} km，${remaining}"><span style="width:${Math.min(distanceKm / target * 100,100)}%"></span></div>`;
   return `<article class="gear-part gear-part-tracked" id="${id}" tabindex="-1" data-state="${state}">${heading}
     <p class="gear-replaced">最近更换 ${date === null ? '<span>未记录</span>' : '<time datetime="' + date + '">' + date.replaceAll('-','.') + '</time>'}</p>
-    <p class="gear-used"><strong>${gearDistance(distanceKm)}</strong><span> / ${kilometers(target)} km</span></p>
+    <p class="gear-used"><strong>${gearDistance(distanceKm)}</strong><span> / ${formatDistance(target)} km</span></p>
     ${progress}<div class="gear-progress-caption"><span>${remaining}</span>${distanceKm === null ? '' : '<span>' + Math.floor(distanceKm / target * 100) + '%</span>'}</div>
     <p class="gear-state">${label}</p>${positionNote}${total}</article>`;
 }
@@ -274,7 +277,7 @@ function renderGearMaintenance({parts, shared, counts}) {
     ${attention.length ? `<ul class="maintenance-list">${attention.map(({part, state, owners}) => {
       const distance = part.replacement.distanceKm;
       const target = replacementTargets[part.type];
-      const usage = distance === null ? '更换后里程未提供' : `已使用 ${gearDistance(distance)} / ${kilometers(target)} km · ${distance > target ? '已超出 ' + gearDistance(distance - target) : '距建议里程 ' + gearDistance(target - distance)}`;
+      const usage = distance === null ? '更换后里程未提供' : `已使用 ${gearDistance(distance)} / ${formatDistance(target)} km · ${distance > target ? '已超出 ' + gearDistance(distance - target) : '距建议里程 ' + gearDistance(target - distance)}`;
       const issues = [];
       if (part.replacement.status === 'missing-reminder') issues.push('未设置更换提醒');
       if (part.replacement.status === 'duplicate-reminder') issues.push('“更换”提醒重名');
@@ -337,9 +340,9 @@ function renderRecentSummary(recent, data, endDate) {
   if (missing) notes.push(missing + ' 次运动' + dayStateLabels.missing + '（距离未提供）');
   if (unavailable) notes.push('另有 ' + unavailable + ' 条' + dayStateLabels.unavailable + '，未计入统计');
   if (start < data.period.start || endDate > data.period.end) notes.push('部分日期' + dayStateLabels.pending + '，当前为已同步记录');
-  const distanceText = recent.length && missing === recent.length ? '—' : distance.toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const distanceText = recent.length && missing === recent.length ? '—' : formatDistance(distance);
   return `<div class="summary-context"><span class="summary-label">最近 7 天</span><span class="summary-period"><time datetime="${start}">${start.replaceAll('-', '.')}</time> — <time datetime="${endDate}">${endDate.replaceAll('-', '.')}</time></span></div>
-    <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>公里</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}`;
+    <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>km</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}`;
 }
 
 // 一条已读取的活动只要应有的指标未提供，就计入“指标缺失”；与未同步、详情不可读取分开统计。

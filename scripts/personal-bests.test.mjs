@@ -5,12 +5,13 @@ import {validatePersonalBests, renderPersonalBests, renderPersonalBestsPanel, in
 const record = {sport:'跑步', event:'5 公里', result:'21:02', date:'2025-05-01', activityUrl:'https://intervals.icu/activities/i123', stravaUrl:'https://www.strava.com/activities/9123'};
 const snapshot = records => ({source:'Intervals.icu', syncedAt:'2026-10-16T04:00:00.000Z', records});
 
-test('保留成绩原文、按运动分组，并链接正确活动', () => {
+test('统一显示用时且保留快照原文、按运动分组，并链接正确活动', () => {
   const data = snapshot([record, {...record, event:'10 公里', result:'44:03'}, {...record, sport:'骑行', event:'CP20', result:'233 W'}]);
   const before = structuredClone(data);
   const html = renderPersonalBests(data);
   assert.equal((html.match(/class="pb-group"/g) ?? []).length, 2);
-  assert.match(html, /21:02/);
+  assert.match(html, />0:21:02/);
+  assert.match(html, />0:44:03/);
   assert.match(html, /href="https:\/\/www\.strava\.com\/activities\/9123"/);
   assert.doesNotMatch(html, /href="https:\/\/intervals\.icu/);
   assert.match(html, /datetime="2025-05-01"/);
@@ -50,7 +51,7 @@ test('功率名称直接说明时长，标准单位缩小显示且保留原始�
 test('有链接时显示装饰箭头，日期缺失时仍提供完整链接名称', () => {
   const html = renderPersonalBests(snapshot([{...record, date:null}]));
   assert.match(html, /class="pb-arrow" aria-hidden="true">↗<\/span>/);
-  assert.match(html, /aria-label="跑步 5 公里，21:02，日期未提供，在 Strava 查看（新标签页）"/);
+  assert.match(html, /aria-label="跑步 5 公里，0:21:02，日期未提供，在 Strava 查看（新标签页）"/);
 });
 
 test('分组与组内顺序固定，不随记录顺序变化', () => {

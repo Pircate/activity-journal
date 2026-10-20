@@ -1,5 +1,5 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml:esc, isDate} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml:esc, isDate, formatDistance, formatTime, durationSeconds} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 
 // 事件白名单同时决定分组的展示顺序：跑步按距离，骑行按距离与功率。
 export const personalBestEvents = {'跑步':['5 公里', '10 公里', '半程马拉松', '全程马拉松'], '骑行':['最远距离', 'CP5', 'CP20']};
@@ -42,9 +42,11 @@ export function renderPersonalBests(data) {
   return [...groups].map(([sport, records]) => `<section class="pb-group" data-sport="${esc(sport)}"><div class="pb-group-head"><div class="pb-sport-heading"><span class="pb-sport-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportMarks[sport]}</svg></span><div><h3>${esc(sport)}</h3><p>${sport === '跑步' ? '距离最佳用时' : '距离与持续输出'}</p></div></div><span class="pb-count">${records.length} 项纪录</span></div><div class="pb-grid">${records.map(record => {
     const date = record.date ? `<time datetime="${record.date}">${record.date.replaceAll('-', '.')}</time>` : '<span>日期未提供</span>';
     const eventLabel = {CP5:'5 分钟功率', CP20:'20 分钟功率'}[record.event] ?? record.event;
-    const units = /^(\d+(?:\.\d+)?)(\s+)(km|W)$/.exec(record.result);
-    const value = units ? `${esc(units[1])}${units[2]}<small class="pb-unit">${units[3]}</small>` : esc(record.result);
-    const result = record.stravaUrl ? `<a class="pb-link" href="${esc(record.stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sport + ' ' + eventLabel + '，' + record.result + '，' + (record.date ?? '日期未提供') + '，在 Strava 查看（新标签页）')}">${value}<span class="pb-arrow" aria-hidden="true">↗</span></a>` : value;
+    const displayedResult = record.event === '最远距离' && /^\d+(?:\.\d+)? km$/.test(record.result) ? formatDistance(Number.parseFloat(record.result)) + ' km'
+      : sport === '跑步' && /^\d+:\d{2}(?::\d{2})?$/.test(record.result) ? formatTime(durationSeconds(record.result)) : record.result;
+    const units = /^([\d,]+(?:\.\d+)?)(\s+)(km|W)$/.exec(displayedResult);
+    const value = units ? `${esc(units[1])}${units[2]}<small class="pb-unit">${units[3]}</small>` : esc(displayedResult);
+    const result = record.stravaUrl ? `<a class="pb-link" href="${esc(record.stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sport + ' ' + eventLabel + '，' + displayedResult + '，' + (record.date ?? '日期未提供') + '，在 Strava 查看（新标签页）')}">${value}<span class="pb-arrow" aria-hidden="true">↗</span></a>` : value;
     return `<article class="pb-card" data-event="${esc(record.event)}"><h4>${esc(eventLabel)}</h4><p class="pb-result">${result}</p><p class="pb-meta">${date}${record.stravaUrl ? '' : '<span>Strava 链接未提供</span>'}</p></article>`;
   }).join('')}</div></section>`).join('');
 }

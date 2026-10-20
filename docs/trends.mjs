@@ -1,5 +1,5 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml, formatTime, beijingDate, renderYearOptions, availableYears, dayStateLabels, dayStateNotes} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml, formatTime, formatDistance, formatLoad, beijingDate, renderYearOptions, availableYears, dayStateLabels, dayStateNotes} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const shift = (date, days) => new Date(Date.parse(date + 'T00:00:00Z') + days * 86400000).toISOString().slice(0, 10);
 const monthStart = date => date.slice(0, 7) + '-01';
 const nextMonth = date => new Date(Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)), 1)).toISOString().slice(0, 10);
@@ -7,10 +7,10 @@ const weekStart = date => shift(date, -((new Date(date + 'T00:00:00Z').getUTCDay
 const daysBetween = (start, end) => Math.round((Date.parse(end) - Date.parse(start)) / 86400000);
 const pretty = date => date.replaceAll('-', '.');
 const metrics = {
-  distanceKm:{label:'距离', unit:'公里', format:value => value.toLocaleString('zh-CN', {maximumFractionDigits:2}), missing:'missingDistance'},
+  distanceKm:{label:'距离', unit:'km', format:formatDistance, missing:'missingDistance'},
   durationSeconds:{label:'时长', unit:'', format:formatTime},
   count:{label:'次数', unit:'次', format:String},
-  trainingLoad:{label:'负荷', unit:'', format:value => value.toLocaleString('zh-CN', {maximumFractionDigits:1}), missing:'missingLoad'},
+  trainingLoad:{label:'负荷', unit:'', format:formatLoad, missing:'missingLoad'},
 };
 
 export function createTrends(data, range = 'recent', mode = 'month', today = beijingDate(), sport = '') {

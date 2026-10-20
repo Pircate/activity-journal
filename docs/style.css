@@ -16,7 +16,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:20px;pa
 .records-section{padding:9px 0 0}.records-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.record-card{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid transparent;border-radius:10px;background:#232323;padding:20px;min-width:0}.record-card:hover{border-color:#454545}.record-body{min-width:0}.record-top{display:flex;align-items:center;gap:6px;margin:0 0 8px}.record-top .record-sport{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:.8125rem}.record-top .record-icon{width:16px;height:16px}.record-distance{display:flex;flex-direction:column;align-items:flex-start;gap:1px;margin:0;color:var(--text);font-size:1.5rem;font-weight:700;letter-spacing:-.03em;line-height:1.12;font-variant-numeric:tabular-nums}.record-metric-label{color:var(--muted);font-size:.6875rem;font-weight:500;letter-spacing:0}.record-metric-value{min-width:0}.record-distance small{margin-left:4px;font-size:.75rem;font-weight:600;letter-spacing:0}.record-icon{width:22px;height:22px;flex-shrink:0;color:#32d05b}.record-card.hike .record-icon{color:#f2d839}.record-metric-missing{font-size:.9375rem;font-weight:500;letter-spacing:0}.record-meta{display:flex;flex-wrap:wrap;gap:2px 12px;margin-top:8px;color:#c4c4c4;font-size:.875rem;line-height:1.4;font-variant-numeric:tabular-nums}.record-meta>span{white-space:nowrap}.record-meta-label{margin-right:5px;color:var(--muted);font-size:.6875rem}.record-meta small{margin-left:3px;font-size:.6875rem}.record-details{display:flex;flex-wrap:wrap;gap:2px 9px;margin:10px 0 0;color:var(--muted);font-size:.8125rem;line-height:1.45}.record-details>span,.record-details time{white-space:nowrap}.record-sport{color:var(--muted)}.record-load{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;align-self:stretch;flex-shrink:0;min-width:56px;padding-left:12px;border-left:1px solid #3a3a3a;font-variant-numeric:tabular-nums}.record-load-value{color:#e0e0e0;font-size:1.125rem;font-weight:600;line-height:1.15}.record-load-value.missing{color:var(--muted);font-size:.75rem;font-weight:400}.record-load-label{color:var(--muted);font-size:.6875rem;white-space:nowrap}.records-empty{margin:0;color:var(--muted);font-size:.75rem}.records-note{margin:14px 0 0;color:var(--muted);font-size:.75rem;line-height:1.5}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.daily-details table{width:100%;border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums}.daily-details th,.daily-details td{padding:8px 0;border-bottom:1px solid var(--line)}
 footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;display:flex;justify-content:space-between;gap:24px;align-items:flex-start;color:var(--muted);font-size:.75rem}footer p{margin:0 0 4px}.footer-title{color:var(--text);font-weight:500}.footer-right{text-align:right}.footer-note{margin-top:8px!important}
 @media(max-width:900px){.records-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap{padding:0 24px}.plot{gap:5px}.chart-card{padding:16px}}
-@media(max-width:600px){.wrap{padding:0 20px}header{padding:22px 0;gap:16px;flex-wrap:wrap}.brand{font-size:.875rem;gap:9px}nav{gap:18px;font-size:.875rem}h1{font-size:1.75rem}.eyebrow{margin-bottom:8px}.period{font-size:.8125rem}.section-head{margin-bottom:12px;flex-wrap:wrap;gap:5px}.section-head h2{font-size:1.0625rem}.chart-section{padding:28px 0 0}.chart-card{padding:14px 12px;border-radius:12px}.chart-top{align-items:flex-start;margin-bottom:22px;gap:12px;flex-wrap:wrap}.chart-legend{gap:12px}.chart-area{grid-template-columns:22px 1fr;gap:8px}.plot{gap:3px}.x-axis{margin-left:30px;gap:4px}.x-axis span:nth-child(4){display:none}.bar{border-radius:2px 2px 0 0}.chart-caption{margin-top:20px}.records-grid{grid-template-columns:1fr;gap:12px}.record-card{padding:16px;gap:12px}.record-distance{font-size:1.375rem}.record-icon{width:20px;height:20px}.record-meta{font-size:.8125rem;gap:2px 10px}.record-details{gap:2px 9px;font-size:.75rem}.record-load{min-width:52px;padding-left:10px}.record-load-value{font-size:1.0625rem}.records-section{padding:9px 0 0}footer{flex-direction:column;gap:12px;padding:16px 0 18px}.footer-right{text-align:left}}
+@media(max-width:600px){.wrap{padding:0 20px}header{padding:14px 0;gap:10px;flex-wrap:wrap}.brand{font-size:.875rem;gap:9px}nav{gap:4px 16px;font-size:.8125rem}nav a{display:inline-flex;align-items:center;min-height:44px}h1{font-size:1.75rem}.eyebrow{margin-bottom:8px}.period{font-size:.8125rem}.section-head{margin-bottom:12px;flex-wrap:wrap;gap:5px}.section-head h2{font-size:1.0625rem}.chart-section{padding:28px 0 0}.chart-card{padding:14px 12px;border-radius:12px}.chart-top{align-items:flex-start;margin-bottom:22px;gap:12px;flex-wrap:wrap}.chart-legend{gap:12px}.chart-area{grid-template-columns:22px 1fr;gap:8px}.plot{gap:3px}.x-axis{margin-left:30px;gap:4px}.x-axis span:nth-child(4){display:none}.bar{border-radius:2px 2px 0 0}.chart-caption{margin-top:20px}.records-grid{grid-template-columns:1fr;gap:12px}.record-card{padding:16px;gap:12px}.record-distance{font-size:1.375rem}.record-icon{width:20px;height:20px}.record-meta{font-size:.8125rem;gap:2px 10px}.record-details{gap:2px 9px;font-size:.75rem}.record-load{min-width:52px;padding-left:10px}.record-load-value{font-size:1.0625rem}.records-section{padding:9px 0 0}footer{flex-direction:column;gap:12px;padding:16px 0 18px}.footer-right{text-align:left}}
 @media(max-width:360px){.record-distance{font-size:1.25rem}.record-icon{width:17px;height:17px}.record-load{min-width:48px;padding-left:8px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media print{body{background:#fff;color:#111}nav,.skip{display:none}.metric-value.primary,.record-distance,.record-sport,.record-load-value{color:#111}.chart-card,.record-card{background:#fff}.bar{background:#c2410c}.bar.hike{background:#888}}
@@ -94,17 +94,16 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 @media print{.gear-bike,.gear-part,.gear-empty{background:white;color:#111}.gear-progress{print-color-adjust:exact}.gear-bike-heading strong,.gear-replaced time{color:#111}.gear-part{break-inside:avoid}}
 
 /* 年度概览与热力图共用统计范围 */
-.hero{padding:32px 0 16px}
-.recent-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px 32px;margin-top:24px;padding:20px 24px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.recent-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 24px;margin:0;padding:16px 20px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .summary-context{display:flex;flex-direction:column;gap:4px}
 .summary-label{font-size:.875rem;font-weight:600}
 .summary-period{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.summary-stats{display:flex;gap:40px;margin:0;font-variant-numeric:tabular-nums}
+.summary-stats{display:flex;gap:28px;margin:0;font-variant-numeric:tabular-nums}
 .summary-stats dt{font-size:.75rem;color:var(--muted);margin-bottom:4px}
-.summary-stats dd{margin:0;font-size:1.5rem;font-weight:600;line-height:1.3;white-space:nowrap}
+.summary-stats dd{margin:0;font-size:1.375rem;font-weight:600;line-height:1.3;white-space:nowrap}
 .summary-stats small{margin-left:5px;font-size:.75rem;font-weight:400;color:var(--muted)}
 .summary-note{width:100%;margin:0;color:var(--muted);font-size:.75rem}
-@media(max-width:600px){.recent-summary{padding:16px;gap:16px}.summary-context{width:100%;gap:3px}.summary-stats{display:grid;grid-template-columns:auto auto auto;justify-content:space-between;gap:10px;width:100%}.summary-stats dd{font-size:1.125rem}.summary-stats small{margin-left:3px;font-size:.6875rem}}
+@media(max-width:600px){.recent-summary{padding:12px 14px;gap:12px}.summary-context{width:100%;flex-direction:row;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:2px 10px}.summary-stats{display:grid;grid-template-columns:auto auto auto;justify-content:space-between;gap:10px;width:100%}.summary-stats dd{font-size:1.125rem}.summary-stats small{margin-left:3px;font-size:.6875rem}}
 @media print{.recent-summary{background:white}.summary-stats dd{color:#111}}
 .annual-overview{padding:0 0 24px;margin-bottom:24px;border-bottom:1px solid var(--line)}
 .overview-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
@@ -124,7 +123,6 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 .legend-item{display:inline-flex;align-items:baseline;gap:4px;padding:3px 9px;background:#282828;border-radius:5px;color:var(--muted);font-size:.6875rem}
 .legend-item strong{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
 @media(max-width:600px){
-  .hero{padding:24px 0 16px}
   .annual-overview{padding:0 0 20px;margin-bottom:20px}
   .overview-heading{align-items:flex-start;gap:8px;margin-bottom:16px}
   .year-aside{flex-direction:column;align-items:flex-end;gap:0}
@@ -234,13 +232,15 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 @media(max-width:600px){.scope-note{padding:10px 12px}.legend-item{min-height:44px;padding:8px 12px;font-size:.8125rem}}
 @media print{.scope-note{background:white;color:#111}.legend-item[aria-pressed=true]{border-color:#111}}
 
-/* 个人名片 */
-.profile{padding:24px 0 20px}
-.profile h1{font-size:clamp(2rem,4vw,2.75rem);line-height:1.2}
+/* 个人名片在上，七天摘要在下方独占一行。 */
+.intro{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;padding:24px 0 18px}
+.profile{min-width:0}
+.profile h1{font-size:clamp(1.75rem,3vw,2.25rem);line-height:1.2}
 .profile-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;margin-top:8px}
 .profile-location{margin:0;color:var(--muted);font-size:.8125rem}
 .strava-link{display:inline-flex;align-items:center;gap:6px;min-height:28px;color:var(--accent-soft);font-size:.8125rem}
-.profile+.recent-summary{margin:0 0 18px}
+@media(max-width:900px){.intro{gap:14px;padding:18px 0 12px}.profile-identity{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 18px}.profile-meta{margin-top:0}.profile h1{margin:0}.summary-stats{gap:20px}}
+@media(max-width:600px){.profile-meta{gap:4px 12px}.strava-link{min-height:44px}.intro{gap:10px;padding-top:12px}}
 @media print{.strava-link{color:#111}}
 
 /* 全历史个人最佳成绩 */
@@ -303,3 +303,54 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
   .pb-group[data-sport="骑行"] .pb-card[data-event="最远距离"]~.pb-card{border-top:1px solid #ffffff0e}
 }
 @media print{.pb-group,.pb-empty{background:white;color:#111;border-color:#ccc}.pb-result,.pb-sport-mark,.pb-count{color:#111}.pb-sport-mark,.pb-count{background:none;border-color:#ccc}.pb-card{break-inside:avoid}.pb-arrow,.pb-group::before{display:none}}
+
+/* 记录以来的累计里程碑：概览与固定目标轨迹，不参与年度和类型筛选。 */
+.ms-section{padding:32px 0 0}
+.ms-panel{padding:24px;border:1px solid var(--line);border-radius:14px;background:radial-gradient(ellipse at 85% 0,#fc4c0214,transparent 48%),var(--panel);min-width:0}
+.ms-overview{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,auto);align-items:end;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.ms-kicker{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;margin-bottom:8px;color:var(--muted);font-size:.75rem}
+.ms-kicker span:last-child{color:var(--accent-soft)}
+.ms-distance{display:flex;align-items:baseline;gap:8px;margin:0;color:var(--accent);font-size:clamp(2.5rem,7vw,4.5rem);font-weight:700;line-height:1.1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.ms-distance strong{font:inherit}
+.ms-distance small{font-size:1rem;font-weight:500;letter-spacing:0;color:var(--accent-soft)}
+.ms-meta{margin:10px 0 0;color:var(--muted);font-size:.8125rem;font-variant-numeric:tabular-nums}
+.ms-latest{min-width:0;padding:14px 16px;border:1px solid #3d3530;border-radius:10px;background:#251e1a}
+.ms-latest>span{display:block;margin-bottom:4px;color:var(--muted);font-size:.6875rem}
+.ms-latest>strong{display:block;font-size:.875rem;font-weight:600;line-height:1.5}
+.ms-latest time{display:block;margin-top:4px;color:var(--accent-soft);font-size:.75rem;font-variant-numeric:tabular-nums}
+.ms-latest>p{margin:4px 0 0;color:var(--muted);font-size:.75rem}
+.ms-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px;min-width:0}
+.ms-track{min-width:0;padding:18px;border:1px solid #303030;border-radius:10px;background:#202020}
+.ms-track-head{display:flex;align-items:flex-start;gap:10px}
+.ms-icon{display:grid;place-items:center;width:34px;height:34px;flex-shrink:0;border:1px solid #4a3025;border-radius:9px;background:#2b1c15;color:var(--accent-soft)}
+.ms-icon svg{width:24px;height:24px}
+.ms-track-head>div{min-width:0;flex:1}
+.ms-track h3{margin:0;font-size:.9375rem;line-height:1.4;font-weight:600}
+.ms-track-head p{margin:2px 0 0;color:var(--muted);font-size:.6875rem;line-height:1.5}
+.ms-track-count{flex-shrink:0;padding:2px 7px;border-radius:5px;background:#2c2c2c;color:var(--muted);font-size:.6875rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ms-track-value{display:flex;align-items:baseline;gap:5px;margin:16px 0 0;font-size:1.75rem;font-weight:650;line-height:1.2;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.ms-track-value small{font-size:.75rem;font-weight:500;letter-spacing:0;color:var(--muted)}
+.ms-next-line{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:2px 10px;margin-top:8px;color:var(--muted);font-size:.6875rem}
+.ms-next-line strong{color:var(--accent-soft);font-weight:500}
+.ms-progress{height:5px;margin-top:10px;overflow:hidden;border-radius:3px;background:#363636}
+.ms-progress>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a93b0d,var(--accent))}
+.ms-steps{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(58px,1fr));gap:4px;margin:14px 0 0;padding:0}
+.ms-steps li{position:relative;min-width:0;padding-top:9px;border-top:1px solid #3a3a3a;color:#777;font-size:.6875rem;font-variant-numeric:tabular-nums}
+.ms-steps li[data-state=reached]{border-color:#b44215;color:var(--text)}
+.ms-steps li[data-next=true]{border-color:#6b625d;color:var(--accent-soft)}
+.ms-steps span,.ms-steps small{display:block;overflow-wrap:anywhere;line-height:1.45}
+.ms-steps small{color:inherit;font-size:.625rem;opacity:.72}
+.ms-note{margin:16px 0 0;color:var(--muted);font-size:.75rem;line-height:1.6}
+@media(max-width:900px){.ms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+  .ms-section{padding-top:28px}
+  .ms-panel{padding:16px;border-radius:12px}
+  .ms-overview{grid-template-columns:1fr;align-items:start;gap:14px;padding-bottom:16px}
+  .ms-distance{font-size:2.75rem}
+  .ms-latest{padding:12px 14px}
+  .ms-grid{grid-template-columns:1fr;gap:10px;margin-top:16px}
+  .ms-track{padding:14px}
+  .ms-track-value{font-size:1.5rem}
+  .ms-steps{grid-template-columns:repeat(auto-fit,minmax(54px,1fr))}
+}
+@media print{.ms-panel,.ms-track,.ms-latest{background:white;color:#111;border-color:#ccc}.ms-distance,.ms-latest time,.ms-next-line strong{color:#111}.ms-icon{background:none;color:#111;border-color:#ccc}}

@@ -128,7 +128,7 @@ test('普通配件显示总里程；页面转义装备名称，且公开数据�
   const html = renderGearLibrary(library);
   assert.match(html,/&lt;script&gt;/);
   assert.match(html,/&lt;img/);
-  assert.match(html,/累计里程 12,000 km/);
+  assert.match(html,/累计里程 12,000\.00 km/);
   assert.doesNotMatch(html,/<script>|<img|role="progressbar"/);
   assert.doesNotMatch(JSON.stringify(library),/internal-part|secret-athlete|私密备注|athlete_id|component_ids/);
   validateData(snapshot(library));
@@ -139,8 +139,8 @@ test('普通配件显示总里程；页面转义装备名称，且公开数据�
 test('装备使用总里程与年度范围无关，首次未同步与真实空列表明确区分', () => {
   const data = snapshot(normalizeGear([bike('车',['链条']),part('链条','Chain',{reminders:[reminder(6500000)]})]));
   assert.notEqual(createJournal(data).period.end,createJournal(data,'2027-10-15').period.end);
-  assert.match(renderGearLibrary(data.gearLibrary),/24,000 km/);
-  assert.match(renderGearLibrary(data.gearLibrary),/6,500 km/);
+  assert.match(renderGearLibrary(data.gearLibrary),/24,000\.00 km/);
+  assert.match(renderGearLibrary(data.gearLibrary),/6,500\.00 km/);
   for (const value of [null,[]]) validateData(snapshot(value));
   assert.match(renderGearLibrary(null),/装备尚未同步/);
   assert.match(renderGearLibrary([]),/还没有在用的自行车/);
@@ -215,8 +215,8 @@ test('维护摘要优先已达、接近、信息缺失；未知日期和零里�
   assert.deepEqual(summary.parts.map(entry => entry.state), ['due','soon','unknown','unknown','normal']);
   const html = renderGearLibrary(library);
   const maintenance = html.slice(0, html.indexOf('<details'));
-  assert.match(maintenance, /已超出 1,000 km/);
-  assert.match(maintenance, /距建议里程 1,000 km/);
+  assert.match(maintenance, /已超出 1,000\.00 km/);
+  assert.match(maintenance, /距建议里程 1,000\.00 km/);
   assert.match(maintenance, /最近更换日期未记录/);
   assert.doesNotMatch(maintenance, /NaN|Infinity/);
   assert.doesNotMatch(maintenance, /<h4>正常<\/h4>|<h4>普通配件<\/h4>/);

@@ -92,7 +92,7 @@ test('总负荷与各运动距离、时长、次数、负荷一致，未知负�
   assert.equal(report.buckets[0].missingLoad, 1);
   assert.equal(report.buckets[1].trainingLoad, 0);
   assert.match(reportSummary(report), /总负荷 80 TL/);
-  assert.match(reportSummary(report), /骑行 2 次 \/ 80 公里 \/ 1:00:00 \/ 70 TL/);
+  assert.match(reportSummary(report), /骑行 2 次 \/ 80\.00 km \/ 1:00:00 \/ 70 TL/);
 });
 
 test('图片支持四项图表指标，完整显示所有运动统计，图片高度容纳明细和说明', () => {
