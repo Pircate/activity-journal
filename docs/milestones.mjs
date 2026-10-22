@@ -60,8 +60,7 @@ function track(definition, activities) {
   const reached = milestones.filter(milestone => milestone.reached);
   const latest = reached.at(-1) ?? null;
   const next = milestones.find(milestone => !milestone.reached) ?? null;
-  const base = targetValue(definition.key, latest?.value ?? 0);
-  const progress = next ? Math.max(0, Math.min(1, (total - base) / (targetValue(definition.key, next.value) - base))) : 1;
+  const progress = next ? Math.max(0, Math.min(1, total / targetValue(definition.key, next.value))) : 1;
   const result = {...definition, total, valueText:valueText(definition.key, total), milestones, latest, next, progress, reached:reached.length};
   return {...result, remainingText:remainingText(result)};
 }

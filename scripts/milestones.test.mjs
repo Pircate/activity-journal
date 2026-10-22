@@ -6,6 +6,16 @@ const activity = (date, overrides = {}) => ({date, sport:'骑行', distanceKm:10
 const snapshot = (activities, unavailableActivities = []) => ({period:{start:'2021-01-01', end:'2026-10-16'}, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities, gearLibrary:[]});
 const track = (summary, key) => summary.tracks.find(item => item.key === key);
 
+test('进度表示累计值占下一目标的比例，达成上一目标后不归零', () => {
+  const data = snapshot([activity('2026-01-01', {distanceKm:33232.39})]);
+  assert.equal(track(createMilestones(data), 'distance').progress, 33232.39 / 50000);
+  const html = renderMilestones(data);
+  assert.match(html, /aria-label="累计里程目标进度"[^>]*aria-valuenow="66"[^>]*><span style="width:66\.46%"/);
+  for (const [total, expected] of [[0, 0], [5000, 0.5], [30000, 0.6], [50000, 1], [60000, 1]]) {
+    assert.equal(track(createMilestones(snapshot([activity('2026-01-01', {distanceKm:total})])), 'distance').progress, expected);
+  }
+});
+
 test('按日期顺序累计，跨过目标的活动记录达成日期，下一目标和剩余量正确', () => {
   const data = snapshot([
     activity('2026-01-03', {distanceKm:3000}),
