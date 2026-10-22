@@ -1,11 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createJournal, renderDayRecords, sportMetric, trainingLoadNote, formatPace} from '../docs/journal.mjs';
+import {createJournal, renderDayRecords, sportMetric, trainingLoadNote, formatPace, validateData} from '../docs/journal.mjs';
+import {normalizeActivities} from './update-data.mjs';
 
 const period = {start:'2021-01-01', end:'2026-10-16'};
 const activity = (sport, distanceKm, duration, extra = {}) => ({date:'2026-10-15', sport, distanceKm, duration, trainingLoad:30, ...extra});
 const snapshot = activities => ({period, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]});
 const cards = activities => createJournal(snapshot(activities), '2026-10-16').cards;
+
+test('累计爬升从来源字段保留米值，卡片区分零和缺失并拒绝无效值', () => {
+  const source = {id:'i1', type:'Ride', start_date:'2026-10-15T00:00:00Z', moving_time:3600, distance:30000, icu_training_load:30, strava_id:'123'};
+  for (const value of [1234.56, 0, null, undefined]) {
+    const records = normalizeActivities([{...source, total_elevation_gain:value}], period);
+    const html = cards(records);
+    if (value == null) {
+      assert.equal(records[0].elevationGain, undefined);
+      assert.match(html, /<span class="record-meta-label">累计爬升<\/span><span class="record-metric-missing">未提供<\/span>/);
+    } else {
+      assert.equal(records[0].elevationGain, value);
+      const expected = value === 0 ? '0' : '1,234.6';
+      assert.ok(html.includes(`<span class="record-meta-label">累计爬升</span>${expected}<small>m</small>`));
+      assert.ok(html.includes(`，累计爬升 ${expected} m，在 Strava 查看`));
+    }
+    assert.doesNotMatch(html, /NaN|Infinity|undefined/);
+  }
+  assert.match(cards([activity('骑行', 30, '1:00:00', {elevationGain:null})]), /累计爬升<\/span><span class="record-metric-missing">未提供/);
+  for (const value of [-1, '100', NaN, Infinity]) {
+    assert.throws(() => normalizeActivities([{...source, total_elevation_gain:value}], period), /累计爬升无效/);
+    assert.throws(() => validateData(snapshot([activity('骑行', 30, '1:00:00', {elevationGain:value})])), /运动记录格式无效/);
+  }
+});
 
 test('副指标按运动类型换算：跑步／步行看配速，游泳看每百米，其余看速度', () => {
   assert.deepEqual(sportMetric(activity('跑步', 10, '0:50:00')), {label:'平均配速', text:'5:00 /km', html:'5:00<small>/km</small>'});
@@ -33,7 +57,7 @@ test('卡片层级展示运动类型、主指标标签与副指标标签', () =>
   assert.match(html, /<p class="record-top"><span class="record-sport">.*?跑步<\/span><\/p>/);
   assert.match(html, /<span class="record-metric-label">距离<\/span><span class="record-metric-value">10\.00<small>km<\/small>/);
   assert.match(html, /<span class="record-meta-label">平均配速<\/span>5:00<small>\/km<\/small>/);
-  assert.match(html, /aria-label="2026-10-15 跑步，距离 10\.00 km，平均配速 5:00 \/km，时长 0:50:00，在 Strava 查看（新标签页）"/);
+  assert.match(html, /aria-label="2026-10-15 跑步，距离 10\.00 km，平均配速 5:00 \/km，时长 0:50:00，累计爬升 未提供，在 Strava 查看（新标签页）"/);
   const strength = cards([activity('力量训练', null, '0:30:00', {sets:12, averageHeartRate:131})]);
   assert.match(strength, /<span class="record-metric-label">组数<\/span><span class="record-metric-value">12<small>组<\/small>/);
   assert.match(strength, /<span class="record-meta-label">平均心率<\/span>131<small>bpm<\/small>/);

@@ -63,6 +63,7 @@ export function normalizeActivities(records, period, strengthSets = []) {
       distanceKm:distance === null ? null : Math.round(distance / 10) / 100,
       duration:formatTime(record.moving_time),
       trainingLoad:number(record.icu_training_load, '训练负荷'),
+      ...(record.total_elevation_gain != null ? {elevationGain:number(record.total_elevation_gain, '累计爬升')} : {}),
       activityUrl:'https://intervals.icu/activities/' + record.id,
       ...(record.strava_id ? {stravaUrl:'https://www.strava.com/activities/' + record.strava_id} : {}),
       ...(record.type === 'WeightTraining' ? {sets:setsByActivity.get('https://intervals.icu/activities/' + record.id) ?? null, averageHeartRate:number(record.average_heartrate, '平均心率') || null} : {}),
@@ -183,7 +184,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   // 从历史起点获取全部记录；达到条数上限时二分当地日期范围，不使用可能截断的结果。
   const fetchRange = async (oldest, newest) => {
     const params = new URLSearchParams({oldest, newest:newest + 'T23:59:59',
-      limit:'10000', fields:'id,type,start_date,moving_time,distance,icu_training_load,average_heartrate,source,start_date_local,strava_id'});
+      limit:'10000', fields:'id,type,start_date,moving_time,distance,total_elevation_gain,icu_training_load,average_heartrate,source,start_date_local,strava_id'});
     const records = await get(`athlete/${encodeURIComponent(athlete.id)}/activities?${params}`);
     if (!Array.isArray(records)) throw new Error('活动列表无效，未更新数据');
     if (records.length < 10000) return records;
