@@ -91,9 +91,9 @@ test('近期力量训练卡片显示组数与心率，未知值不当作零', ()
   const cards = createJournal(snapshot([strength])).cards;
   assert.match(cards, /12<small>组<\/small>/);
   assert.match(cards, /137<small>bpm<\/small>/);
-  assert.match(cards, /record-meta-label">平均心率<\/span>137/);
+  assert.match(cards, /class="sr-only">平均心率<\/span><\/span>137/);
   assert.doesNotMatch(cards, /km\/h|未记录距离/);
   const unknown = createJournal(snapshot([{...strength, sets:null, averageHeartRate:null}])).cards;
-  assert.match(unknown, /record-metric-label">组数<\/span><span class="record-metric-value"><span class="record-metric-missing">未提供/);
-  assert.match(unknown, /record-meta-label">平均心率<\/span><span class="record-metric-missing">未提供/);
+  assert.match(unknown, /class="sr-only">组数<\/span><\/span><span class="record-metric-value"><span class="record-metric-missing">未提供/);
+  assert.match(unknown, /class="sr-only">平均心率<\/span><\/span><span class="record-metric-missing">未提供/);
 });

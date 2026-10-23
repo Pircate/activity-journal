@@ -98,17 +98,30 @@ function activityMetrics(activity) {
   return {primaryLabel:'距离', primary:activity.distanceKm === null ? missingMetric : measuredMetric(formatDistance(activity.distanceKm) + ' km', formatDistance(activity.distanceKm) + '<small>km</small>'), secondaryLabel:metric.label, secondary:metric};
 }
 
+// 同一套 24px 线性图标；保留文字供读屏使用，视觉上只显示图形。
+const metricPaths = {
+  '距离':'<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/>',
+  '时长':'<circle cx="12" cy="14" r="8"/><path d="M12 10v4l3 2M9 2h6M12 2v4m6 2 2-2"/>',
+  '平均速度':'<path d="M4.2 19a9 9 0 1 1 15.6 0M12 5v2M5.6 8.6 7 10m11.4-1.4L17 10M3 14h2m14 0h2M12 15l4-4"/><circle cx="12" cy="15" r="1.5"/>',
+  '平均配速':'<path d="M4 18a8 8 0 1 1 16 0M12 7v2M6.3 10.3l1.4 1.4M12 16l4-4M9 21h6"/>',
+  '每百米配速':'<path d="M4 15a8 8 0 1 1 16 0M12 5v2m0 7 4-4M2 19q2.5-2 5 0t5 0 5 0 5 0"/>',
+  '累计爬升':'<path d="m3 17 6-6 4 4 8-10M15 5h6v6"/>',
+  '组数':'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  '平均心率':'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/><path d="M3 12h4l2-4 4 8 2-4h6"/>',
+};
+const metricLabel = (label, className) => `<span class="${className}" title="${label}"><svg class="metric-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${metricPaths[label]}</svg><span class="sr-only">${label}</span></span>`;
+
 function recordCard(activity) {
   const {date, sport, duration, trainingLoad, stravaUrl} = activity;
   const {primaryLabel, primary, secondaryLabel, secondary} = activityMetrics(activity);
   const weekday = new Intl.DateTimeFormat('zh-CN', {timeZone:'UTC', weekday:'long'}).format(new Date(date + 'T00:00:00Z'));
-  const heading = `<span class="record-metric-label">${primaryLabel}</span><span class="record-metric-value">${primary.html}</span>`;
+  const heading = `${metricLabel(primaryLabel, 'record-metric-label')}<span class="record-metric-value">${primary.html}</span>`;
   const elevation = activity.elevationGain == null ? missingMetric : measuredMetric(formatLoad(activity.elevationGain) + ' m', formatLoad(activity.elevationGain) + '<small>m</small>');
-  return `<article class="record-card${sport === '徒步' ? ' hike' : ''}">
+  return `<article class="record-card${sport === '徒步' ? ' hike' : ''}" title="${escapeHtml(primaryLabel + ' ' + primary.text + ' · 时长 ' + duration + ' · ' + secondaryLabel + ' ' + secondary.text + ' · 累计爬升 ' + elevation.text)}">
     <div class="record-body">
       <p class="record-top"><span class="record-sport">${sportIcon(sport)}${escapeHtml(sport)}</span></p>
       <h3 class="record-distance">${stravaUrl ? `<a class="record-link" href="${escapeHtml(stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(date + ' ' + sport + '，' + primaryLabel + ' ' + primary.text + '，' + secondaryLabel + ' ' + secondary.text + '，时长 ' + duration + '，累计爬升 ' + elevation.text)}，在 Strava 查看（新标签页）">${heading}</a>` : heading}</h3>
-      <div class="record-meta"><span><span class="record-meta-label">时长</span>${escapeHtml(duration)}</span><span><span class="record-meta-label">${secondaryLabel}</span>${secondary.html}</span><span><span class="record-meta-label">累计爬升</span>${elevation.html}</span></div>
+      <div class="record-meta"><span>${metricLabel('时长', 'record-meta-label')}${escapeHtml(duration)}</span><span>${metricLabel(secondaryLabel, 'record-meta-label')}${secondary.html}</span><span>${metricLabel('累计爬升', 'record-meta-label')}${elevation.html}</span></div>
       <p class="record-details"><time datetime="${date}">${Number(date.slice(5, 7))}月${Number(date.slice(8, 10))}日</time><span>${weekday}</span>${stravaUrl ? '<span class="record-open" aria-hidden="true">Strava ↗</span>' : ''}</p>
     </div>
     <div class="record-load"><span class="record-load-value${trainingLoad === null ? ' missing' : ''}">${trainingLoad === null ? '未提供' : formatLoad(trainingLoad)}</span><span class="record-load-label">训练负荷</span></div>
@@ -309,14 +322,18 @@ function renderRecentSummary(recent, data, endDate) {
   const distance = recent.reduce((sum, activity) => sum + Math.round((activity.distanceKm ?? 0) * 100), 0) / 100;
   const duration = recent.reduce((sum, activity) => sum + activity.duration.split(':').reduce((value, part) => value * 60 + Number(part), 0), 0);
   const missing = recent.filter(activity => activity.distanceKm === null).length;
+  const missingLoad = recent.filter(activity => activity.trainingLoad === null).length;
+  const load = recent.reduce((sum, activity) => sum + (activity.trainingLoad ?? 0), 0);
   const unavailable = data.unavailableActivities.filter(activity => activity.date >= start && activity.date <= endDate).length;
   const notes = [];
   if (missing) notes.push(missing + ' 次运动' + dayStateLabels.missing + '（距离未提供）');
+  if (missingLoad) notes.push(missingLoad + ' 次运动' + dayStateLabels.missing + '（负荷未提供' + (missingLoad < recent.length ? '，累计负荷仅含已提供值' : '') + '）');
   if (unavailable) notes.push('另有 ' + unavailable + ' 条' + dayStateLabels.unavailable + '，未计入统计');
   if (start < data.period.start || endDate > data.period.end) notes.push('部分日期' + dayStateLabels.pending + '，当前为已同步记录');
   const distanceText = recent.length && missing === recent.length ? '—' : formatDistance(distance);
+  const loadText = recent.length && missingLoad === recent.length ? '—' : formatLoad(load);
   return `<div class="summary-context"><span class="summary-label">最近 7 天</span><span class="summary-period"><time datetime="${start}">${start.replaceAll('-', '.')}</time> — <time datetime="${endDate}">${endDate.replaceAll('-', '.')}</time></span></div>
-    <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>km</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}`;
+    <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>km</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div><div><dt>累计负荷</dt><dd>${loadText}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}`;
 }
 
 // 一条已读取的活动只要应有的指标未提供，就计入“指标缺失”；与未同步、详情不可读取分开统计。

@@ -15,16 +15,16 @@ test('累计爬升从来源字段保留米值，卡片区分零和缺失并拒�
     const html = cards(records);
     if (value == null) {
       assert.equal(records[0].elevationGain, undefined);
-      assert.match(html, /<span class="record-meta-label">累计爬升<\/span><span class="record-metric-missing">未提供<\/span>/);
+      assert.match(html, /<span class="record-meta-label" title="累计爬升">.*?<span class="sr-only">累计爬升<\/span><\/span><span class="record-metric-missing">未提供<\/span>/);
     } else {
       assert.equal(records[0].elevationGain, value);
       const expected = value === 0 ? '0' : '1,234.6';
-      assert.ok(html.includes(`<span class="record-meta-label">累计爬升</span>${expected}<small>m</small>`));
+      assert.ok(html.includes(`<span class="sr-only">累计爬升</span></span>${expected}<small>m</small>`));
       assert.ok(html.includes(`，累计爬升 ${expected} m，在 Strava 查看`));
     }
     assert.doesNotMatch(html, /NaN|Infinity|undefined/);
   }
-  assert.match(cards([activity('骑行', 30, '1:00:00', {elevationGain:null})]), /累计爬升<\/span><span class="record-metric-missing">未提供/);
+  assert.match(cards([activity('骑行', 30, '1:00:00', {elevationGain:null})]), /累计爬升<\/span><\/span><span class="record-metric-missing">未提供/);
   for (const value of [-1, '100', NaN, Infinity]) {
     assert.throws(() => normalizeActivities([{...source, total_elevation_gain:value}], period), /累计爬升无效/);
     assert.throws(() => validateData(snapshot([activity('骑行', 30, '1:00:00', {elevationGain:value})])), /运动记录格式无效/);
@@ -55,12 +55,12 @@ test('缺少距离或时长时不换算、不编造，显示未提供', () => {
 test('卡片层级展示运动类型、主指标标签与副指标标签', () => {
   const html = cards([activity('跑步', 10, '0:50:00', {stravaUrl:'https://www.strava.com/activities/123'})]);
   assert.match(html, /<p class="record-top"><span class="record-sport">.*?跑步<\/span><\/p>/);
-  assert.match(html, /<span class="record-metric-label">距离<\/span><span class="record-metric-value">10\.00<small>km<\/small>/);
-  assert.match(html, /<span class="record-meta-label">平均配速<\/span>5:00<small>\/km<\/small>/);
+  assert.match(html, /<span class="record-metric-label" title="距离"><svg class="metric-icon"[^>]*aria-hidden="true"[^>]*>.*?<\/svg><span class="sr-only">距离<\/span><\/span><span class="record-metric-value">10\.00<small>km<\/small>/);
+  assert.match(html, /<span class="record-meta-label" title="平均配速"><svg .*?<span class="sr-only">平均配速<\/span><\/span>5:00<small>\/km<\/small>/);
   assert.match(html, /aria-label="2026-10-15 跑步，距离 10\.00 km，平均配速 5:00 \/km，时长 0:50:00，累计爬升 未提供，在 Strava 查看（新标签页）"/);
   const strength = cards([activity('力量训练', null, '0:30:00', {sets:12, averageHeartRate:131})]);
-  assert.match(strength, /<span class="record-metric-label">组数<\/span><span class="record-metric-value">12<small>组<\/small>/);
-  assert.match(strength, /<span class="record-meta-label">平均心率<\/span>131<small>bpm<\/small>/);
+  assert.match(strength, /<span class="record-metric-label" title="组数"><svg .*?<span class="sr-only">组数<\/span><\/span><span class="record-metric-value">12<small>组<\/small>/);
+  assert.match(strength, /<span class="record-meta-label" title="平均心率"><svg .*?<span class="sr-only">平均心率<\/span><\/span>131<small>bpm<\/small>/);
   assert.match(strength, /class="record-icon strength-icon"/);
 });
 

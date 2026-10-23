@@ -204,6 +204,22 @@ test('首屏摘要固定最近七天，保留多次活动、缺失距离及未�
   assert.match(empty, /0:00:00/);
 });
 
+test('七天累计负荷合计所有运动、排除范围外记录，并区分零、部分缺失和全部缺失', () => {
+  const activity = {date:'2026-10-15', sport:'骑行', distanceKm:10, duration:'0:30:00', trainingLoad:25.25};
+  const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:[], unavailableActivities:[],
+    activities:[activity, {...activity, sport:'跑步', trainingLoad:10.15}, {...activity, date:'2026-10-08', trainingLoad:999}, {...activity, date:'2026-10-16', trainingLoad:999}]};
+  const summary = createJournal(data).recentSummary;
+  assert.match(summary, /<dt>累计负荷<\/dt><dd>35\.4<\/dd>/);
+  assert.equal(createJournal(data, data.period.end, '2024', '跑步').recentSummary, summary);
+  const render = loads => createJournal({...data, activities:loads.map(trainingLoad => ({...activity, trainingLoad}))}).recentSummary;
+  assert.match(render([0]), /<dt>累计负荷<\/dt><dd>0<\/dd>/);
+  assert.match(render([25.25, null]), /<dt>累计负荷<\/dt><dd>25\.3<\/dd>/);
+  assert.match(render([25.25, null]), /1 次运动指标缺失（负荷未提供，累计负荷仅含已提供值）/);
+  assert.match(render([null]), /<dt>累计负荷<\/dt><dd>—<\/dd>/);
+  assert.match(render([null]), /1 次运动指标缺失（负荷未提供）/);
+  assert.match(render([]), /<dt>累计负荷<\/dt><dd>0<\/dd>/);
+});
+
 test('达到上限后拆分为互不重叠的日期范围，分段失败则拒绝整个快照', async () => {
   const ranges = [];
   let fail = false;

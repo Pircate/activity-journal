@@ -2,6 +2,5 @@
 node_modules/
 .playwright-mcp/
 .playwright-cli/
-output/playwright
-output/joyrun/
+output/
 scripts/__pycache__
