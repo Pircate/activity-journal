@@ -134,6 +134,8 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 .history-field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .history-field label{font-size:.75rem;color:var(--muted)}
 .history-field input,.history-field select{width:100%;max-width:100%;min-width:0;min-height:44px;padding:9px 10px;border:1px solid #4f4f4f;border-radius:7px;background:var(--bg);color:var(--text);font:inherit;font-size:.8125rem}
+/* iOS 原生日期外观会撑大边框，显式按容器宽度绘制。 */
+.history-field input[type="date"]{appearance:none;box-sizing:border-box;display:block;height:44px}
 .history-field input::placeholder{color:var(--muted)}
 .history-panel button{min-height:44px;padding:8px 16px;border:1px solid #4f4f4f;border-radius:7px;background:#282828;color:var(--text);font:inherit;font-size:.8125rem;cursor:pointer}
 .history-panel button:hover:not(:disabled){border-color:var(--accent-soft);color:var(--accent-soft)}
