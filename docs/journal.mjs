@@ -24,7 +24,6 @@ export function sportMetric({sport, distanceKm, duration}) {
 const primaryOrder = ['距离', '组数'];
 const secondaryOrder = ['平均配速', '每百米配速', '平均速度', '平均心率'];
 const orderedLabels = (order, labels) => order.filter(label => labels.includes(label)).join(' / ');
-export const trainingLoadNote = '训练负荷来自 Intervals.icu，用于对照单次运动的训练投入，仅作统计参考，不构成训练建议。';
 export const dayMetrics = {
   distanceKm:{label:'距离', thresholds:[10, 30, 60], format:value => formatDistance(value) + ' km', missing:'missingDistance'},
   durationSeconds:{label:'时长', thresholds:[1800, 3600, 7200], format:formatTime},
@@ -69,38 +68,12 @@ export function dayMetricState(day, key) {
   return {level, state:missing ? 'partial' : 'value', missing:Boolean(missing), unavailable:hasUnavailable, label:missing ? text + '（部分' + dayStateLabels.missing + '）' : text};
 }
 
-// 三类状态的图例与折叠说明集中在这里，避免同一口径在页面多处出现不同说法。
+// 热力图图例沿用统一的状态措辞。
 export function renderHeatmapStates() {
   return '<ul class="heatmap-states"><li><i class="state-swatch" data-state="none" aria-hidden="true"></i>无运动记录</li>' +
     '<li><i class="state-swatch" data-state="pending" aria-hidden="true"></i>' + dayStateLabels.pending + '</li>' +
     '<li><i class="state-swatch" data-state="missing" aria-hidden="true"></i>' + dayStateLabels.missing + '</li>' +
     '<li><i class="state-swatch" data-state="unavailable" aria-hidden="true"></i>' + dayStateLabels.unavailable + '</li></ul>';
-}
-export function statNotesHint(counts) {
-  const parts = [];
-  if (counts.pendingDays) parts.push(dayStateLabels.pending + ' ' + counts.pendingDays + ' 天');
-  if (counts.missingMetrics) parts.push(dayStateLabels.missing + ' ' + counts.missingMetrics + ' 次');
-  if (counts.unavailableCount) parts.push(dayStateLabels.unavailable + ' ' + counts.unavailableCount + ' 条');
-  return parts.length ? '当前范围：' + parts.join(' · ') : '当前范围没有缺失标记，只统计可读取指标';
-}
-export function renderStatNotesBody(counts) {
-  const {rangeLabel = '', pendingDays = 0, missingMetrics = 0, missingDistance = 0, missingLoad = 0, unavailableCount = 0, unavailableExcluded = 0, activityCount = 0, historyUnavailable = 0} = counts;
-  return `<section class="stat-note-group"><h4>三类缺失状态</h4><dl class="stat-note-states">
-    <div data-state="pending"><dt><i class="state-swatch" data-state="pending" aria-hidden="true"></i>${dayStateLabels.pending}</dt><dd>${dayStateNotes.pending}，不当作没有运动；${pendingDays ? rangeLabel + '有 <strong>' + pendingDays + '</strong> 天' + dayStateLabels.pending + '。' : '当前范围不含' + dayStateLabels.pending + '日期。'}</dd></div>
-    <div data-state="missing"><dt><i class="state-swatch" data-state="missing" aria-hidden="true"></i>${dayStateLabels.missing}</dt><dd>${dayStateNotes.missing}，不按 0 计入；${rangeLabel}有 <strong>${missingMetrics}</strong> 次运动存在指标缺失，涉及距离未提供 <strong>${missingDistance}</strong> 次、训练负荷未提供 <strong>${missingLoad}</strong> 次。力量训练以组数替代距离，距离为空不计入指标缺失，但仍计入“距离未提供”的次数。</dd></div>
-    <div data-state="unavailable"><dt><i class="state-swatch" data-state="unavailable" aria-hidden="true"></i>${dayStateLabels.unavailable}</dt><dd>${dayStateNotes.unavailable}，因此不计入距离、时长和次数；${rangeLabel}有 <strong>${unavailableCount}</strong> 条。</dd></div>
-    </dl><p class="stat-note-excluded" id="stat-notes-excluded"${unavailableExcluded ? '' : ' hidden'}>当前按运动类型筛选，另有 ${unavailableExcluded} 条${dayStateLabels.unavailable}的记录没有运动类型，未计入所选类型。</p></section>
-    <section class="stat-note-group"><h4>每日标记</h4><p>灰色方格表示当天没有可读取的运动；灰色斜纹表示${dayStateLabels.pending}，橙色斜纹表示${dayStateLabels.missing}，蓝色交叉纹理表示${dayStateLabels.unavailable}。当天部分指标缺失时，在分级颜色上叠加白色斜纹；当天既有可读取活动又有${dayStateLabels.unavailable}记录时，方格保留活动颜色并加蓝色虚线边框。</p></section>
-    <section class="stat-note-group"><h4>统计口径</h4><p>本栏目的“查看范围”与运动类型筛选只作用于统计概览和每日活动视图；最近一周、历史记录查询、运动趋势、个人最佳成绩和运动装备库各自独立。历史记录查询只列出详情可读取的 <strong>${activityCount}</strong> 条活动，全部历史另有 <strong>${historyUnavailable}</strong> 条${dayStateLabels.unavailable}的记录未列入。</p><p>${trainingLoadNote}</p></section>`;
-}
-export function renderStatNotes(counts) {
-  return `<details class="stat-notes" id="stat-notes"><summary class="stat-notes-heading"><span>统计说明</span><span class="stat-notes-hint" id="stat-notes-hint">${statNotesHint(counts)}</span><span class="stat-notes-toggle" aria-hidden="true">⌄</span></summary><div class="stat-notes-body" id="stat-notes-body">${renderStatNotesBody(counts)}</div></details>`;
-}
-// 折叠说明的唯一数据来源：年度概览、每日视图、趋势和历史缺失条数都从这里取。
-export function statNotesCounts(journal, rangeLabel, historyUnavailable = 0) {
-  return {rangeLabel, pendingDays:journal.pendingDays, missingMetrics:journal.missingMetrics, missingDistance:journal.missingDistance,
-    missingLoad:journal.missingLoad, unavailableCount:journal.unavailableCount, unavailableExcluded:journal.unavailableExcluded,
-    activityCount:journal.activities.length, historyUnavailable};
 }
 const sportIcon = sport => {
   const paths = sport === '徒步'

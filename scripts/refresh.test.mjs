@@ -86,7 +86,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   const refresh = async () => { intervals[0].callback(); await setImmediate(); };
 
   assert.equal(element('.metric-value1').innerHTML, '1:00:00');
-  assert.equal(element('.metric-note1').textContent, '时:分:秒 · 累计运动时间');
+  assert.equal(element('.metric-note1').textContent, '时 : 分 : 秒');
   assert.equal(grid.writes, 1, '首次 JSON 与内嵌快照相同时不重绘');
   assert.equal(trends.writes, 1);
   assert.equal(intervals[0].delay, 5 * 60000);
@@ -102,7 +102,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.equal(milestones.writes, 1);
   assert.equal(document.activeElement, focused);
   assert.equal(bests.writes, 1, 'PB 内容相同时保留节点和焦点');
-  assert.equal(status.textContent, '已读取最新已同步数据');
+  assert.equal(status.textContent, '');
 
   latest.syncedAt = '2026-10-15 12:01:00 +08:00';
   await refresh();
@@ -115,7 +115,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   chooseTrend('[data-trend-mode]', {trendMode:'week'});
   chooseTrend('[data-period]', {period:'2026-10-05'});
   element('#trend-metric').events.get('change')({target:{value:'durationSeconds'}});
-  assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
+  assert.match(trends.innerHTML, /周一至周日 · 时长/);
   assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/);
 
   latest = structuredClone(initial);
@@ -129,19 +129,19 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   latest.activities[0].distanceKm = 25;
   await refresh();
   assert.equal(grid.writes, 3);
-  assert.equal(status.textContent, '已读取最新已同步数据', '未重绘也更新恢复提示');
+  assert.equal(status.textContent, '', '未重绘也更新恢复提示');
 
   t.mock.timers.setTime(Date.parse('2026-10-16T04:00:00Z'));
   await refresh();
   assert.equal(grid.writes, 4);
-  assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
+  assert.match(trends.innerHTML, /周一至周日 · 时长/);
   assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/, '跨天刷新保留选中周期和指标');
   assert.equal(element('#selected-date').max, '2026-10-16');
   assert.match(element('#calendar-days').innerHTML, /data-date="2026-10-16" data-level="missing" data-state="pending"/, '月历跨天保留未同步状态');
   assert.equal(element('.records-grid').innerHTML.includes('record-card'), false, '最近一周剔除过期记录');
   assert.equal(grid.children.at(-1).dataset.date, '2026-10-16');
   assert.match(grid.children.at(-1).title, /未同步/);
-  assert.match(status.textContent, /最近成功同步/);
+  assert.equal(status.textContent, '', '正常读取后不显示额外同步说明');
 
   latestBests.records[0].result = '24:00';
   latestBests.syncedAt = '2026-10-16T04:00:00.000Z';
@@ -217,7 +217,6 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
       assert.equal(trends.innerHTML, trendHtml, '年度范围不改变趋势选中周期及明细');
       assert.equal(element('#selected-date').min, range === 'recent' ? '2025-10-19' : range + '-01-01');
       assert.equal(element('#selected-date').max, range === 'recent' ? '2026-10-18' : range + '-12-31');
-      assert.match(element('#stat-notes-body').innerHTML, new RegExp(range === 'recent' ? '最近一年' : range + ' 年'), '折叠说明跟随年度范围');
       assert.match(groups.get('.metric-value')[0].innerHTML, range === '2025' ? /0\.00/ : /25\.00/);
       assert.match(element('#day-description').textContent, range === '2025' ? /2025-12-31/ : /2026-10-09/);
       assert.equal(element('#day-records').hidden, range === '2025');
@@ -258,13 +257,11 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     assert.equal(document.activeElement, sport, '重绘筛选后恢复键盘焦点');
     assert.match(element('#sport-filter-status').textContent, /^已筛选：骑行/);
     assert.match(filter.innerHTML, /data-sport="骑行" aria-pressed="true"/);
-    assert.match(element('#stat-notes-body').innerHTML, /历史记录查询只列出详情可读取的 <strong>\d+<\/strong> 条活动/, '折叠说明跟随类型筛选更新');
-    assert.match(element('#stat-notes-body').innerHTML, /详情不可读取的记录没有运动类型，未计入所选类型/, '筛选时说明排除的不可读取记录');
     assert.equal(trends.writes, trendWrites, '年度运动类型不重建独立的运动趋势');
     filter.events.get('click')({target:{closest:() => sport}});
     assert.equal(grid.writes, gridWrites + 2, '再次点击清除筛选');
     assert.match(filter.innerHTML, /data-sport="" aria-pressed="true"/);
-    assert.equal(element('#sport-filter-status').textContent, '点选类型筛选年度范围，次数为该范围全部记录');
+    assert.equal(element('#sport-filter-status').textContent, '');
   });
 
   await t.test('趋势范围与类型独立筛选，刷新保留选择，且不改变全年活动', async () => {
@@ -290,7 +287,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     year.value = 'recent';
     year.events.get('change')();
     chooseTrend('[data-period]', {period:'2026-10-05'});
-    assert.match(trends.innerHTML, /周一至周日汇总 · 时长/);
+    assert.match(trends.innerHTML, /周一至周日 · 时长/);
     assert.match(trends.innerHTML, /<span>25\.00 km<\/span>/);
     // 合法但该范围内没有记录的类型应呈现零合计，不回退到全部运动。
     latest.activities.push({...latest.activities[0], date:'2025-01-01', sport:'跑步', distanceKm:5, activityUrl:'https://intervals.icu/activities/i2'});

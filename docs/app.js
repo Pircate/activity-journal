@@ -1,6 +1,6 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
-const {createJournal, beijingDate, formatTime, formatDistance, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetrics, dayMetricState, describeDay, dayStateLabels, statNotesCounts, statNotesHint, renderStatNotesBody} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {createJournal, beijingDate, formatTime, formatDistance, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetricState, describeDay, dayStateLabels} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
 const {renderCalendar, moveCalendarDate} = await import('./calendar.mjs' + (version ? '?v=' + version : ''));
 const {initializeTrends} = await import('./trends.mjs' + (version ? '?v=' + version : ''));
@@ -15,9 +15,6 @@ const siteTitle = document.querySelector('meta[property="og:title"]').content;
 const dateInput = document.getElementById('selected-date');
 const description = document.getElementById('day-description');
 const dayRecords = document.getElementById('day-records');
-const explanation = document.getElementById('metric-explanation');
-const statNotesHintElement = document.getElementById('stat-notes-hint');
-const statNotesBodyElement = document.getElementById('stat-notes-body');
 const yearSelect = document.getElementById('activity-year');
 const updateHistory = initializeHistory(data);
 const updateTrends = initializeTrends(data);
@@ -33,7 +30,6 @@ document.querySelector('.gear-library').addEventListener('click', event => {
   bike.open = true;
   part.focus({preventScroll:true});
 });
-const metrics = dayMetrics;
 let selectedDate;
 let metric = 'distanceKm';
 let sport = '';
@@ -61,7 +57,6 @@ function selectDay(date, focus = false, view = 'year') {
   if (focus) (view === 'month' ? calendarGrid.querySelector('[data-date="' + date + '"]') : buttonByDate.get(date))?.focus();
 }
 function render() {
-  const spec = metrics[metric];
   for (const day of daily) {
     const button = buttonByDate.get(day.date);
     const state = dayMetricState(day, metric);
@@ -72,12 +67,6 @@ function render() {
     button.title = describeDay(day);
   }
   for (const button of document.querySelectorAll('[data-metric]')) button.setAttribute('aria-pressed', String(button.dataset.metric === metric));
-  const ranges = {
-    distanceKm: '10 / 30 / 60 公里',
-    durationSeconds: '30 / 60 / 120 分钟',
-    trainingLoad: '50 / 150 / 300'
-  };
-  explanation.textContent = '颜色越亮，累计' + spec.label + '越多 · 分级界限 ' + ranges[metric];
   selectDay(selectedDate);
 }
 for (const button of document.querySelectorAll('[data-metric]')) button.addEventListener('click', () => {
@@ -173,16 +162,17 @@ function renderJournal() {
   document.title = siteTitle + ' · ' + rangeLabel;
   document.querySelector('.period').innerHTML = '<time datetime="' + period.start + '">' + pretty(period.start) + '</time> — <time datetime="' + period.end + '">' + pretty(period.end) + '</time>';
   document.getElementById('sport-filter').innerHTML = renderSportFilter(journal.sports, sport);
-  document.getElementById('sport-filter-status').textContent = sport ? '已筛选：' + sport + ' · 该范围内 ' + activities.length + ' 条记录' : '点选类型筛选年度范围，次数为该范围全部记录';
+  document.getElementById('sport-filter-status').textContent = sport ? '已筛选：' + sport + ' · ' + activities.length + ' 次' : '';
   const values = document.querySelectorAll('.metric-value');
   values[0].innerHTML = formatDistance(distance) + '<small>km</small>';
   values[1].innerHTML = formatTime(duration);
   values[1].setAttribute('aria-label', Math.floor(duration / 3600) + ' 小时 ' + Math.floor(duration % 3600 / 60) + ' 分 ' + duration % 60 + ' 秒');
   values[2].innerHTML = activities.length + '<small>次</small>';
   const notes = document.querySelectorAll('.metric-note');
-  notes[0].textContent = missingDistance ? '已记录距离 · ' + missingDistance + ' 次运动' + dayStateLabels.missing + '（距离未提供）' : '可读取运动的总距离';
-  notes[1].textContent = '时:分:秒 · 累计运动时间';
-  notes[2].textContent = activeDays + ' 天记录了运动' + (unavailableCount ? ' · 另有 ' + unavailableCount + ' 条' + dayStateLabels.unavailable : '');
+  notes[0].textContent = missingDistance ? missingDistance + ' 次距离未提供' : '';
+  notes[0].hidden = !missingDistance;
+  notes[1].textContent = '时 : 分 : 秒';
+  notes[2].textContent = activeDays + ' 个活跃日' + (unavailableCount ? ' · ' + unavailableCount + ' 条详情不可读取' : '');
   grid.innerHTML = journal.cells;
   document.querySelector('.heatmap').style.setProperty('--columns', journal.columns);
   document.querySelector('.month-labels').innerHTML = journal.monthLabels;
@@ -193,12 +183,7 @@ function renderJournal() {
     document.querySelector('.gear-library').innerHTML = gear;
     renderedGear = gear;
   }
-  if (updateRecent) document.querySelector('.records-section .section-head p').textContent = recent.length ? '共 ' + recent.length + ' 条 · 最新记录在前' : '最近一周还没有运动记录';
-  // 分散的长说明收敛到折叠区域，这里只保留一行图例提示；具体口径在“统计说明”里展开。
-  document.querySelector('.chart-caption').textContent = '每格代表一天，同一天的多次运动合并统计；斜纹区分' + dayStateLabels.pending + '、' + dayStateLabels.missing + '与' + dayStateLabels.unavailable + '，具体口径见下方“统计说明”。';
-  const statCounts = statNotesCounts(journal, rangeLabel, data.unavailableActivities.length);
-  statNotesHintElement.textContent = statNotesHint(statCounts);
-  statNotesBodyElement.innerHTML = renderStatNotesBody(statCounts);
+  if (updateRecent) document.querySelector('.records-section .section-head p').textContent = recent.length ? recent.length + ' 次运动' : '最近一周还没有运动记录';
   dateInput.min = period.start;
   dateInput.max = period.end;
   daily = journal.daily;
@@ -229,9 +214,7 @@ async function refreshActivities() {
     validateData(latest);
     if (syncTimestamp(latest.syncedAt) < syncTimestamp(data.syncedAt)) throw new Error('服务器数据尚未更新');
     data = latest;
-    const age = Date.now() - syncTimestamp(data.syncedAt);
-    const upToDate = data.period.end >= beijingDate() && age <= 26 * 3600000;
-    status.textContent = upToDate ? '已读取最新已同步数据' : '显示最近成功同步的数据，每天 22:00 随运动同步任务更新。';
+    status.textContent = '';
   } catch {
     status.textContent = '暂时无法读取最新数据，当前显示最近成功同步的记录。';
   } finally {

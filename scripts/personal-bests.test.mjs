@@ -21,11 +21,10 @@ test('统一显示用时且保留快照原文、按运动分组，并链接正�
   assert.match(renderPersonalBestsPanel(data), /2026-10-16 12:00（北京时间）/);
 });
 
-test('成绩板简化标题说明，统一展示来源与同步信息', () => {
+test('成绩板只展示标题与同步时间，不重复来源说明', () => {
   const html = renderPersonalBestsPanel(snapshot([record]));
   assert.match(html, /<p>全部历史<\/p>/);
-  assert.equal((html.match(/数据来自 Intervals\.icu/g) ?? []).length, 1);
-  assert.match(html, /全部历史纪录，不受其他栏目的筛选影响。/);
+  assert.doesNotMatch(html, /数据来自|section-help/);
   assert.doesNotMatch(html, /pb-intro|Intervals\.icu ↗/);
 });
 

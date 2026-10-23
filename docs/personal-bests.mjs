@@ -39,7 +39,7 @@ export function renderPersonalBests(data) {
   for (const record of data.records) groups.get(record.sport).push(record);
   for (const records of groups.values()) records.sort((a, b) => eventOrder.indexOf(a.event) - eventOrder.indexOf(b.event));
   for (const [sport, records] of groups) if (!records.length) groups.delete(sport);
-  return [...groups].map(([sport, records]) => `<section class="pb-group" data-sport="${esc(sport)}"><div class="pb-group-head"><div class="pb-sport-heading"><span class="pb-sport-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportMarks[sport]}</svg></span><div><h3>${esc(sport)}</h3><p>${sport === '跑步' ? '距离最佳用时' : '距离与持续输出'}</p></div></div><span class="pb-count">${records.length} 项纪录</span></div><div class="pb-grid">${records.map(record => {
+  return [...groups].map(([sport, records]) => `<section class="pb-group" data-sport="${esc(sport)}"><div class="pb-group-head"><div class="pb-sport-heading"><span class="pb-sport-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportMarks[sport]}</svg></span><div><h3>${esc(sport)}</h3></div></div><span class="pb-count">${records.length} 项纪录</span></div><div class="pb-grid">${records.map(record => {
     const date = record.date ? `<time datetime="${record.date}">${record.date.replaceAll('-', '.')}</time>` : '<span>日期未提供</span>';
     const eventLabel = {CP5:'5 分钟功率', CP20:'20 分钟功率'}[record.event] ?? record.event;
     const displayedResult = record.event === '最远距离' && /^\d+(?:\.\d+)? km$/.test(record.result) ? formatDistance(Number.parseFloat(record.result)) + ' km'
@@ -57,7 +57,7 @@ export function personalBestsSyncLabel(data) {
 }
 
 export function renderPersonalBestsPanel(data) {
-  return `<section class="pb-section" id="personal-bests" aria-labelledby="pb-title"><div class="section-head"><h2 id="pb-title"><span class="section-number">04</span>个人最佳成绩</h2><p>全部历史</p></div><div id="pb-content">${renderPersonalBests(data)}</div><div class="pb-footer"><p>数据来自 Intervals.icu</p><p class="pb-sync" id="pb-sync">${personalBestsSyncLabel(data)}</p></div><p class="pb-note">全部历史纪录，不受其他栏目的筛选影响。</p><p class="pb-status" id="pb-status" role="status" aria-live="polite"></p></section>`;
+  return `<section class="pb-section" id="personal-bests" aria-labelledby="pb-title"><div class="section-head"><h2 id="pb-title"><span class="section-number">04</span>个人最佳成绩</h2><p>全部历史</p></div><div id="pb-content">${renderPersonalBests(data)}</div><p class="pb-sync" id="pb-sync">${personalBestsSyncLabel(data)}</p><p class="pb-status" id="pb-status" role="status" aria-live="polite"></p></section>`;
 }
 
 export function initializePersonalBests(initial) {

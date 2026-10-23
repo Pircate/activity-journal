@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createJournal, renderDayRecords, sportMetric, trainingLoadNote, formatPace, validateData} from '../docs/journal.mjs';
+import {createJournal, renderDayRecords, sportMetric, formatPace, validateData} from '../docs/journal.mjs';
 import {normalizeActivities} from './update-data.mjs';
 
 const period = {start:'2021-01-01', end:'2026-10-16'};
@@ -83,8 +83,6 @@ test('明细表头按出现顺序合并，行为空时不影响混合表头', ()
 });
 
 test('训练负荷说明简洁且不作为训练建议', () => {
-  assert.match(trainingLoadNote, /Intervals\.icu/);
-  assert.match(trainingLoadNote, /不构成训练建议/);
   const html = renderDayRecords([activity('跑步', 10, '0:50:00')], '历史运动记录');
   assert.match(html, /训练负荷为 Intervals\.icu 的统计值，不含训练建议/);
 });

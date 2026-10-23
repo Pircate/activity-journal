@@ -93,13 +93,13 @@ test('同一活动跨过多个目标时共享达成日期，并进入下一阶�
   assert.equal(run.progress, 1);
 });
 
-test('空记录显示第一个目标而非虚假达成，缺失记录单独说明', () => {
+test('空记录显示第一个目标而非虚假达成', () => {
   const summary = createMilestones(snapshot([], [{date:'2026-01-01'}]));
   const html = renderMilestones(snapshot([], [{date:'2026-01-01'}]));
   assert.equal(summary.reached, 0);
   assert.match(html, /第一个里程碑/);
   assert.match(html, /累计里程 · 5,000\.00 km/);
-  assert.match(html, /1 条详情不可读取的记录未参与累计/);
+  assert.equal(summary.unavailableCount, 1);
   assert.doesNotMatch(html, /NaN|Infinity|undefined/);
 });
 
@@ -114,7 +114,7 @@ test('专栏输出固定顺序、进度语义、达成状态与键盘可读文�
   assert.doesNotMatch(html, /<script|onerror=/);
   const escaped = renderMilestones(snapshot([activity('2026-01-01', {sport:'<img src=x>'})]));
   assert.doesNotMatch(escaped, /<img/);
-  assert.match(renderMilestonePanel(data), /id="milestones"[\s\S]*个人运动里程碑/);
+  assert.match(renderMilestonePanel(data), /id="milestones"[\s\S]*运动里程碑/);
 });
 
 test('数据刷新只在内容变化时重绘，保留节点', async t => {
