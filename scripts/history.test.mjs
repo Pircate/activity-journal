@@ -1,11 +1,40 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {filterActivities, initializeHistory} from '../docs/history.mjs';
-import {renderDayRecords} from '../docs/journal.mjs';
+import {createJournal, renderDayRecords, validateData} from '../docs/journal.mjs';
+import {normalizeActivities} from './update-data.mjs';
+import {createTrends} from '../docs/trends.mjs';
 
 const activity = (date, distanceKm, sport = '骑行', duration = '1:00:00') => ({date, distanceKm, sport, duration, trainingLoad:30});
 const records = [activity('2026-10-10', 0), activity('2026-10-11', null, '力量训练'),
   activity('2026-10-12', 20), activity('2026-10-12', 30), activity('2026-10-13', 40, '跑步', '0:45:00')];
+
+test('开始时间按北京时间保留，近期、历史、日历与趋势详情同日最新在前', () => {
+  const period = {start:'2026-01-01', end:'2026-10-13'};
+  const times = ['2026-10-12T01:00:00Z', '2026-10-12T10:00:00Z', '2026-10-11T16:00:00Z', '2026-10-12T16:00:00Z'];
+  const normalized = normalizeActivities(times.map((start_date, i) => ({id:'i' + i, strava_id:String(i + 1), type:'Ride', start_date, moving_time:3600, distance:10000})), period);
+  const descending = ['i3', 'i1', 'i0', 'i2'];
+  const ids = rows => rows.map(a => a.activityUrl.split('/').at(-1));
+  assert.deepEqual(ids(normalized), descending);
+  assert.deepEqual(normalized.map(a => a.startTime), ['00:00:00', '18:00:00', '09:00:00', '00:00:00']);
+  const activities = normalized.slice().reverse();
+  const data = {period, syncedAt:'2026-10-13 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]};
+  validateData(data);
+  assert.deepEqual(ids(filterActivities(activities)), descending);
+  assert.deepEqual(ids(filterActivities(activities, {sort:'date-asc'})), descending.slice().reverse());
+  for (const sort of ['distance-asc', 'distance-desc', 'duration-asc', 'duration-desc']) {
+    assert.deepEqual(ids(filterActivities(activities, {sort})), descending, '主排序相同则按开始时间倒序');
+  }
+  const journal = createJournal(data);
+  assert.deepEqual(ids(journal.recent), descending);
+  assert.deepEqual(ids(journal.daily.find(day => day.date === '2026-10-12').records), ['i1', 'i0', 'i2']);
+  assert.deepEqual([...journal.cards.matchAll(/href="https:\/\/www.strava.com\/activities\/(\d+)"/g)].map(match => match[1]), ['4', '2', '1', '3']);
+  assert.deepEqual(ids(createTrends(data, 'recent', 'month', period.end).at(-1).records), descending);
+  for (const startTime of ['24:00:00', '9:00:00', '12:60:00', null, 900]) {
+    assert.throws(() => validateData({...data, activities:[{...activities[0], startTime}]}), /运动记录格式无效/);
+  }
+  assert.deepEqual(ids(activities), descending.slice().reverse(), '排序不修改原始数据');
+});
 
 test('组合筛选使用含边界的日期和距离，保留同日多次活动且不修改源数据', () => {
   const before = structuredClone(records);

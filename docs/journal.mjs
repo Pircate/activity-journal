@@ -182,6 +182,8 @@ export function renderDayRecords(records, title = '当天运动记录') {
     <div class="activity-table-scroll" tabindex="0" role="region" aria-label="${escapeHtml(title)}"><table class="activity-table" role="table"><caption class="sr-only">${escapeHtml(title)}，点击运动可在新标签页打开 Strava 详情。训练负荷为 Intervals.icu 的统计值，不含训练建议。</caption><thead role="rowgroup"><tr role="row"><th scope="col">日期</th><th scope="col">运动</th><th scope="col">${orderedLabels(primaryOrder, labels.map(metric => metric.primaryLabel))}</th><th scope="col">运动时间</th><th scope="col">${orderedLabels(secondaryOrder, labels.map(metric => metric.secondaryLabel))}</th><th scope="col">训练负荷</th></tr></thead><tbody role="rowgroup">${rows}</tbody></table></div>`;
 }
 export const beijingDate = (date = new Date()) => new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit'}).format(date);
+export const beijingTime = date => new Intl.DateTimeFormat('en-GB', {timeZone:'Asia/Shanghai', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'}).format(date);
+export const compareActivityDates = (a, b) => b.date.localeCompare(a.date) || (b.startTime ?? '').localeCompare(a.startTime ?? '');
 export const syncTimestamp = value => Date.parse(value.replace(' ', 'T').replace(' +08:00', '+08:00'));
 export const replacementTargets = {Chain:5000, Cassette:10000, Tyre:5000, Chainrings:30000};
 export const isDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString().slice(0,10) === value;
@@ -323,7 +325,7 @@ export function validateData(data) {
   if (!Array.isArray(data.unavailableActivities) || data.unavailableActivities.some(a => !a || Object.keys(a).join(',') !== 'date' || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end)) throw new Error('无法读取的活动日期无效');
   for (const a of data.activities) {
     const keys = a?.sport === '力量训练' ? 'averageHeartRate,date,distanceKm,duration,sets,sport,trainingLoad' : 'date,distanceKm,duration,sport,trainingLoad';
-    if (!a || Object.keys(a).filter(key => !['activityUrl', 'stravaUrl', 'elevationGain'].includes(key)).sort().join(',') !== keys || Object.hasOwn(a, 'elevationGain') && a.elevationGain !== null && (typeof a.elevationGain !== 'number' || !Number.isFinite(a.elevationGain) || a.elevationGain < 0) || Object.hasOwn(a, 'activityUrl') && (typeof a.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(a.activityUrl)) || Object.hasOwn(a, 'stravaUrl') && (typeof a.stravaUrl !== 'string' || !/^https:\/\/www\.strava\.com\/activities\/[1-9]\d*$/.test(a.stravaUrl)) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !a.sport || typeof a.duration !== 'string' || !/^\d+(?::[0-5]\d){1,2}$/.test(a.duration) || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0) ||
+    if (!a || Object.keys(a).filter(key => !['activityUrl', 'stravaUrl', 'elevationGain', 'startTime'].includes(key)).sort().join(',') !== keys || Object.hasOwn(a, 'startTime') && (typeof a.startTime !== 'string' || !/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(a.startTime)) || Object.hasOwn(a, 'elevationGain') && a.elevationGain !== null && (typeof a.elevationGain !== 'number' || !Number.isFinite(a.elevationGain) || a.elevationGain < 0) || Object.hasOwn(a, 'activityUrl') && (typeof a.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(a.activityUrl)) || Object.hasOwn(a, 'stravaUrl') && (typeof a.stravaUrl !== 'string' || !/^https:\/\/www\.strava\.com\/activities\/[1-9]\d*$/.test(a.stravaUrl)) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !a.sport || typeof a.duration !== 'string' || !/^\d+(?::[0-5]\d){1,2}$/.test(a.duration) || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0) ||
         a.sport === '力量训练' && (a.sets !== null && (!Number.isInteger(a.sets) || a.sets < 0) || a.averageHeartRate !== null && (typeof a.averageHeartRate !== 'number' || !Number.isFinite(a.averageHeartRate) || a.averageHeartRate <= 0))) throw new Error('运动记录格式无效');
   }
 }
@@ -382,13 +384,13 @@ export function createJournal(data, endDate = data.period.end, range = 'recent',
   if (range !== 'recent' && !availableYears(data, endDate).includes(String(range))) throw new Error('所选年份不在已同步范围内');
   const period = range === 'recent' ? {start:shiftDate(endDate, -364), end:endDate} : {start:range + '-01-01', end:range + '-12-31'};
   const rangeActivities = data.activities.filter(a => a.date >= period.start && a.date <= period.end);
-  const activities = (sport ? rangeActivities.filter(a => a.sport === sport) : rangeActivities).slice().sort((a,b) => b.date.localeCompare(a.date));
+  const activities = (sport ? rangeActivities.filter(a => a.sport === sport) : rangeActivities).slice().sort(compareActivityDates);
   // 详情不可读取的运动没有类型信息，筛选单个类型时不计入统计，避免把未知归属算进所选类型。
   const unavailableInRange = data.unavailableActivities.filter(a => a.date >= period.start && a.date <= period.end);
   const unavailableActivities = sport ? [] : unavailableInRange;
   const unavailableCount = unavailableActivities.length;
   const unavailableExcluded = sport ? unavailableInRange.length : 0;
-  const recent = data.activities.filter(a => a.date >= shiftDate(endDate, -6) && a.date <= endDate).slice().sort((a,b) => b.date.localeCompare(a.date));
+  const recent = data.activities.filter(a => a.date >= shiftDate(endDate, -6) && a.date <= endDate).slice().sort(compareActivityDates);
   const daily = [];
   for (let date = period.start; date <= period.end; date = shiftDate(date, 1)) {
     const records = activities.filter(a => a.date === date);

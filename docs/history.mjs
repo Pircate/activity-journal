@@ -1,5 +1,5 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml, isDate, renderDayRecords, dayStateLabels} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml, isDate, renderDayRecords, dayStateLabels, compareActivityDates} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 
 export const historyPageSize = 20;
 const seconds = duration => duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
@@ -18,12 +18,12 @@ export function filterActivities(activities, {start = '', end = '', sport = '', 
     (maxDistance === null || activity.distanceKm !== null && activity.distanceKm <= maxDistance));
   const ascending = sort.endsWith('asc');
   return records.sort((a, b) => {
-    if (sort.startsWith('date')) return ascending ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+    if (sort.startsWith('date')) return ascending ? compareActivityDates(b, a) : compareActivityDates(a, b);
     if (sort.startsWith('distance') && (a.distanceKm === null || b.distanceKm === null)) {
-      return Number(a.distanceKm === null) - Number(b.distanceKm === null) || b.date.localeCompare(a.date);
+      return Number(a.distanceKm === null) - Number(b.distanceKm === null) || compareActivityDates(a, b);
     }
     const difference = sort.startsWith('distance') ? a.distanceKm - b.distanceKm : seconds(a.duration) - seconds(b.duration);
-    return (ascending ? difference : -difference) || b.date.localeCompare(a.date);
+    return (ascending ? difference : -difference) || compareActivityDates(a, b);
   });
 }
 

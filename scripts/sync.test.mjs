@@ -72,6 +72,16 @@ test('精确关联历史并保留 Strava 链接，不按同日或相同指标猜
   assert.equal(independent.data.activities.filter(a=>a.stravaUrl).length,1);
 });
 
+test('同步合并按实际开始时间倒序，同日受限历史保留已知时间', () => {
+  const old = activity({id:'902', strava_id:'902', start_date:'2026-10-24T08:00:00Z'});
+  const result = merge({previous:snapshot([old]), intervalsRecords:[
+    interval({start_date:'2026-10-24T01:00:00Z'}),
+    stub('902'),
+    interval({id:'i2', strava_id:'903', start_date:'2026-10-24T09:00:00Z'}),
+  ]});
+  assert.deepEqual(result.data.activities.map(a => a.startTime), ['17:00:00', '16:00:00', '09:00:00']);
+});
+
 test('关联冲突、多重关联、历史及本次重复 ID 均失败', () => {
   const old = activity();
   for (const options of [

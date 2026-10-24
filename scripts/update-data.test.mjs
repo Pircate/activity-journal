@@ -14,8 +14,8 @@ test('北京时间边界、米到公里、零负荷、缺失值及同日多次�
     {...record, id:'i3', start_date:'2025-10-15T15:59:59Z'},
     {...record, id:'i4', start_date:'2026-10-15T16:00:00Z'}], period);
   assert.deepEqual(activities, [
-    {date:'2026-10-15', sport:'骑行', distanceKm:20.07, duration:'1:00:01', trainingLoad:0, activityUrl:'https://intervals.icu/activities/i1'},
-    {date:'2026-10-15', sport:'骑行', distanceKm:null, duration:'1:00:01', trainingLoad:null, activityUrl:'https://intervals.icu/activities/i2'},
+    {date:'2026-10-15', startTime:'00:30:00', sport:'骑行', distanceKm:20.07, duration:'1:00:01', trainingLoad:0, activityUrl:'https://intervals.icu/activities/i1'},
+    {date:'2026-10-15', startTime:'00:30:00', sport:'骑行', distanceKm:null, duration:'1:00:01', trainingLoad:null, activityUrl:'https://intervals.icu/activities/i2'},
   ]);
 });
 

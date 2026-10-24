@@ -1,7 +1,7 @@
 import {readFile, writeFile, rename, unlink, mkdir, open} from 'node:fs/promises';
 import {resolve, dirname} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
-import {beijingDate, shiftDate, validateData, isDate} from '../docs/journal.mjs';
+import {beijingDate, compareActivityDates, shiftDate, validateData, isDate} from '../docs/journal.mjs';
 import {validatePersonalBests} from '../docs/personal-bests.mjs';
 import {fetchIntervalsData, normalizeActivities, matchCorosStrengthSets} from './update-data.mjs';
 import {fetchPersonalBests} from './update-personal-bests.mjs';
@@ -98,7 +98,7 @@ export function mergeActivities({previous, intervalsRecords, corosRecords, stren
   }
   for (const a of activities) if (a.sport === '力量训练' && sets.has(a.activityUrl)) a.sets = sets.get(a.activityUrl);
   unavailableActivities.sort((a,b) => a.date.localeCompare(b.date));
-  const end = beijingDate(now), rows = [...activities].sort((a,b) => b.date.localeCompare(a.date) || keyFor(a).localeCompare(keyFor(b)));
+  const end = beijingDate(now), rows = [...activities].sort((a,b) => compareActivityDates(a, b) || keyFor(a).localeCompare(keyFor(b)));
   const earliest = [...rows, ...unavailableActivities].reduce((date, a) => a.date < date ? a.date : date, shiftDate(end, -364));
   const data = {period:{start:earliest.slice(0,4) + '-01-01', end}, syncedAt:'',
     activities:rows, unavailableActivities, gearLibrary:previous.gearLibrary};

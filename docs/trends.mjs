@@ -1,5 +1,5 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml, formatTime, formatDistance, formatLoad, beijingDate, renderYearOptions, availableYears, dayStateLabels, dayStateNotes} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml, formatTime, formatDistance, formatLoad, beijingDate, renderYearOptions, availableYears, dayStateLabels, dayStateNotes, compareActivityDates} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const shift = (date, days) => new Date(Date.parse(date + 'T00:00:00Z') + days * 86400000).toISOString().slice(0, 10);
 const monthStart = date => date.slice(0, 7) + '-01';
 const nextMonth = date => new Date(Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)), 1)).toISOString().slice(0, 10);
@@ -21,7 +21,7 @@ export function createTrends(data, range = 'recent', mode = 'month', today = bei
   const activities = sport ? data.activities.filter(activity => activity.sport === sport) : data.activities;
   const unavailableActivities = sport ? [] : data.unavailableActivities;
   function summarize(first, last) {
-    const records = activities.filter(a => a.date >= first && a.date <= last).slice().sort((a, b) => b.date.localeCompare(a.date));
+    const records = activities.filter(a => a.date >= first && a.date <= last).slice().sort(compareActivityDates);
     const missingDistance = records.filter(a => a.distanceKm === null).length;
     const missingLoad = records.filter(a => a.trainingLoad === null).length;
     return {start:first, end:last, records, count:records.length,

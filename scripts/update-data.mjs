@@ -1,7 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {homedir} from 'node:os';
 import {join} from 'node:path';
-import {beijingDate, shiftDate, formatTime, replacementTargets, isDate} from '../docs/journal.mjs';
+import {beijingDate, beijingTime, compareActivityDates, shiftDate, formatTime, replacementTargets, isDate} from '../docs/journal.mjs';
 
 export const sports = {
   Ride:'骑行', VirtualRide:'虚拟骑行', EBikeRide:'电助力骑行', EMountainBikeRide:'电助力山地骑行',
@@ -58,6 +58,7 @@ export function normalizeActivities(records, period, strengthSets = []) {
     if (record.strava_id != null && (typeof record.strava_id !== 'string' || !/^[1-9]\d*$/.test(record.strava_id))) throw new Error('Strava 活动标识无效');
     return {
       date:beijingDate(instant),
+      startTime:beijingTime(instant),
       sport:sports[record.type] ?? `其他运动（${record.type}）`,
       distanceKm:distance === null ? null : Math.round(distance / 10) / 100,
       duration:formatTime(record.moving_time),
@@ -68,7 +69,7 @@ export function normalizeActivities(records, period, strengthSets = []) {
       ...(record.type === 'WeightTraining' ? {sets:setsByActivity.get('https://intervals.icu/activities/' + record.id) ?? null, averageHeartRate:number(record.average_heartrate, '平均心率') || null} : {}),
     };
   }).filter(a => a.date >= period.start && a.date <= period.end)
-    .sort((a,b) => b.date.localeCompare(a.date));
+    .sort(compareActivityDates);
 }
 
 export function normalizeGear(records) {
