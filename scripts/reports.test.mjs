@@ -95,7 +95,7 @@ test('总负荷与各运动距离、时长、次数、负荷一致，未知负�
   assert.match(reportSummary(report), /骑行 2 次 \/ 80\.00 km \/ 1:00:00 \/ 70 TL/);
 });
 
-test('图片支持四项图表指标，完整显示所有运动统计，图片高度容纳明细和说明', () => {
+test('图片支持四项图表指标，完整显示所有运动统计，图片高度容纳明细', () => {
   const data = fixture(['跑步','骑行','步行','游泳','徒步','体能训练','越野跑'].map(sport => activity(today, {sport})));
   const report = createReport(data, 'month', '2026-10', today);
   for (const metric of ['distanceKm', 'durationSeconds', 'count', 'trainingLoad']) {
@@ -103,11 +103,31 @@ test('图片支持四项图表指标，完整显示所有运动统计，图片�
     const canvas = {getContext:() => ({fillRect() {}, strokeRect() {}, fillText(value, x, y) {texts.push({value, y});}})};
     drawReport(canvas, report, '测试', metric);
     for (const sport of report.sports) assert.ok(texts.some(text => text.value === sport.sport), '所有运动类型都有明细');
-    assert.ok(texts.some(text => text.value === '总负荷 / TL'));
+    assert.ok(texts.some(text => text.value === '负荷 / TL'));
     assert.ok(texts.every(text => text.y < canvas.height));
     assert.ok(canvas.height > 1440, '明细较多时自动增加图片高度');
     assert.equal(texts.some(text => text.value === '未开始'), false);
   }
+});
+
+test('分享图精简说明并移除空心框，仍绘制已记录值且保留文字摘要', () => {
+  const report = createReport(fixture([
+    activity('2024-02-01'),
+    activity('2024-02-02', {distanceKm:null, trainingLoad:null}),
+  ], {period:{start:'2023-01-01', end:'2024-02-03'}}), 'month', '2024-02', today);
+  const texts = [];
+  const bars = [];
+  const canvas = {getContext:() => ({
+    fillRect(x, y, width, height) {if (width < 20) bars.push({height});},
+    fillText(value) {texts.push(value);},
+    strokeRect() {assert.fail('分享图不再绘制空心框');},
+  })};
+  drawReport(canvas, report, '测试');
+  assert.equal(bars.length, 1);
+  assert.ok(bars[0].height > 0);
+  assert.ok(canvas.height < 1440, '移除说明后收紧图片高度');
+  assert.doesNotMatch(texts.join(' '), /空心框|未同步|仅统计|数据来自|同步于|数据不完整|截至今日/);
+  assert.match(reportSummary(report), /未同步|距离未提供/, '详细数据说明仍保留在无障碍摘要中');
 });
 
 test('拒绝无效／未来周期，不修改快照，界面包含独立周期与下载入口', () => {

@@ -2,10 +2,10 @@ const version = new URL(import.meta.url).searchParams.get('v');
 const {beijingDate, availableYears, createJournal, durationSeconds, formatTime, formatDistance, formatLoad, hasMissingMetric} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const pretty = date => date.replaceAll('-', '.');
 const reportMetrics = {
-  distanceKm:{label:'距离', unit:'km', missing:'missingDistance'},
+  distanceKm:{label:'距离', unit:'km'},
   durationSeconds:{label:'时长', unit:'小时'},
   count:{label:'次数', unit:'次'},
-  trainingLoad:{label:'负荷', unit:'TL', missing:'missingLoad'},
+  trainingLoad:{label:'负荷', unit:'TL'},
 };
 const distanceNumber = value => value === null ? '—' : formatDistance(value);
 const loadNumber = value => value === null ? '—' : formatLoad(value);
@@ -72,9 +72,8 @@ export function reportSummary(report) {
 export function drawReport(canvas, report, name, metric = 'distanceKm') {
   const spec = reportMetrics[metric];
   if (!spec) throw new Error('请选择有效的图表指标。');
-  const notesY = 1105 + Math.max(1, report.sports.length) * 68;
   canvas.width = 1080;
-  canvas.height = Math.max(1440, notesY + report.notes.length * 30 + 150);
+  canvas.height = 1100 + Math.max(1, report.sports.length) * 68;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('当前浏览器无法生成图片。');
   const text = (value, x, y, size = 26, color = '#f5f5f5', weight = 400, width = 936) => {
@@ -87,70 +86,56 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
   ctx.fillStyle = '#fc4c02'; ctx.fillRect(72, 68, 56, 7);
   text(name + '的运动日志', 72, 126, 28, '#ff8a4c', 600);
   text(report.title, 72, 208, 54, '#f5f5f5', 700);
-  text(`${pretty(report.start)} — ${pretty(report.end)}${report.ongoing ? ' · 截至今日' : ''}`, 72, 260, 25, '#b5b5b5');
+  text(`${pretty(report.start)} — ${pretty(report.end)}`, 72, 260, 25, '#b5b5b5');
   line(296);
   text('已记录距离 / km', 72, 349, 26, '#b5b5b5');
   text(report.distanceKm === null ? '—' : formatDistance(report.distanceKm), 72, 459, 102, '#fc4c02', 700);
   const metrics = [
-    ['运动时长', report.durationSeconds === null ? '—' : formatTime(report.durationSeconds)],
-    ['运动次数', report.count === null ? '—' : report.count + ' 次'],
-    ['总负荷 / TL', loadNumber(report.trainingLoad)],
+    ['时长', report.durationSeconds === null ? '—' : formatTime(report.durationSeconds)],
+    ['次数', report.count === null ? '—' : report.count + ' 次'],
+    ['负荷 / TL', loadNumber(report.trainingLoad)],
   ];
   metrics.forEach(([label, value], index) => {
     const x = 72 + index * 320;
     text(label, x, 526, 24, '#b5b5b5');
     text(value, x, 579, 43, '#f5f5f5', 600, 295);
   });
-  text('活跃天数 ' + (report.activeDays ?? '—') + ' 天', 72, 626, 24, '#b5b5b5');
+  text('活跃 ' + (report.activeDays ?? '—') + ' 天', 72, 626, 24, '#b5b5b5');
   line(654);
-  text((report.mode === 'year' ? '每月运动' : '每日运动') + spec.label + ' / ' + spec.unit, 72, 705, 28, '#f5f5f5', 600);
+  text((report.mode === 'year' ? '每月' : '每日') + spec.label + ' / ' + spec.unit, 72, 705, 28, '#f5f5f5', 600);
   const value = bucket => metric === 'durationSeconds' && bucket[metric] !== null ? bucket[metric] / 3600
     : metric === 'distanceKm' && bucket.distanceKm === null && !bucket.missingDistance && !bucket.incomplete ? 0 : bucket[metric];
-  const incomplete = bucket => bucket.incomplete || Boolean(spec.missing && bucket[spec.missing]);
   const max = Math.max(1, ...report.buckets.map(bucket => value(bucket) ?? 0));
   const step = 850 / report.buckets.length;
-  // 给出量纲、刻度与均值，方便从图片读出实际运动量。
+  // 保留量纲和刻度，图中只绘制已记录值。
   for (const tick of [0, max / 2, max]) {
-    const y = 882 - tick / max * 130;
+    const y = 850 - tick / max * 130;
     ctx.fillStyle = '#303030'; ctx.fillRect(72, y, 850, 1);
     text(number(tick), 942, y + 7, 20, '#b5b5b5', 400, 68);
   }
-  const complete = report.buckets.every(bucket => !incomplete(bucket) && value(bucket) !== null);
-  const average = report.buckets.reduce((sum, bucket) => sum + (value(bucket) ?? 0), 0) / report.buckets.length;
-  text(metric === 'distanceKm' && report.distanceKm === null && !report.missingDistance && !report.pendingDays && !report.unavailable ? '该周期没有适用的距离数据'
-    : complete ? (report.mode === 'year' ? '月均 ' : '日均 ') + number(average) + ' ' + spec.unit : '数据不完整，仅展示已记录值', 72, 744, 22, '#b5b5b5');
   report.buckets.forEach((bucket, index) => {
     const barWidth = Math.min(12, step * 0.3);
     const x = 72 + index * step + (step - barWidth) / 2;
     const amount = value(bucket);
     const height = (amount ?? 0) / max * 130;
     ctx.fillStyle = '#fc4c02';
-    if (amount !== null && amount > 0) ctx.fillRect(x, 882 - height, barWidth, height);
-    if (incomplete(bucket)) {
-      ctx.strokeStyle = '#b5b5b5'; ctx.lineWidth = 2;
-      ctx.strokeRect(x, 752, barWidth, 130);
-    }
+    if (amount !== null && amount > 0) ctx.fillRect(x, 850 - height, barWidth, height);
     if (report.mode === 'year' || index === 0 || Number(bucket.label) % 5 === 0 || index === report.buckets.length - 1 && (step >= 40 || Number(bucket.label) % 5 > 2)) {
-      text(bucket.label, x, 915, 21, '#b5b5b5', 400, step - 1);
+      text(bucket.label, x, 883, 21, '#b5b5b5', 400, step - 1);
     }
   });
-  text('空心框：未同步／详情不可读取／所选指标缺失', 72, 956, 22, '#b5b5b5');
-  line(982);
-  text('各运动统计', 72, 1033, 28, '#f5f5f5', 600);
-  [['运动 / 次数',72], ['距离 / km',350], ['时长',590], ['负荷 / TL',850]].forEach(([label,x]) => text(label, x, 1077, 22, '#b5b5b5'));
-  if (!report.sports.length) text(report.pendingDays || report.unavailable ? '暂无可读取记录，数据不完整' : '本周期没有运动记录', 72, 1130, 26, '#b5b5b5');
+  line(922);
+  text('运动统计', 72, 973, 28, '#f5f5f5', 600);
+  [['运动 / 次数',72], ['距离 / km',350], ['时长',590], ['负荷 / TL',850]].forEach(([label,x]) => text(label, x, 1017, 22, '#b5b5b5'));
+  if (!report.sports.length) text(report.pendingDays || report.unavailable ? '暂无可读取记录' : '暂无运动记录', 72, 1070, 26, '#b5b5b5');
   report.sports.forEach((item, index) => {
-    const y = 1124 + index * 68;
+    const y = 1064 + index * 68;
     text(item.sport, 72, y, 25, '#f5f5f5', 600, 250);
     text(item.count + ' 次', 72, y + 26, 20, '#b5b5b5');
     text(distanceNumber(item.distanceKm), 350, y + 9, 27, '#f5f5f5', 600, 215);
     text(formatTime(item.durationSeconds), 590, y + 9, 27, '#f5f5f5', 600, 235);
     text(loadNumber(item.trainingLoad), 850, y + 9, 27, '#f5f5f5', 600, 158);
   });
-  line(notesY - 15);
-  report.notes.forEach((note, index) => text(note, 72, notesY + 22 + index * 30, 22, '#b5b5b5'));
-  text('数据来自 Intervals.icu · 负荷仅作统计参考', 72, canvas.height - 68, 21, '#b5b5b5');
-  text('同步于 ' + report.syncedAt.replace(' +08:00', '') + '（北京时间）', 72, canvas.height - 35, 20, '#b5b5b5');
 }
 
 function yearOptions(data, today) {
