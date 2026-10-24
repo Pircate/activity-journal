@@ -38,7 +38,7 @@ const html=`<!DOCTYPE html><html lang="zh-CN"><head>
 <div class="recent-summary" aria-label="最近七天运动摘要">${recentSummary}</div></div>
 <section class="records-section" id="records" aria-labelledby="records-title"><div class="section-head"><h2 id="records-title"><span class="section-number">01</span>最近一周</h2><p>${recent.length?recent.length+' 次运动':'最近一周还没有运动记录'}</p></div><div class="records-grid">${cards}</div>
 
-<details class="history-panel" id="history"><summary class="history-heading"><span>全部历史记录</span><span><span id="history-total">${data.activities.length} 条活动</span><span class="history-toggle" aria-hidden="true">⌄</span></span></summary>
+<details class="history-panel" id="history"><summary class="history-heading"><span>全部历史记录</span><span><span id="history-total">${data.activities.length} 条活动</span><svg class="history-toggle" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></summary>
 <div class="history-content">
 <form id="history-filters" class="history-filters" aria-label="历史运动筛选">
 <div class="history-field"><label for="history-start">开始日期</label><input type="date" id="history-start"></div>

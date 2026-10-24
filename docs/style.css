@@ -122,11 +122,11 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 
 /* 历史记录使用独立筛选，沿用活动表格及手机卡片。 */
 .record-icon.strength-icon{color:#d778ff}
-.history-panel{margin-top:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.history-panel{margin-top:24px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .history-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;list-style:none;font-size:.875rem;font-weight:600}
 .history-heading::-webkit-details-marker{display:none}
 .history-heading>span:last-child{display:flex;align-items:center;gap:14px;font-size:.75rem;font-weight:400;color:var(--muted)}
-.history-toggle{font-size:1.25rem;line-height:1}
+.history-toggle{display:block;width:20px;height:20px;flex-shrink:0}
 .history-panel[open] .history-toggle{transform:rotate(180deg)}
 .history-heading:hover{color:var(--accent-soft)}
 .history-content{padding:0 20px 20px}
@@ -159,6 +159,7 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 .trend-controls,.trend-period{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .trend-controls{justify-content:flex-end}
 .trend-controls select{font:inherit;font-size:.8125rem;min-height:40px;padding:7px 28px 7px 10px;border:1px solid #4f4f4f;border-radius:8px;background:var(--bg);color:var(--text)}
+.year-filter select,.trend-controls select,.history-field select{appearance:none;padding-right:32px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='%23f5f5f5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m.75 3.5 5.25 5.25 5.25-5.25'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:12px 12px}
 .trend-guide,.trend-previous,.trend-note{font-size:.75rem;color:var(--muted);margin:10px 0;line-height:1.6}
 .trend-guide{grid-column:1;grid-row:1;align-self:center;margin:0}.trend-scroll{overflow-x:auto;padding:4px 3px 10px;scrollbar-width:thin;scrollbar-color:#5a5a5a transparent}
 .trend-bars{display:grid;grid-template-columns:repeat(var(--periods),minmax(64px,1fr));gap:8px;min-width:100%;width:max-content}
