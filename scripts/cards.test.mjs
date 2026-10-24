@@ -8,6 +8,30 @@ const activity = (sport, distanceKm, duration, extra = {}) => ({date:'2026-10-15
 const snapshot = activities => ({period, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]});
 const cards = activities => createJournal(snapshot(activities), '2026-10-16').cards;
 
+test('每种支持的运动使用独立图标，近期卡片与列表保持一致，未知类型安全显示', () => {
+  const types = ['Ride', 'VirtualRide', 'EBikeRide', 'EMountainBikeRide', 'MountainBikeRide', 'GravelRide', 'Handcycle', 'Velomobile',
+    'Run', 'VirtualRun', 'TrailRun', 'Walk', 'Hike', 'Swim', 'WeightTraining', 'Workout', 'Yoga', 'Pilates', 'Rowing', 'VirtualRow',
+    'Elliptical', 'StairStepper', 'RockClimbing', 'NordicSki', 'AlpineSki', 'BackcountrySki', 'Snowboard', 'Kayaking', 'Canoeing',
+    'StandUpPaddling', 'Surfing', 'Soccer', 'Tennis', 'Badminton', 'Basketball', 'Golf'];
+  const records = normalizeActivities(types.map((type, index) => ({id:'i' + index, type, start_date:'2026-10-15T00:00:00Z', moving_time:1800, distance:5000})), period);
+  const shapes = new Set();
+  for (const record of records) {
+    const icon = cards([record]).match(/<svg class="record-icon[^>]*>(.*?)<\/svg>/);
+    assert.ok(icon, record.sport + ' 卡片应显示图标');
+    assert.ok(renderDayRecords([record]).includes(icon[0]), record.sport + ' 列表应复用同一图标');
+    assert.match(icon[0], /viewBox="0 0 24 24"/);
+    assert.match(icon[0], /aria-hidden="true" focusable="false"/);
+    assert.doesNotMatch(icon[0], /#b6beca|undefined/ , record.sport + ' 不应使用通用图标');
+    shapes.add(icon[1]);
+  }
+  assert.equal(shapes.size, types.length, '子类型也应有独立图形');
+  for (const sport of ['其他运动（新类型）', 'constructor', '<img src=x onerror=alert(1)>']) {
+    const html = cards([activity(sport, 5, '0:30:00')]);
+    assert.match(html, /style="color:#b6beca"/);
+    assert.doesNotMatch(html, /<img|undefined/);
+  }
+});
+
 test('累计爬升从来源字段保留米值，卡片区分零和缺失并拒绝无效值', () => {
   const source = {id:'i1', type:'Ride', start_date:'2026-10-15T00:00:00Z', moving_time:3600, distance:30000, icu_training_load:30, strava_id:'123'};
   for (const value of [1234.56, 0, null, undefined]) {

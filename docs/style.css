@@ -121,7 +121,7 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 @media print{.legend-item{background:#eee}.legend-item strong,.year-number{color:#111}}
 
 /* 历史记录使用独立筛选，沿用活动表格及手机卡片。 */
-.record-icon.strength-icon{color:#d778ff}
+.record-top .record-icon{width:18px;height:18px}
 .history-panel{margin-top:24px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .history-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;list-style:none;font-size:.875rem;font-weight:600}
 .history-heading::-webkit-details-marker{display:none}

@@ -75,15 +75,51 @@ export function renderHeatmapStates() {
     '<li><i class="state-swatch" data-state="missing" aria-hidden="true"></i>' + dayStateLabels.missing + '</li>' +
     '<li><i class="state-swatch" data-state="unavailable" aria-hidden="true"></i>' + dayStateLabels.unavailable + '</li></ul>';
 }
+// 运动图标共用 24px 网格；跑步参考实心人物，其余沿用线性轮廓，子类型独立区分。
+const bicycle = '<circle cx="5.5" cy="16.5" r="4"/><circle cx="18.5" cy="16.5" r="4"/><path d="m5.5 16.5 4-8 5 8h-9m4-8h6.5m3 8-3-11H13M8 5.5h3"/>';
+const runner = '<g fill="currentColor" stroke="none"><circle cx="17.4" cy="3.1" r="1.9"/><path d="m11.8 6.2 3.2 1.5-4.5 5.6-2.9-2.1Z"/></g><path d="m14.1 7.5-5.8-1.7-2.6 3.6m8.4-1.2 3.7 3.7 3.3-.3"/><path d="m10 12.1 5.1 4.6-7.4 2.7m1.4-6.9-3 4.9-4.3 4.1" stroke-width="2.1"/>';
+const rower = '<circle cx="13" cy="5" r="2"/><path d="m10 9-2 5h7l3 4M10 9l5 3 4-3M3 18h18l-3 3H6ZM4 5l16 16"/>';
+const sportIcons = {
+  '骑行':['#32d05b', bicycle],
+  '虚拟骑行':['#32d05b', '<circle cx="6" cy="17" r="4"/><circle cx="15" cy="17" r="2"/><rect x="17" y="1" width="6" height="4" rx="1"/><path d="m6 17 6-6 3 6H6m6-10v4m-3-4h6m2 6 3-8M2 23h19"/>'],
+  '电助力骑行':['#32d05b', bicycle + '<path d="m13 1-2 3h3l-2 3"/>'],
+  '山地骑行':['#32d05b', bicycle + '<path d="m2 7 3-5 3 5"/>'],
+  '电助力山地骑行':['#32d05b', bicycle + '<path d="m1 7 3-5 3 5m7-6-2 3h3l-2 3"/>'],
+  '砾石骑行':['#32d05b', bicycle + '<path d="M3 23h1m4-1h1m4 1h1m5-1h1"/>'],
+  '手摇自行车':['#32d05b', '<circle cx="5" cy="17" r="4"/><circle cx="19" cy="17" r="3"/><circle cx="11" cy="4" r="2"/><path d="M10 8v6h6l3 3M10 9l5 1 1-3M5 17l5-3m0 3h3"/>'],
+  '卧式骑行':['#32d05b', '<circle cx="5" cy="18" r="4"/><circle cx="19" cy="18" r="4"/><circle cx="7" cy="5" r="2"/><path d="m6 9 4 5h5l3-5h3M3 10l4 7h8l4 1m-6-4 3-4"/>'],
+  '跑步':['#ffc52f', runner],
+  '虚拟跑步':['#ff9d66', '<rect x="2" y="2" width="20" height="13" rx="2"/><circle cx="14" cy="5.5" r="1"/><path d="m8 8 2 1 2-2 3 3h3m-6-3-2 4 3 2m-3-2-3 2m2 6h6m-3-4v4M5 22h14"/>'],
+  '越野跑':['#ffc52f', '<g fill="currentColor" stroke="none"><circle cx="14.6" cy="2.8" r="1.9"/><path d="m10.3 5.5 3.5 2.1-4 5-3-1.9ZM8 22l3.3-4.4 2.9 2.6 2.8-3.4 5 5.2Z"/></g><path d="m12.1 6.7-4.6-.4-1.8 3.8m6.9-2.8 4.3 2.8 3.2-4"/><path d="m9.2 11.6 5 3.4-6.8 1.2m.8-4-3.6 5.3-2.8 3.9" stroke-width="2.1"/>'],
+  '步行':['#f2d839', '<circle cx="13" cy="4" r="2"/><path d="m5 12 4-4h4l3 5h4M12 8l-2 7 5 7m-5-7-4 7"/>'],
+  '徒步':['#f2d839', '<circle cx="13" cy="3" r="2"/><path d="m11 7-2 7-4 7m6-14 4 5h4m-10 2 5 3 1 5m4-13v13M7 7l-2 6 4 1"/>'],
+  '游泳':['#64c9f5', '<circle cx="17" cy="6" r="2"/><path d="m3 12 5-5 5 5 4 1M8 7l3-4h3M2 17q2.5-2 5 0t5 0 5 0 5 0M2 21q2.5-2 5 0t5 0 5 0 5 0"/>'],
+  '力量训练':['#d778ff', '<path d="M8 12h8M3 9v6m4-9v12m10-12v12m4-9v6M3 12H1m22 0h-2"/>'],
+  '体能训练':['#d778ff', '<path d="m13 2-9 12h7l-1 8 10-13h-8Z"/>'],
+  '瑜伽':['#d778ff', '<circle cx="12" cy="4" r="2"/><path d="M12 8v7M7 9l-3 5H1m11-6 5 1 3 5h3M12 15l-6 3-3 3h18l-3-3Z"/>'],
+  '普拉提':['#d778ff', '<circle cx="5" cy="13" r="2"/><path d="M8 15h6l5-10 3 1M14 15l5 3h3M2 22h20"/>'],
+  '划船':['#64c9f5', rower],
+  '虚拟划船':['#64c9f5', '<rect x="2" y="2" width="20" height="13" rx="2"/><path d="m7 5 10 8M6 11h12l-2 2H8Zm3 8h6m-3-4v4M5 22h14"/>'],
+  '椭圆机':['#d778ff', '<circle cx="13" cy="3" r="2"/><path d="m11 7-2 6 5 3-2 5m-1-14 4 4h4M9 13l-4 7M5 8l2 13m12-13-2 13"/><ellipse cx="12" cy="21" rx="9" ry="1.5"/>'],
+  '踏步机':['#d778ff', '<path d="M2 21h6v-6h7V9h7M6 3v6l4 3v6m-4-9 8-2 2-5"/>'],
+  '攀岩':['#f2d839', '<circle cx="12" cy="5" r="2"/><path d="m5 2 2 7 5 1 5-5 2 1M12 10l-2 6-6 2m6-2 6 2 1 4M22 2v20M2 7h2m15 6h3M2 22h3"/>'],
+  '越野滑雪':['#9abaff', '<circle cx="13" cy="3" r="2"/><path d="m10 7-2 6 7 3 2 5M10 7l5 4h4M8 13l-4 7M2 23h18l2-2M4 8v13m15-13 3 11"/>'],
+  '高山滑雪':['#9abaff', '<circle cx="15" cy="3" r="2"/><path d="m12 7-5 5 7 2-4 6m2-13 3 5h5M4 6l16 13M2 18l15 5 4-1"/>'],
+  '野外滑雪':['#9abaff', '<path d="m1 10 4-7 4 7m8 2 4-5 2 4M3 17l14 5 5-1m-11-8 4 1-3 5m1-14-3 4 3 4 5 2"/><circle cx="15" cy="3" r="1.5"/>'],
+  '单板滑雪':['#9abaff', '<circle cx="14" cy="4" r="2"/><path d="m5 8 5 2 3-3 4 5h4M13 7l-3 8 5 3-2 3m-3-6-5 4M2 19q8 5 18 3l2-2"/>'],
+  '皮划艇':['#64c9f5', '<ellipse cx="12" cy="16" rx="10" ry="4"/><circle cx="12" cy="5" r="2"/><path d="M12 9v7M5 5l14 14M3 3l3 1-2 2Zm15 14 3 1-2 3Z"/>'],
+  '划独木舟':['#64c9f5', '<circle cx="10" cy="5" r="2"/><path d="M10 9v6l5 2M10 10l7 2M3 16l3 5h12l4-5ZM18 8l-2 14m-1-3 3 1"/>'],
+  '桨板':['#64c9f5', '<circle cx="11" cy="3" r="2"/><path d="M11 7v7l-3 7m3-7 3 7M11 9l7 2m1-5-2 15M2 22h20"/>'],
+  '冲浪':['#64c9f5', '<circle cx="14" cy="3" r="2"/><path d="m5 8 5 1 3-2 4 4h4M13 7l-3 8 5 2 1 3m-6-5-5 4M2 20q9 4 20-1M2 15q2-3 5-2"/>'],
+  '足球':['#72dfbc', '<circle cx="12" cy="12" r="10"/><path d="m12 7 5 4-2 6H9l-2-6Zm0 0V2m5 9 4-2m-6 8 3 3M9 17l-3 3m1-9L3 9"/>'],
+  '网球':['#72dfbc', '<ellipse cx="14" cy="8" rx="6" ry="7" transform="rotate(35 14 8)"/><path d="m9 13-7 8 2 2 7-8m1-11 6 6m-8-3 6 6m-1-10-5 8m8-6-5 8"/>'],
+  '羽毛球':['#72dfbc', '<path d="m3 3 10 2 8 8-9 6L5 12ZM3 3l9 16M8 4l8 12M5 12l14-1M9 17l4 4a3 3 0 0 0 4-4l-2-2"/>'],
+  '篮球':['#ff9d66', '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2v20M5 5q12 7 14 14M19 5Q7 12 5 19"/>'],
+  '高尔夫':['#72dfbc', '<path d="M6 19V2l12 4-12 4"/><ellipse cx="10" cy="20" rx="8" ry="2"/><circle cx="20" cy="16" r="2"/>'],
+};
 const sportIcon = sport => {
-  const paths = sport === '徒步'
-    ? '<circle cx="17" cy="4" r="2" fill="currentColor" stroke="none"/><path d="m14 9-3 7-5 4m8-11 5 5 5 1m-10-6 4 10-1 9m-4-10-3 10m14-14 2 14M9 8l-2 7 4 1"/>'
-    : sport === '力量训练'
-      ? '<path d="M10 16h12M5 12v8m4-11v14m14-14v14m4-11v8M5 16H3m26 0h-2"/>'
-    : sport.includes('骑行')
-      ? '<circle cx="7" cy="23" r="6"/><circle cx="25" cy="23" r="6"/><circle cx="22" cy="5" r="2" fill="currentColor" stroke="none"/><path d="m16 8-5 6 7 4-2 7m0-17 6 6h5m-6 0 4 9M7 23l5-9"/>'
-      : '<path d="M2 17h6l4-11 7 21 4-10h7"/>';
-  return '<svg class="record-icon' + (sport === '力量训练' ? ' strength-icon' : '') + '" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+  const [color, paths] = Object.hasOwn(sportIcons, sport) ? sportIcons[sport] : ['#b6beca', '<circle cx="12" cy="12" r="9"/><path d="M3 12h5l2-4 4 8 2-4h5"/>'];
+  return `<svg class="record-icon${sport === '力量训练' ? ' strength-icon' : ''}" data-sport="${escapeHtml(sport)}" style="color:${color}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
 };
 
 // 每条运动统一的指标层级：主指标（距离／组数）、副指标（配速、速度或平均心率）。
