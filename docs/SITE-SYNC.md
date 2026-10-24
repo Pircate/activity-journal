@@ -46,7 +46,3 @@
 - 用中文说明提交数据与状态，推送 origin main；失败保留本地提交并重试，不强推。Pages 失败重试发布，不把本地同步标为失败或回退游标。
 - 等待对应提交的 Pages 结果，核对线上 activities.json 的 syncedAt、period.end 和 personal-bests.json 与本次一致。不要使用 Sites／Cloudflare，不改页面设计。
 - 最终报告网站是否更新，失败说明阶段和原因。若未找到本机定时配置，明确报告尚未核实调度，不宣称已创建或迁移 22:00 任务。
-
-## 悦跑圈历史导入
-
-继续用 scripts/joyrun-to-fit.py 将核对后的记录转为 FIT 导入 Strava，原始资料、转换及上传清单保存在忽略目录 output/joyrun/。重复记录优先手机、两块表时优先 COROS，不覆盖 Strava 已有活动。旧轨迹时间为还原结果，Strava 会重算移动时间，原始汇总写入活动说明供核对。导入完成后由 Strava 主同步纳入，不再写历史补充文件；窗口外导入由下一次全量核对发现。
