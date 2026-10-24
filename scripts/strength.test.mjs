@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {normalizeActivities, matchCorosStrengthSets, fetchAllActivities} from './update-data.mjs';
+import {normalizeActivities, matchCorosStrengthSets} from './update-data.mjs';
 import {createJournal, renderDayRecords, validateData} from '../docs/journal.mjs';
 
 const period = {start:'2026-01-01', end:'2026-10-15'};
@@ -41,20 +41,6 @@ test('COROS 组数只通过原始活动标识精确关联，不按日期猜测',
   for (const rows of [[supplement[0], supplement[0]], [{activityUrl:'https://other.test/i1', sets:12}], [{...supplement[0], labelId:'123'}]]) {
     assert.throws(() => normalizeActivities(rawRecords, period, rows));
   }
-});
-
-test('同步接收已核对的 COROS 组数，只向列表 API 请求平均心率', async () => {
-  let calls = 0;
-  const data = await fetchAllActivities({config:{INTERVALS_ICU_API_KEY:'test'}, now:new Date('2026-10-15T04:00:00Z'),
-    strengthSets:[{activityUrl:'https://intervals.icu/activities/i1', sets:12}],
-    fetchImpl:async url => {
-      calls++;
-      if (calls === 2) assert.ok(new URL(url).searchParams.get('fields').split(',').includes('average_heartrate'));
-      return {ok:true, json:async () => calls === 1 ? {id:'i123'} : calls === 2 ? [raw] : []};
-    }});
-  assert.equal(data.activities[0].sets, 12);
-  assert.equal(data.activities[0].averageHeartRate, 137);
-  validateData(data);
 });
 
 test('力量训练指标验证拒绝非法数值和额外字段', () => {

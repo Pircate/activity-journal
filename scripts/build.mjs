@@ -1,7 +1,7 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
-const data=JSON.parse(await readFile(new URL('../docs/activities.json',import.meta.url),'utf8'));
 import {createJournal, formatTime as time, formatDistance, escapeHtml as esc, validateData, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, dayStateLabels, renderHeatmapStates} from '../docs/journal.mjs';
 import {filterActivities, historyPageSize} from '../docs/history.mjs';
 import {renderCalendar} from '../docs/calendar.mjs';
@@ -9,7 +9,7 @@ import {renderTrendPanel} from '../docs/trends.mjs';
 import {renderPersonalBestsPanel, validatePersonalBests} from '../docs/personal-bests.mjs';
 import {renderMilestonePanel} from '../docs/milestones.mjs';
 import {renderReportPanel} from '../docs/reports.mjs';
-const personalBests = JSON.parse(await readFile(new URL('../docs/personal-bests.json', import.meta.url), 'utf8'));
+export async function buildHtml({data, personalBests}) {
 validatePersonalBests(personalBests);
 validateData(data);
 const profile=JSON.parse(await readFile(new URL('../data/profile.json',import.meta.url),'utf8'));
@@ -76,6 +76,12 @@ ${renderReportPanel(data)}
 <footer><p>数据来自 Intervals.icu · Strava · COROS</p><div class="footer-right"><p>同步于 <time id="sync-time">${syncedAt.replace(' +08:00','').replaceAll('-','.')}</time>（北京时间）</p><p id="sync-status" role="status" aria-live="polite"></p></div></footer></div>
 <script type="application/json" id="personal-bests-data">${JSON.stringify(personalBests).replaceAll('<','\\u003c')}</script>
 <script type="application/json" id="journal-data">${JSON.stringify(data).replaceAll('<','\\u003c')}</script></body></html>`;
-await writeFile(new URL('../docs/index.html',import.meta.url),html);
-console.log(JSON.stringify({records:activities.length,distanceKm:distance,durationSeconds:duration,activeDays,days:daily.length,missingDistance,missingLoad,privacyFieldsVerified:true}));
+return html;
+}
 
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const data = JSON.parse(await readFile(new URL('../docs/activities.json', import.meta.url), 'utf8'));
+  const personalBests = JSON.parse(await readFile(new URL('../docs/personal-bests.json', import.meta.url), 'utf8'));
+  await writeFile(new URL('../docs/index.html', import.meta.url), await buildHtml({data, personalBests}));
+  console.log(JSON.stringify({records:data.activities.length, privacyFieldsVerified:true}));
+}

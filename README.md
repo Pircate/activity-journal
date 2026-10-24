@@ -2,7 +2,7 @@
 
 把每一次出发，汇成看得见的运动轨迹。
 
-使用 Intervals.icu 真实记录、Strava 历史活动补充的中文运动日志，整合 COROS 力量训练组数，支持桌面与手机浏览。
+使用 Strava 运动记录、Intervals.icu 训练负荷与装备信息的中文运动日志，整合 COROS 力量训练组数，支持桌面与手机浏览。
 
 **[访问网站 ↗](https://pircate.github.io/activity-journal/)** · [页面预览](#页面预览) · [本地预览](#本地预览) · [同步脚本](#同步脚本) · [网站更新说明](docs/SITE-SYNC.md)
 
@@ -41,7 +41,7 @@
 
 ## 页面内容
 
-拉取并保存 Intervals.icu 的全部历史运动记录。页面默认展示截至北京时间当天最近 365 天的累计距离、运动时长、运动次数和活动热力图；“全年活动”的“查看范围”可选择最近一年或任一已同步年份，切换时同步更新概览和热力图。自然年显示 1 月 1 日至 12 月 31 日，闰年含 366 天；当前年份尚未同步的日期标注为“未同步”，不当作没有运动。
+保存完整运动历史，以 Strava 为活动主数据源，日常增量更新、每七天全量核对。页面默认展示截至北京时间当天最近 365 天的累计距离、运动时长、运动次数和活动热力图；“全年活动”的“查看范围”可选择最近一年或任一已同步年份，切换时同步更新概览和热力图。自然年显示 1 月 1 日至 12 月 31 日，闰年含 366 天；当前年份尚未同步的日期标注为“未同步”，不当作没有运动。
 
 最近一周的运动记录始终按北京时间当天回看 7 天，不随年份切换。卡片与当天列表使用统一层级：主指标为距离，力量训练为组数；副指标按运动类型显示平均配速、平均速度或平均心率，缺少距离或时长时显示“未提供”，不推断数值。跑步、越野跑、虚拟跑步、步行和徒步显示每公里配速，游泳显示每百米配速，其余有距离的运动显示平均速度。可切换距离、时长和 Intervals.icu 训练负荷，也可用日期选择器或方向键查看每天的指标；选中日期后，下方列出当天全部可读取的运动记录，包括日期、运动类型、主指标、运动时间和副指标，无记录时隐藏列表。桌面以表格展示，宽度不超过 600px 时按活动显示纵向卡片，无需横向滚动；全年热力图仍可横向滑动。点击最近一周的活动卡片或当天列表中的运动行或卡片，会在新标签页打开 Strava 对应运动记录；也支持 Tab 聚焦、Enter 打开，查看权限由 Strava 控制。没有 Strava 关联的记录不提供跳转。训练负荷来自 Intervals.icu 的活动统计值，仅用于对照单次运动的训练投入，不构成训练建议。
 
@@ -128,7 +128,7 @@
 
 力量训练在近期卡片、历史列表和当天记录中以组数替代距离、平均心率替代副指标，并使用紫色杠铃图标。纯力量训练列表显示“组数／平均心率”表头；混合列表按实际出现的指标合并表头（如“距离 / 组数”“平均配速 / 平均速度 / 平均心率”），手机卡片按每条运动显示对应的主副指标标签。缺失值显示“未提供”，不当作零。
 
-平均心率直接读取 Intervals.icu 的 `average_heartrate`。Intervals.icu 不提供原生组数；组数来自 COROS 的实际力量训练记录，保存在 `data/strength-sets.json`，仅含网站已有的 `activityUrl` 和 `sets`。补录时使用 Intervals.icu 的 `source=COROS` 和 `external_id` 与 COROS 的 `labelId` 精确关联，不按日期或运动名称推测；原始 COROS 标识不写入仓库。日常同步读取这份独立来源数据，保留已核对的组数；新增、修改记录的补录流程见 [网站更新说明](docs/SITE-SYNC.md)。仅力量训练采用这份补充，其他活动指标仍来自 Intervals.icu。
+平均心率读取 Strava 的 `average_heartrate`，返回缺失时显示“未提供”。组数来自 COROS 的实际力量训练，已核对组数保存在 `data/strength-sets.json`，仅含网站已有的 `activityUrl` 和 `sets`。同步使用 Intervals.icu 的 `source=COROS`、`external_id` 与 COROS 的 `labelId` 精确关联，再通过真实 Strava ID 或已核对链接合入活动；不按日期或名称猜测。原始 COROS 标识仅放在 Git 忽略的临时输入中。查询范围与活动同步一致，缺少补充时保留已知组数；流程见 [网站更新说明](docs/SITE-SYNC.md)。
 
 ## 装备维护
 
@@ -150,58 +150,62 @@
 
 ## 自动更新
 
-每天北京时间 22:00 的「每日同步 Strava/Garmin/COROS 运动数据」任务完成三端同步后，按 [网站更新说明](docs/SITE-SYNC.md) 从 Intervals.icu 获取全部历史记录、更新本仓库并触发 GitHub Pages 发布。同步存在阻塞或失败、Intervals.icu 查询失败或返回无效记录时保留上一版数据。任务在本机 Codex 中执行，需要本机与 Codex 可运行、网络畅通且 Intervals.icu 与 GitHub 授权有效。
+每天北京时间 22:00 的「每日同步 Strava/Garmin/COROS 运动数据」任务完成三端同步后，按 [网站更新说明](docs/SITE-SYNC.md) 执行增量同步。任务仍由本机 Codex 调度，需要本机、Codex、网络及各平台授权可用；本仓库不另建定时器。
 
-页面先展示 HTML 内嵌的最近一次构建快照，再在打开、从后台返回时向服务器验证 `docs/activities.json` 是否更新；页面可见时每 5 分钟再检查一次。请求使用 `no-cache`，允许浏览器通过 ETag 或 Last-Modified 验证并复用缓存；服务器不支持验证时正常下载完整数据。完整数据与北京时间日期均未变化时不重新渲染，保留装备展开状态和当前焦点，但仍更新同步状态提示。最近一年和最近一周随北京时间跨天滚动，即使请求失败也使用已有快照更新日期，尚未同步的日期不算作已确认没有运动的日期。
+数据来源按职责划分：Strava 提供活动日期、类型、距离、运动时长、爬升、力量训练平均心率和活动链接；Intervals.icu 补充训练负荷、跑步最佳成绩及 CP5／CP20，同时提供装备与配件维护信息；COROS 补充力量训练组数。最远骑行由合并后的完整活动快照计算。
 
-每条公开活动记录包含北京时间日期、中文运动类型、距离、运动时长、训练负荷和 Intervals.icu 活动链接 `activityUrl`（用于成绩、组数关联），有 Strava 关联时额外包含 `stravaUrl`，供运动卡片和列表跳转。两个链接各自包含对应平台的活动 ID。力量训练额外公开 `sets`（组数）和 `averageHeartRate`（平均心率，bpm），缺失时为 `null`。装备仅公开名称、类型、里程和更换摘要；不发布坐标、心率明细、账号信息、额外的活动标识字段、装备标识、装备备注或凭据。
+首次运行全量核对 Strava 历史，此后日常从上次成功游标前 7 天开始查询，按真实 Strava ID 更新或新增。失败或停机期间的时间跨度完整保留；每次查询上界固定为本次任务开始时间。Strava 的时间过滤按运动发生时间，不是上传／修改时间，因此距上次全量核对满 7 天时自动再次全量核对，以发现更早的补传和修改。仅全量查询成功后检查消失的活动，并逐条查询详情确认；缺少完整读取权限、限流或请求失败时禁止删除。Intervals.icu 和 COROS 查询同一日期范围，装备每次完整读取，两条成绩曲线每次直接查询。
+
+当前历史记录及已知负荷、组数、跨平台链接保留。未关联 Strava 的历史活动单独保留，只有平台明确返回真实关联后才合并。Strava 主指标覆盖关联活动的旧基础指标；Intervals.icu 不再覆盖这些基础指标。补充暂不可得时保留已知负荷与组数，新活动缺失时保持 `null`，不使用 Strava 相对强度代替 Intervals.icu 负荷。
+
+页面先显示 HTML 内嵌快照，再在打开、从后台返回及可见时每 5 分钟检查同源公开 JSON。请求使用 `no-cache`，支持 ETag／Last-Modified 缓存验证。完整数据与北京时间日期未变化时不重建内容，保留当前筛选、装备展开和焦点；北京时间跨天仍会滚动统计范围。
 
 ## 同步脚本
 
-使用 Node.js 22 或更新版本。先在仓库外创建 `~/.config/interval-icu/config.json`：
+使用 Node.js 22 或更新版本，无需新增运行时依赖。复用以下仓库外凭据：
+
+- `~/.open-fit/strava.env`：`STRAVA_TOKEN` 或 `STRAVA_ACCESS_TOKEN`，以及自动刷新所需的 `STRAVA_CLIENT_ID`、`STRAVA_CLIENT_SECRET`、`STRAVA_REFRESH_TOKEN`。环境变量优先。须授权 `activity:read_all`；已有 scope 元数据不足时直接失败，缺少元数据时以实际私密活动返回确认删除权限，否则禁止根据 404 删除。轮换后的 token 原子保存回此文件。
+- `~/.config/interval-icu/config.json`：`{"INTERVALS_ICU_API_KEY":"你的个人 API Key"}`。脚本直接读取；API Key 从 Intervals.icu 设置中的 Developer Settings 获取。
+
+凭据不写入仓库、公开快照或日志。Unix 系统凭据目录使用 `700`、文件使用 `600`，Windows 使用当前用户访问权限。
+
+先查看本次模式和查询范围：
+
+```sh
+node scripts/sync.mjs --plan
+```
+
+由 Codex 任务通过 COROS 连接器查询 `corosOldest` 至 `end` 的力量训练（首次从已保存历史起点查询；若 Strava 发现更早历史，入口会要求扩大范围并停止本次更新），分段至每段数量小于请求上限，将成功结果写到 Git 忽略的 `output/sync/coros-strength.json`：
 
 ```json
 {
-  "INTERVALS_ICU_API_KEY": "你的个人 API Key"
+  "startDate": "1900-01-01",
+  "endDate": "2026-10-24",
+  "queriedAt": "2026-10-24T10:00:00.000Z",
+  "records": [{"labelId":"真实 COROS 标识","sets":12}]
 }
 ```
 
-API Key 从 [Intervals.icu 设置](https://intervals.icu/settings) 底部 Developer Settings 获取。目录权限设为 `700`，配置文件权限设为 `600`。脚本每次运行直接读取该文件。
-
-不要将凭据写入代码、公开 JSON 或 Git。脚本先解析当前账号，再查询全部历史活动及装备列表，全部校验成功后原子替换同一份公开快照。活动或装备任一请求失败时均保留上一版。重复运行不会累积重复记录；运动基础指标优先使用 Intervals.icu，缺失或受限活动使用下述已核对的 Strava 补充数据，力量训练组数使用上述 COROS 补充数据。
+输入范围必须覆盖 `--plan` 的 `corosOldest` 至 `end`，完成查询的时间距运行不超过 24 小时。成功查询且确实无力量训练时 `records` 为 `[]`；查询失败不得制造空输入。
 
 ```sh
-node scripts/update-data.mjs
-node scripts/update-personal-bests.mjs
-node scripts/build.mjs
+node scripts/sync.mjs --coros-input output/sync/coros-strength.json
 node --test scripts/*.test.mjs
 ```
 
-`update-personal-bests.mjs` 在 `update-data.mjs` 之后运行：最远骑行和成绩对应日期都取自刚更新的活动快照。它并发查询全历史配速曲线（`athlete/0/pace-curves.json?type=Run&curves=all`）与功率曲线（`athlete/0/power-curves.json?type=Ride&curves=all`），跑步成绩取曲线上首个不短于目标距离的累计用时，功率取 300 秒与 1200 秒处的原始最佳努力值，再按 Intervals.icu 活动链接精确关联日期与 Strava 跳转链接。任一请求或解析失败都会保留上一版 `docs/personal-bests.json`。该文件顶层为 `source`、`syncedAt`、`records`；每条记录含 `sport`、`event`、`result`、`date`、`activityUrl`，`date` 在活动快照中查不到时为 `null`。有 Strava 关联时额外包含 `stravaUrl`，成绩卡片在新标签页打开该活动；缺失时显示“Strava 链接未提供”，不生成跳转。
+统一入口依次读取 Strava、Intervals.icu 活动补充与装备、两条成绩曲线，合并并校验全部数据，构建首页，然后替换正式文件；`data/sync-state.json` 最后写入，包含 UTC 格式的 `cursor`、`lastSuccessfulSyncAt`、`lastFullReconcileAt`。游标保存本次开始时间，成功时间另记；状态文件不在 `/docs` 中，不供页面读取。它与活动快照一同提交，换机器仍能继续增量同步。状态文件存在但无效时停止，不默默跳过历史。
 
-字段来自 [官方 API 文档](https://intervals.icu/api-docs.html)：`distance` 从米转为公里，`moving_time` 为运动秒数，`icu_training_load` 为活动训练负荷；力量训练的平均心率来自 `average_heartrate`，零值或缺失值记为 `null`。使用 UTC 开始时间 `start_date` 转换北京时间日期；API 从 1900-01-01 起查询历史活动，上界比北京时间今天扩大一天，再按北京时间裁剪；达到单次 10000 条上限时自动二分为不重叠的日期范围，直至每段结果可确认完整。保留同一天的多次运动，不按日期去重。
+网络、授权、记录校验或构建失败时不更新正式文件或游标。替换阶段使用回滚日志，失败恢复旧文件；进程中断后下一次先恢复未完成事务。`output/sync.lock` 防止并发写入；进程异常退出后自动识别已退出进程的遗留锁并恢复事务；锁内容异常时，确认没有同步进程，再删除此锁并重试，不删除回滚日志。发布失败保留本地成功提交，重试推送或 Pages 发布，不强推。
 
-Intervals.icu 可能完全没有收录某条 Strava 活动，也可能只返回受限空壳。已通过 Strava API 全量核对的补充记录保存在 `data/strava-activities.json`，仅含网站公开活动字段。同步时以真实 Strava ID 和已核对的 Intervals.icu 活动链接关联，保留所有独立补充记录，不再要求它先出现在 Intervals.icu 列表中。已有原生记录优先保留指标、力量组数和负荷，只补充缺少的 Strava 链接，避免重复计数。
+`node scripts/build.mjs` 仍可单独从已有公开快照重建首页。`update-data.mjs` 为 Intervals.icu 查询和装备处理模块，`update-personal-bests.mjs` 提供成绩处理；日常任务统一使用 `sync.mjs`，不再使用旧的三条独立同步命令或 Strava 历史补充文件。
 
-补录前先按 Strava ID 或原始文件标识核对关联；旧记录缺少统一标识时，核对精确 UTC 开始时间、运动类型和指标，存在时间偏差的记录逐条复核，不按某天或名称批量猜测。核对后的关联仅保存为两个平台各自真实的活动链接。Strava 独有活动省略 `activityUrl`，不编造 Intervals.icu 链接。日期由 Strava UTC 开始时间转换为北京时间，距离、运动时长和运动类型使用 Strava 原值；训练负荷固定为 `null`，不使用 Strava 相对强度代替 Intervals.icu 负荷。补充文件随仓库保存，日常同步无需 Strava 凭据即可保留已核对的记录。
+公开快照结构保持不变。活动仅公开北京时间日期、中文类型、公里距离、运动时长、训练负荷、可选爬升及真实平台链接；力量训练额外含组数和平均心率。装备仅公开展示字段及维护摘要，不发布原始标识、装备备注、坐标、心率明细、原始响应或凭据。缺失指标保留为空；不会把查询失败当成零活动。日期范围从最早历史记录所在年元旦开始，至少覆盖最近一年。
 
-完整性验证必须同时检查最早活动日期和所有 Strava 活动 ID 的覆盖情况；“详情不可读取”为零只说明已知空壳已补齐，不代表所有 Strava 历史都已收录。
+### 悦跑圈历史迁移
 
-### 悦跑圈历史补录
+2021 年 9 月 1 日之前的悦跑圈记录核对重复后，通过 `scripts/joyrun-to-fit.py` 转为 FIT 导入 Strava；网站随后从 Strava 主数据源读取。手机与手表重复时优先手机，两块表重复时优先 COROS，Strava 已有记录保留。旧记录没有逐点原始时间，转换时还原时间与暂停，Strava 会重算移动时间和配速，不能把还原轨迹视作逐点原始测量值。原始 JSON、FIT、核对和上传清单保存在 Git 忽略的 `output/joyrun/`。历史导入后，如需立即显示，可在同步状态距上次全量核对满 7 天后运行；日常回看窗口之外的补传在下一次全量核对纳入。
 
-2021 年 9 月 1 日之前的悦跑圈记录先核对重复，再转换为 FIT 导入 Strava，网站沿用上面的 Strava 补充流程读取。手机与手表重复时优先手机，两块表重复时优先 COROS；已经存在于 Strava 的活动保留原记录。室内跑作为跑步导入，不生成虚构坐标。
-
-`scripts/joyrun-to-fit.py` 使用 `fit-tool` 和 `geopy` 转换已核对的原始记录，保留 GPS 坐标及原始距离、运动时长、总历时。悦跑圈旧记录没有逐点原始时间，因此轨迹时间按等间隔采样及暂停信息还原，并对齐原始起止时间；逐点距离按原始总距离归一化。转换后的配速明细不能视为原始测量值。Strava 会重新计算移动时间和配速，网站沿用 Strava 的结果；悦跑圈原始汇总写入每条 Strava 活动说明供核对。
-
-原始 JSON、FIT、去重清单和上传结果仅保存在 Git 忽略目录 `output/joyrun/`，不发布坐标、心率明细或登录会话。转换与核对步骤见 [网站更新说明](docs/SITE-SYNC.md#悦跑圈历史迁移)。
-
-尚未匹配的受限记录在 `unavailableActivities` 中保留平台提供的当地日期，页面标注为“详情不可读取”，不计入距离、时长和次数。其他缺失运动时长、重复活动 ID、无效记录或单日仍达到查询上限的情况会让整次同步失败并保留旧文件。可读取活动缺失的距离和负荷保留为空，并计入“指标缺失”。
-
-`period.start` 为最早记录所在年的元旦（至少覆盖最近一年），`period.end` 为同步时的北京时间当天；年份选项包含此范围内的所有年份，空年也可查看。
-
-`activities.json` 顶层包含 `period`、`syncedAt`、`activities`、`unavailableActivities` 和 `gearLibrary`。活动的 `activityUrl` 只接受 `https://intervals.icu/activities/` 加平台活动 ID；运动跳转使用可选字段 `stravaUrl`，只接受 `https://www.strava.com/activities/` 加正整数活动 ID；该链接由 API 的 `strava_id` 或补充文件中已核对的真实关联生成；无关联时不提供跳转，不使用 Intervals.icu ID 拼接 Strava 链接。Strava 独有活动省略 `activityUrl`。`gearLibrary` 首次未同步为 `null`，成功同步后为自行车数组；每辆车仅含 `name`、`type`、`distanceKm`、`components`。配件含 `name`、`type`、`distanceKm`、`replacement`；共享配件额外含 `sharedBy` 车辆名称数组和 `sharedGroup` 正整数分组号；分组号仅在本份快照内标记同一共享配件，按平台原始配件关系生成，不含原始装备标识。同名、同里程的不同配件仍有不同分组，不按名称猜测共享关系；共享分组的归属和使用信息必须一致，否则拒绝更新。普通配件的 `replacement` 为 `null`；重点配件的更换摘要包含 `status`（`available`、`missing-reminder` 或 `duplicate-reminder`）、`date`、`distanceKm`，其中未知日期和里程为 `null`。不接受缺少装备字段的旧数据结构。
-
-同步与构建成功后，将更新文件提交并推送到 `main`，GitHub Pages 从 `docs/` 自动发布。网页只读取同源公开 JSON，凭据仅在本机脚本运行时使用。
+同步与构建成功后，检查 diff、提交并推送 `main`，GitHub Pages 从 `/docs` 发布，最终核对线上快照时间与本次一致。
 
 ## 本地预览
 
