@@ -3,8 +3,7 @@ import {resolve, dirname} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {beijingDate, shiftDate, validateData, isDate} from '../docs/journal.mjs';
 import {validatePersonalBests} from '../docs/personal-bests.mjs';
-import {fetchIntervalsData, matchCorosStrengthSets} from './update-data.mjs';
-import {createStravaClient, normalizeStrava} from './strava.mjs';
+import {fetchIntervalsData, normalizeActivities, matchCorosStrengthSets} from './update-data.mjs';
 import {fetchPersonalBests} from './update-personal-bests.mjs';
 import {buildHtml} from './build.mjs';
 
@@ -34,39 +33,16 @@ export function validateCorosInput(input, window, now) {
   matchCorosStrengthSets([], input.records);
 }
 
-export async function mergeActivities({previous, stravaRecords, intervalsRecords, corosRecords, strengthSets, window, now, getActivity}) {
+export function mergeActivities({previous, intervalsRecords, corosRecords, strengthSets, window, now}) {
   validateData(previous);
-  const byStrava = new Map(), byIntervals = new Map(), activities = new Map();
+  if (!Array.isArray(intervalsRecords)) throw new Error('Intervals.icu 活动列表无效');
+  const byStrava = new Map(), byIntervals = new Map(), activities = new Set();
   for (const a of previous.activities) {
-    const key = keyFor(a);
-    if (!key || activities.has(key) || a.activityUrl && byIntervals.has(a.activityUrl)) throw new Error('历史活动标识缺失或重复');
-    activities.set(key, {...a});
-    if (a.stravaUrl) byStrava.set(a.stravaUrl, a);
-    if (a.activityUrl) byIntervals.set(a.activityUrl, a);
-  }
-  const seen = new Set(), deleted = [];
-  const upsert = record => {
-    const current = normalizeStrava(record), url = current.stravaUrl;
-    const old = activities.get(url);
-    const next = {...current, trainingLoad:old?.trainingLoad ?? null,
-      ...(old?.activityUrl ? {activityUrl:old.activityUrl} : {}),
-      ...(current.sport === '力量训练' ? {sets:old?.sets ?? null} : {})};
-    activities.set(url, next);
-    return next;
-  };
-  for (const record of stravaRecords) {
-    const a = normalizeStrava(record);
-    if (seen.has(a.stravaUrl)) throw new Error('Strava 活动 ID 重复');
-    seen.add(a.stravaUrl); upsert(record);
-  }
-  if (window.full) for (const [url] of byStrava) if (!seen.has(url)) {
-    const record = await getActivity(url.split('/').at(-1));
-    if (record === null) { activities.delete(url); deleted.push(url); }
-    else {
-      if (normalizeStrava(record).stravaUrl !== url) throw new Error('Strava 活动详情标识冲突');
-      // 列表读取期间新增或移动到查询上界之后的活动留待下次更新。
-      if (Date.parse(record.start_date) < window.before * 1000) upsert(record);
-    }
+    if (!keyFor(a) || a.stravaUrl && byStrava.has(a.stravaUrl) || a.activityUrl && byIntervals.has(a.activityUrl)) throw new Error('历史活动标识缺失或重复');
+    const row = {...a};
+    activities.add(row);
+    if (a.stravaUrl) byStrava.set(a.stravaUrl, row);
+    if (a.activityUrl) byIntervals.set(a.activityUrl, row);
   }
   const sets = new Map();
   for (const row of strengthSets) {
@@ -77,50 +53,60 @@ export async function mergeActivities({previous, stravaRecords, intervalsRecords
   }
   const matchedSets = matchCorosStrengthSets(intervalsRecords, corosRecords);
   for (const row of matchedSets) sets.set(row.activityUrl, row.sets);
-  const linked = new Map();
-  let unmatchedLoad = 0;
+  const seen = new Set(), linked = new Set(), touched = new Set();
+  const unavailableActivities = previous.unavailableActivities.filter(a => a.date < window.oldest || a.date > window.end);
+  let updated = 0, added = 0, restrictedRetained = 0, restrictedUnavailable = 0;
   for (const record of intervalsRecords) {
-    if (record.start_date) {
-      const timestamp = /(?:Z|[+-]\d\d:?\d\d)$/.test(record.start_date) ? record.start_date : record.start_date + 'Z';
-      if (!Number.isFinite(Date.parse(timestamp))) throw new Error('Intervals.icu 活动开始时间无效');
-      if (Date.parse(timestamp) >= window.before * 1000) continue;
-    }
+    if (!record || !/^(?:i)?\d+$/.test(String(record.id)) || seen.has(String(record.id))) throw new Error('Intervals.icu 活动标识无效或重复');
+    seen.add(String(record.id));
     const activityUrl = 'https://intervals.icu/activities/' + record.id;
-    if (!/^(?:i)?\d+$/.test(String(record.id))) throw new Error('Intervals.icu 活动标识无效');
+    if (record.strava_id != null && (typeof record.strava_id !== 'string' || !/^[1-9]\d*$/.test(record.strava_id))) throw new Error('Intervals.icu Strava 关联无效');
+    const sourceId = record.source === 'STRAVA' && /^[1-9]\d*$/.test(String(record.id)) ? String(record.id) : null;
+    if (sourceId && record.strava_id != null && sourceId !== record.strava_id) throw new Error('跨平台活动关联冲突');
+    const id = record.strava_id ?? sourceId;
     const known = byIntervals.get(activityUrl);
-    const id = record.strava_id ?? (record.source === 'STRAVA' && /^[1-9]\d*$/.test(String(record.id)) ? record.id : null);
-    if (id !== null && !/^[1-9]\d*$/.test(String(id))) throw new Error('Intervals.icu Strava 关联无效');
     const stravaUrl = id === null ? known?.stravaUrl : 'https://www.strava.com/activities/' + id;
-    if (known?.stravaUrl && stravaUrl !== known.stravaUrl) throw new Error('跨平台活动关联冲突');
-    const key = stravaUrl || activityUrl;
-    const a = activities.get(key);
-    if (!a) { if (record.icu_training_load != null) unmatchedLoad++; continue; }
-    if (stravaUrl && (linked.has(stravaUrl) && linked.get(stravaUrl) !== activityUrl || a.activityUrl && a.activityUrl !== activityUrl)) throw new Error('跨平台活动关联不唯一');
-    if (stravaUrl) linked.set(stravaUrl, activityUrl);
-    // 精确关联使旧的无 Strava 链接记录合入主记录，避免双重计数。
-    if (stravaUrl && known && !known.stravaUrl) {
-      a.trainingLoad ??= known.trainingLoad;
-      if (a.sport === '力量训练') a.sets ??= known.sets ?? null;
-      activities.delete(activityUrl);
+    const related = stravaUrl ? byStrava.get(stravaUrl) : undefined;
+    if (known?.stravaUrl && known.stravaUrl !== stravaUrl || related?.activityUrl && related.activityUrl !== activityUrl) throw new Error('跨平台活动关联冲突');
+    if (stravaUrl && linked.has(stravaUrl)) throw new Error('跨平台活动关联不唯一');
+    if (stravaUrl) linked.add(stravaUrl);
+    const old = known || related;
+    let next;
+    const restricted = sourceId && record._note === 'STRAVA activities are not available via the API' &&
+      ['type','start_date','moving_time','distance','total_elevation_gain','icu_training_load','average_heartrate','external_id'].every(field => record[field] === undefined);
+    if (restricted) {
+      const local = record.start_date_local;
+      if (typeof local !== 'string' || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(local) || !isDate(local.slice(0,10))) throw new Error('受限活动当地日期无效');
+      const date = local.slice(0,10);
+      if (date < window.oldest || date > window.end) continue;
+      if (!old) { unavailableActivities.push({date}); restrictedUnavailable++; continue; }
+      next = {...related, ...known, activityUrl, stravaUrl};
+      restrictedRetained++;
+    } else {
+      [next] = normalizeActivities([{...record, ...(id === null ? {} : {strava_id:id})}], {start:'1900-01-01', end:window.end});
+      const timestamp = /(?:Z|[+-]\d\d:?\d\d)$/.test(record.start_date) ? record.start_date : record.start_date + 'Z';
+      if (!next || next.date < window.oldest || Date.parse(timestamp) >= window.before * 1000) continue;
+      if (stravaUrl) next.stravaUrl = stravaUrl;
+      if (old) updated++; else added++;
     }
-    a.activityUrl = activityUrl;
-    const load = record.icu_training_load;
-    if (load != null) {
-      if (typeof load !== 'number' || !Number.isFinite(load) || load < 0) throw new Error('Intervals.icu 训练负荷无效');
-      a.trainingLoad = load;
-    }
+    next.trainingLoad ??= known?.trainingLoad ?? related?.trainingLoad ?? null;
+    if (next.sport === '力量训练') next.sets ??= known?.sets ?? related?.sets ?? null;
+    for (const row of [known, related]) if (row) { activities.delete(row); touched.add(row); }
+    activities.add(next);
+    byIntervals.set(activityUrl, next);
+    if (stravaUrl) byStrava.set(stravaUrl, next);
   }
-  for (const a of activities.values()) if (a.sport === '力量训练' && sets.has(a.activityUrl)) a.sets = sets.get(a.activityUrl);
-  for (const url of seen) if (!activities.has(url)) throw new Error('合并后未覆盖全部本次 Strava 活动');
-  const end = beijingDate(now), rows = [...activities.values()].sort((a,b) => b.date.localeCompare(a.date) || keyFor(a).localeCompare(keyFor(b)));
-  const earliest = [...rows, ...previous.unavailableActivities].reduce((date, a) => a.date < date ? a.date : date, shiftDate(end, -364));
+  for (const a of activities) if (a.sport === '力量训练' && sets.has(a.activityUrl)) a.sets = sets.get(a.activityUrl);
+  unavailableActivities.sort((a,b) => a.date.localeCompare(b.date));
+  const end = beijingDate(now), rows = [...activities].sort((a,b) => b.date.localeCompare(a.date) || keyFor(a).localeCompare(keyFor(b)));
+  const earliest = [...rows, ...unavailableActivities].reduce((date, a) => a.date < date ? a.date : date, shiftDate(end, -364));
   const data = {period:{start:earliest.slice(0,4) + '-01-01', end}, syncedAt:'',
-    activities:rows, unavailableActivities:previous.unavailableActivities, gearLibrary:previous.gearLibrary};
+    activities:rows, unavailableActivities, gearLibrary:previous.gearLibrary};
   data.syncedAt = new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Shanghai', year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(now) + ' +08:00';
   validateData(data);
-  return {data, strengthSets:[...sets].map(([activityUrl, sets]) => ({activityUrl, sets})), report:{stravaFetched:stravaRecords.length,
-    deleted, retainedUnlinked:rows.filter(a => !a.stravaUrl).length, corosMatched:matchedSets.length,
-    corosUnmatched:corosRecords.length - matchedSets.length, unmatchedLoad}};
+  return {data, strengthSets:[...sets].map(([activityUrl, sets]) => ({activityUrl, sets})), report:{intervalsFetched:intervalsRecords.length,
+    added, updated, retainedHistory:previous.activities.length - touched.size, restrictedRetained, restrictedUnavailable,
+    corosMatched:matchedSets.length, corosUnmatched:corosRecords.length - matchedSets.length}};
 }
 
 // 同一任务只允许一个写入者；进程中断留下的日志在下次运行先恢复。
@@ -162,7 +148,7 @@ async function readState(directory) {
   catch (error) { if (error.code === 'ENOENT') return null; throw new Error('同步状态无法读取'); }
 }
 
-export async function sync({directory = root, now = new Date(), corosInput, client, fetchIntervals = fetchIntervalsData,
+export async function sync({directory = root, now = new Date(), corosInput, fetchIntervals = fetchIntervalsData,
   fetchBests = fetchPersonalBests, render = buildHtml, finishTime = () => new Date(), renameImpl} = {}) {
   const lockPath = resolve(directory, 'output/sync.lock');
   await mkdir(dirname(lockPath), {recursive:true});
@@ -189,17 +175,11 @@ export async function sync({directory = root, now = new Date(), corosInput, clie
     validateData(previous);
     // COROS 从已保存历史的起点查询，避免向平台发送 1900 年的无效时间范围。
     validateCorosInput(corosInput, {...window, oldest:window.full ? previous.period.start : window.oldest}, now);
-    client ??= await createStravaClient();
-    const profile = JSON.parse(await readFile(resolve(directory, 'data/profile.json'), 'utf8'));
-    const athlete = await client.get('athlete');
-    if (String(athlete?.id) !== profile.stravaUrl.split('/').at(-1)) throw new Error('Strava 授权账号与网站资料不一致');
-    const stravaRecords = await client.activities(window);
-    const firstDate = stravaRecords.reduce((date, row) => normalizeStrava(row).date < date ? normalizeStrava(row).date : date, previous.period.start);
-    if (window.full && firstDate < corosInput.startDate) throw new Error(`Strava 发现更早历史，请从 ${firstDate.slice(0,4)}-01-01 重新完整查询 COROS`);
     const intervals = await fetchIntervals({now, oldest:window.oldest});
-    const merged = await mergeActivities({previous, stravaRecords, intervalsRecords:intervals.records,
-      corosRecords:corosInput.records, strengthSets, window, now,
-      getActivity:id => client.get('activities/' + id, {allowMissing:true})});
+    const merged = mergeActivities({previous, intervalsRecords:intervals.records,
+      corosRecords:corosInput.records, strengthSets, window, now});
+    const firstDate = [...merged.data.activities, ...merged.data.unavailableActivities].reduce((date, row) => row.date < date ? row.date : date, previous.period.start);
+    if (window.full && firstDate < corosInput.startDate) throw new Error(`Intervals.icu 发现更早历史，请从 ${firstDate.slice(0,4)}-01-01 重新完整查询 COROS`);
     merged.data.gearLibrary = intervals.gearLibrary;
     validateData(merged.data);
     const personalBests = await fetchBests({activities:merged.data.activities, now});
