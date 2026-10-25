@@ -367,7 +367,6 @@ function renderRecentSummary(recent, data, endDate) {
   if (missing) notes.push(missing + ' 次运动' + dayStateLabels.missing + '（距离未提供）');
   if (missingLoad) notes.push(missingLoad + ' 次运动' + dayStateLabels.missing + '（负荷未提供' + (missingLoad < recent.length ? '，累计负荷仅含已提供值' : '') + '）');
   if (unavailable) notes.push('另有 ' + unavailable + ' 条' + dayStateLabels.unavailable + '，未计入统计');
-  if (start < data.period.start || endDate > data.period.end) notes.push('部分日期' + dayStateLabels.pending + '，当前为已同步记录');
   const distanceText = recent.length && missing === recent.length ? '—' : formatDistance(distance);
   const loadText = recent.length && missingLoad === recent.length ? '—' : formatLoad(load);
   return `<div class="summary-context"><span class="summary-label">最近 7 天</span><span class="summary-period"><time datetime="${start}">${start.replaceAll('-', '.')}</time> — <time datetime="${endDate}">${endDate.replaceAll('-', '.')}</time></span></div>

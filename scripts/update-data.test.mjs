@@ -111,7 +111,7 @@ test('自然年覆盖闰日与年界，未来和未同步日期标记未知，�
   assert.equal(createJournal({...data, period}, period.end, '2025').daily[0].pending, true);
 });
 
-test('首屏摘要固定最近七天，保留多次活动、缺失距离及未同步提示', () => {
+test('首屏摘要固定最近七天，保留多次活动及缺失距离，不显示部分日期未同步提示', () => {
   const activity = {date:'2026-10-09', sport:'骑行', distanceKm:0.1, duration:'0:30:01', trainingLoad:0};
   const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:[],
     activities:[activity, {...activity, distanceKm:0.2}, {...activity, date:'2026-10-15', distanceKm:null}, {...activity, date:'2026-10-08', distanceKm:999}, {...activity, date:'2026-10-16', distanceKm:999}],
@@ -127,7 +127,7 @@ test('首屏摘要固定最近七天，保留多次活动、缺失距离及未�
   assert.equal(createJournal(data, data.period.end, '2024').recentSummary, summary);
   const rolled = createJournal(data, '2026-10-16').recentSummary;
   assert.match(rolled, /<dd>2<small>次/);
-  assert.match(rolled, /部分日期未同步/);
+  assert.doesNotMatch(rolled, /部分日期未同步|当前为已同步记录/);
   const missing = createJournal({...data, activities:[{...activity, distanceKm:null}], unavailableActivities:[]}).recentSummary;
   assert.match(missing, /<dd>—<small>km/);
   const empty = createJournal({...data, activities:[], unavailableActivities:[]}).recentSummary;
