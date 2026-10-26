@@ -1,97 +1,108 @@
 {
   "period": {
     "start": "2020-01-01",
-    "end": "2026-10-24"
+    "end": "2026-10-26"
   },
-  "syncedAt": "2026-10-24 19:01:24 +08:00",
+  "syncedAt": "2026-10-26 21:52:48 +08:00",
   "activities": [
     {
+      "date": "2026-10-26",
+      "startTime": "20:03:36",
+      "sport": "虚拟骑行",
+      "distanceKm": 13.81,
+      "duration": "0:51:09",
+      "trainingLoad": 29,
+      "elevationGain": 348.40002,
+      "activityUrl": "https://intervals.icu/activities/i201872224",
+      "stravaUrl": "https://www.strava.com/activities/20737035745"
+    },
+    {
       "date": "2026-10-24",
+      "startTime": "17:18:55",
       "sport": "骑行",
       "distanceKm": 6.15,
       "duration": "0:17:01",
       "trainingLoad": 5,
       "elevationGain": 34,
       "activityUrl": "https://intervals.icu/activities/i201005119",
-      "stravaUrl": "https://www.strava.com/activities/20709897683",
-      "startTime": "17:18:55"
+      "stravaUrl": "https://www.strava.com/activities/20709897683"
     },
     {
       "date": "2026-10-24",
+      "startTime": "14:03:49",
       "sport": "骑行",
       "distanceKm": 66.19,
       "duration": "1:59:37",
       "trainingLoad": 187,
       "elevationGain": 389,
       "activityUrl": "https://intervals.icu/activities/i201005074",
-      "stravaUrl": "https://www.strava.com/activities/20709897834",
-      "startTime": "14:03:49"
+      "stravaUrl": "https://www.strava.com/activities/20709897834"
     },
     {
       "date": "2026-10-24",
+      "startTime": "12:49:37",
       "sport": "砾石骑行",
       "distanceKm": 1.06,
       "duration": "0:08:48",
       "trainingLoad": 1,
       "elevationGain": 2,
       "activityUrl": "https://intervals.icu/activities/i200943651",
-      "stravaUrl": "https://www.strava.com/activities/20707798745",
-      "startTime": "12:49:37"
+      "stravaUrl": "https://www.strava.com/activities/20707798745"
     },
     {
       "date": "2026-10-22",
+      "startTime": "13:29:39",
       "sport": "骑行",
       "distanceKm": 62.31,
       "duration": "1:56:26",
       "trainingLoad": 189,
       "elevationGain": 497,
       "activityUrl": "https://intervals.icu/activities/i200265367",
-      "stravaUrl": "https://www.strava.com/activities/20684491731",
-      "startTime": "13:29:39"
+      "stravaUrl": "https://www.strava.com/activities/20684491731"
     },
     {
       "date": "2026-10-20",
+      "startTime": "19:36:31",
       "sport": "虚拟骑行",
       "distanceKm": 13.97,
       "duration": "1:00:07",
       "trainingLoad": 50,
       "elevationGain": 540.4,
       "activityUrl": "https://intervals.icu/activities/i199494327",
-      "stravaUrl": "https://www.strava.com/activities/20660277444",
-      "startTime": "19:36:31"
+      "stravaUrl": "https://www.strava.com/activities/20660277444"
     },
     {
       "date": "2026-10-18",
+      "startTime": "13:52:41",
       "sport": "骑行",
       "distanceKm": 51.14,
       "duration": "1:47:42",
       "trainingLoad": 118,
       "elevationGain": 416,
       "activityUrl": "https://intervals.icu/activities/i198544763",
-      "stravaUrl": "https://www.strava.com/activities/20630387827",
-      "startTime": "13:52:41"
+      "stravaUrl": "https://www.strava.com/activities/20630387827"
     },
     {
       "date": "2026-10-17",
+      "startTime": "09:20:55",
       "sport": "骑行",
       "distanceKm": 6.19,
       "duration": "0:14:10",
       "trainingLoad": 10,
       "elevationGain": 33,
       "activityUrl": "https://intervals.icu/activities/i198161569",
-      "stravaUrl": "https://www.strava.com/activities/20615298142",
-      "startTime": "09:20:55"
+      "stravaUrl": "https://www.strava.com/activities/20615298142"
     },
     {
       "date": "2026-10-17",
+      "startTime": "08:00:30",
       "sport": "骑行",
       "distanceKm": 38.64,
       "duration": "1:09:06",
       "trainingLoad": 103,
       "elevationGain": 211,
       "activityUrl": "https://intervals.icu/activities/i198161622",
-      "stravaUrl": "https://www.strava.com/activities/20615298190",
-      "startTime": "08:00:30"
+      "stravaUrl": "https://www.strava.com/activities/20615298190"
     },
     {
       "date": "2026-10-15",
@@ -21767,16 +21778,16 @@
     {
       "name": "CYCPLUS R200",
       "type": "Bike",
-      "distanceKm": 4899.993,
+      "distanceKm": 4913.798,
       "components": [
         {
           "name": "青野链条",
           "type": "Chain",
-          "distanceKm": 4926.657,
+          "distanceKm": 4940.462,
           "replacement": {
             "status": "available",
             "date": "2025-10-12",
-            "distanceKm": 4926.657
+            "distanceKm": 4940.462
           },
           "sharedBy": [
             "CYCPLUS R200",
@@ -21787,11 +21798,11 @@
         {
           "name": "青野牙盘",
           "type": "Chainrings",
-          "distanceKm": 4926.6545,
+          "distanceKm": 4940.4595,
           "replacement": {
             "status": "available",
             "date": "2025-10-12",
-            "distanceKm": 4926.6545
+            "distanceKm": 4940.4595
           },
           "sharedBy": [
             "CYCPLUS R200",
@@ -21802,11 +21813,11 @@
         {
           "name": "R200 飞轮",
           "type": "Cassette",
-          "distanceKm": 4899.993,
+          "distanceKm": 4913.798,
           "replacement": {
             "status": "available",
             "date": "2025-09-29",
-            "distanceKm": 4899.993
+            "distanceKm": 4913.798
           }
         }
       ]
@@ -21839,11 +21850,11 @@
         {
           "name": "青野链条",
           "type": "Chain",
-          "distanceKm": 4926.657,
+          "distanceKm": 4940.462,
           "replacement": {
             "status": "available",
             "date": "2025-10-12",
-            "distanceKm": 4926.657
+            "distanceKm": 4940.462
           },
           "sharedBy": [
             "CYCPLUS R200",
@@ -21854,11 +21865,11 @@
         {
           "name": "青野牙盘",
           "type": "Chainrings",
-          "distanceKm": 4926.6545,
+          "distanceKm": 4940.4595,
           "replacement": {
             "status": "available",
             "date": "2025-10-12",
-            "distanceKm": 4926.6545
+            "distanceKm": 4940.4595
           },
           "sharedBy": [
             "CYCPLUS R200",
