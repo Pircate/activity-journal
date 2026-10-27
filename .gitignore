@@ -4,3 +4,6 @@ node_modules/
 .playwright-cli/
 output/
 scripts/__pycache__
+.wrangler/
+.dev.vars
+.env

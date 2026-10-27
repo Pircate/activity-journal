@@ -150,59 +150,31 @@
 
 ## 自动更新
 
-每天北京时间 22:00 的「每日同步 Strava/Garmin/COROS 运动数据」任务完成三端同步后，按 [网站更新说明](docs/SITE-SYNC.md) 执行增量同步。任务仍由本机 Codex 调度，需要本机、Codex、网络及各平台授权可用；本仓库不另建定时器。
+网站更新完全在云端运行：Strava 新增活动 → Cloudflare Worker → GitHub Actions → GitHub Pages，本机关机不影响。每日同步任务不再负责网站更新。Worker 两分钟合并事件，失败按 5／15／60 分钟退避，保留未确认事件；部署成功后才记录 UTC 成功时间、同步开始时间游标与发布数据版本。
 
-网站活动统一从 Intervals.icu 获取日期、类型、距离、运动时长、爬升、力量训练平均心率、训练负荷与真实关联，同时获取跑步最佳成绩、CP5／CP20 和装备与配件维护信息；COROS 补充力量训练组数。最远骑行由合并后的完整活动快照计算。网站不读取 Strava API 或凭据；每日任务向 Strava 上传运动记录的流程继续保留。
+Strava 只触发更新，不读取 Strava 活动详情。活动基础指标、负荷、装备和个人成绩来自 Intervals.icu。复用现有合并器，以真实平台标识更新，保留未返回的历史、已知负荷、力量训练组数及开始时间；受限空壳有历史详情时保留，没有时显示“详情不可读取”。COROS 使用已保存的组数补充，不依赖本机连接器；新活动无组数时显示未知。
 
-首次运行全量读取 Intervals.icu 历史，此后日常从上次成功游标前 7 天开始查询；失败或停机期间的时间跨度完整保留。距上次全量刷新满 7 天时再次全量读取，以发现窗口外的补传和修改。完整活动的查询上界固定为本次任务开始时间。Intervals.icu 和 COROS 查询同一日期范围，首次 COROS 从已保存历史起点查询；发现更早历史时要求扩大 COROS 范围后重试。装备每次完整读取，两条成绩曲线每次直接查询。
+首次全量查询；后续从成功同步开始时间对应北京时间日期向前重叠两天查询。旧日期事件按真实关联定位，无法定位时全量回退。装备与个人最佳成绩每次完整查询。Worker 的成功状态独立于旧的 data/sync-state.json，仅在 Pages 部署成功后推进。
 
-优先按 Intervals.icu 活动 ID 更新，真实 Strava ID 仅用于精确关联与去重，冲突时停止，不按同日、名称或指标猜测。完整活动的基础指标由 Intervals.icu 更新，暂不可得的已知负荷、COROS 组数与真实链接保留；新活动缺失指标为 `null`，负荷、组数等有效零值正常保留。Intervals.icu 返回 `strava_id` 或历史已有真实链接时，页面仍可跳转 Strava；没有关联时不生成链接。
+页面先显示 HTML 内嵌快照，再在打开、从后台返回及可见时每 5 分钟检查同源公开 JSON。请求使用 no-cache，支持 ETag／Last-Modified；数据和日期无变化时保留页面筛选与焦点。
 
-历史快照作为保留基线，任何模式都不因 API 未返回活动而自动删除。Intervals.icu 仅返回日期和标识的 Strava 受限记录，有历史详情时保留；没有历史详情时仅显示“详情不可读取”，不编造距离和时长。每次重建查询日期范围内的受限提示、保留范围外提示；记录变得可读后用完整活动替换提示。其他缺字段或无效响应使同步失败。受限旧记录的详情不会继续从 Strava 刷新。
-
-页面先显示 HTML 内嵌快照，再在打开、从后台返回及可见时每 5 分钟检查同源公开 JSON。请求使用 `no-cache`，支持 ETag／Last-Modified 缓存验证。完整数据与北京时间日期未变化时不重建内容，保留当前筛选、装备展开和焦点；北京时间跨天仍会滚动统计范围。
+部署、Secrets、状态查询和手动恢复见 [Webhook 部署说明](docs/WEBHOOK.md)。数据约定见 [网站同步说明](docs/SITE-SYNC.md)。
 
 ## 同步脚本
 
-使用 Node.js 22 或更新版本，无需新增运行时依赖。复用以下仓库外凭据：
-
-- `~/.config/interval-icu/config.json`：`{"INTERVALS_ICU_API_KEY":"你的个人 API Key"}`。脚本直接读取；API Key 从 Intervals.icu 设置中的 Developer Settings 获取。
-
-凭据不写入仓库、公开快照或日志。Unix 系统凭据目录使用 `700`、文件使用 `600`，Windows 使用当前用户访问权限。
-
-先查看本次模式和查询范围：
+使用 Node.js 22 或更新版本。正式同步使用 GitHub Actions，凭据从仓库 Secrets 读取，不依赖本机凭据文件：
 
 ```sh
-node scripts/sync.mjs --plan
+gh workflow run site.yml --repo Pircate/activity-journal --ref main
+# 强制全量核对历史
+gh workflow run site.yml --repo Pircate/activity-journal --ref main -f full=true
 ```
 
-由 Codex 任务通过 COROS 连接器查询 `corosOldest` 至 `end` 的力量训练（首次从已保存历史起点查询；若 Intervals.icu 发现更早历史，入口会要求扩大范围并停止本次更新），分段至每段数量小于请求上限，将成功结果写到 Git 忽略的 `output/sync/coros-strength.json`：
+普通网站代码 push 只构建发布，不推进数据游标；复用成功数据版本，避免误发布上次失败同步残留的快照。同步工作流在取数、成绩、构建、测试全部成功后统一提交三个网站生成文件，推送冲突停止，不强推。
 
-```json
-{
-  "startDate": "1900-01-01",
-  "endDate": "2026-10-24",
-  "queriedAt": "2026-10-24T10:00:00.000Z",
-  "records": [{"labelId":"真实 COROS 标识","sets":12}]
-}
-```
+本机调试可运行 node scripts/fetch-site-data.mjs（全量），也支持 --baseline、--since、--events 和 --full；随后运行 update-personal-bests.mjs 与 build.mjs。脚本优先使用 INTERVALS_ICU_API_KEY 环境变量，否则读取仓库外 ~/.config/interval-icu/config.json。本机调试不会推进云端成功游标。旧 scripts/sync.mjs 保留用于显式维护 COROS 组数，需提供真实的新鲜 COROS 输入，不属于自动网站更新链路。
 
-输入范围必须覆盖 `--plan` 的 `corosOldest` 至 `end`，完成查询的时间距运行不超过 24 小时。成功查询且确实无力量训练时 `records` 为 `[]`；查询失败不得制造空输入。
-
-```sh
-node scripts/sync.mjs --coros-input output/sync/coros-strength.json
-node --test scripts/*.test.mjs
-```
-
-统一入口读取 Intervals.icu 活动与装备、两条成绩曲线，合并并校验全部数据，构建首页，然后替换正式文件。报告包括读取、新增、更新、保留历史、保留受限详情、新增受限提示及 COROS 匹配／未匹配数量。`data/sync-state.json` 最后写入，包含 UTC 格式的 `cursor`、`lastSuccessfulSyncAt`、`lastFullReconcileAt`。游标保存本次开始时间，成功时间另记；状态文件不在 `/docs` 中，不供页面读取。它与活动快照一同提交，换机器仍能继续增量同步。状态文件不存在时全量读取，存在但无效时停止，不默默跳过历史。切换主来源时已重置状态并执行首次全量刷新。
-
-网络、授权、记录校验或构建失败时不更新正式文件或游标。替换阶段使用回滚日志，失败恢复旧文件；进程中断后下一次先恢复未完成事务。`output/sync.lock` 防止并发写入；进程异常退出后自动识别已退出进程的遗留锁并恢复事务；锁内容异常时，确认没有同步进程，再删除此锁并重试，不删除回滚日志。发布失败保留本地成功提交，重试推送或 Pages 发布，不强推。
-
-`node scripts/build.mjs` 仍可单独从已有公开快照重建首页。`update-data.mjs` 为 Intervals.icu 查询和装备处理模块，`update-personal-bests.mjs` 提供成绩处理；日常任务统一使用 `sync.mjs`，不再使用旧的三条独立同步命令或 Strava 历史补充文件。
-
-活动仅公开北京时间日期、可选开始时间 `startTime`（`HH:mm:ss`）、中文类型、公里距离、运动时长、训练负荷、可选爬升及真实平台链接；力量训练额外含组数和平均心率。近期卡片、历史记录、日历及趋势详情按日期和开始时间倒序，同一天较晚开始的运动排在前面；历史日期正序也按开始时间正序。时间未知的活动不推测开始时间，默认排在当天已知时间的活动之后。装备仅公开展示字段及维护摘要，不发布原始标识、装备备注、坐标、心率明细、原始响应或凭据。缺失指标保留为空；不会把查询失败当成零活动。日期范围从最早历史记录所在年元旦开始，至少覆盖最近一年。
-
-同步与构建成功后，检查 diff、提交并推送 `main`，GitHub Pages 从 `/docs` 发布，最终核对线上快照时间与本次一致。
+活动公开北京时间日期、可选 startTime、类型、距离、时长、负荷、爬升及真实平台链接；同日按开始时间排序。力量训练额外包含组数和平均心率。凭据、原始平台响应、坐标与心率明细不发布。
 
 ## 本地预览
 

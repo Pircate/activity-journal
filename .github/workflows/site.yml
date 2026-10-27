@@ -1,0 +1,93 @@
+name: Update and publish activity journal
+
+on:
+  repository_dispatch:
+    types: [strava-activity-created]
+  workflow_dispatch:
+    inputs:
+      full:
+        description: Fetch all historical activities
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'data/**'
+      - 'scripts/**'
+      - 'workers/**'
+      - 'package*.json'
+      - '.github/workflows/site.yml'
+
+concurrency:
+  group: activity-journal-site
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update-and-deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      SYNC_WORKER_URL: ${{ secrets.SYNC_WORKER_URL }}
+      SYNC_FULL: ${{ inputs.full || false }}
+    steps:
+      # Checkout latest main after waiting for concurrency, not the event's stale SHA.
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install development tools
+        run: npm ci
+      - name: Claim sync batch
+        id: claim
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: node scripts/site-sync.mjs start
+      - name: Update and build snapshot
+        if: steps.claim.outputs.skip != 'true'
+        env:
+          INTERVALS_ICU_API_KEY: ${{ secrets.INTERVALS_ICU_API_KEY }}
+        run: node scripts/site-sync.mjs update
+      - name: Test
+        if: steps.claim.outputs.skip != 'true'
+        run: npm test
+      - name: Validate Worker bundle
+        if: steps.claim.outputs.skip != 'true'
+        run: npm run worker:check
+      - name: Commit snapshot
+        if: steps.claim.outputs.skip != 'true'
+        run: node scripts/site-sync.mjs commit
+      - name: Configure Pages
+        if: steps.claim.outputs.skip != 'true'
+        uses: actions/configure-pages@v5
+      - name: Upload website
+        if: steps.claim.outputs.skip != 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+      - name: Deploy website
+        if: steps.claim.outputs.skip != 'true'
+        id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Record successful deployment
+        if: steps.claim.outputs.skip != 'true'
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: node scripts/site-sync.mjs complete
+      - name: Retain events and schedule retry
+        if: ${{ (failure() || cancelled()) && steps.claim.outcome == 'success' && steps.claim.outputs.skip != 'true' }}
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: node scripts/site-sync.mjs fail

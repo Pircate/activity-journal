@@ -1,0 +1,13 @@
+{
+  "name": "activity-journal",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22"},
+  "scripts": {
+    "test": "node --test scripts/*.test.mjs",
+    "worker:dev": "wrangler dev --config workers/strava-webhook/wrangler.jsonc",
+    "worker:check": "wrangler deploy --dry-run --config workers/strava-webhook/wrangler.jsonc --outdir output/worker",
+    "worker:deploy": "wrangler deploy --config workers/strava-webhook/wrangler.jsonc"
+  },
+  "devDependencies": {"wrangler": "4.153.0"}
+}
