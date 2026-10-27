@@ -100,19 +100,26 @@ jobs:
 
   notify:
     needs: update-and-deploy
-    if: needs.update-and-deploy.outputs.page_url != ''
+    if: >-
+      always() && github.ref == 'refs/heads/main' &&
+      (needs.update-and-deploy.result == 'failure' ||
+       needs.update-and-deploy.result == 'cancelled' ||
+       (needs.update-and-deploy.result == 'success' && needs.update-and-deploy.outputs.page_url != ''))
     runs-on: ubuntu-latest
     timeout-minutes: 2
     permissions:
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.update-and-deploy.outputs.deployed_commit }}
+          ref: ${{ needs.update-and-deploy.outputs.deployed_commit || github.sha }}
           persist-credentials: false
-      - name: Email successful website update
+      - name: Email website update result
         env:
           SMTP_PASSWORD: ${{ secrets.SITE_SMTP_PASSWORD }}
-          SITE_URL: ${{ needs.update-and-deploy.outputs.page_url }}
-          DEPLOYED_COMMIT: ${{ needs.update-and-deploy.outputs.deployed_commit }}
+          SITE_URL: ${{ needs.update-and-deploy.outputs.page_url || 'https://pircate.github.io/activity-journal/' }}
+          DEPLOYED_COMMIT: ${{ needs.update-and-deploy.outputs.deployed_commit || github.sha }}
+          UPDATE_RESULT: ${{ needs.update-and-deploy.result }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: python3 scripts/notify-site.py

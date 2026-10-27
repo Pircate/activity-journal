@@ -55,7 +55,9 @@ npx wrangler secret put STRAVA_SUBSCRIPTION_ID --config workers/strava-webhook/w
 | `INTERVALS_ICU_API_KEY` | 现有 Intervals.icu API Key |
 | `SITE_SMTP_PASSWORD` | `gao497868860@163.com` 的 SMTP 客户端授权码（不是邮箱登录密码） |
 
-每次成功发布后，独立的 `notify` job 通过 `smtp.163.com:465` 的 TLS 连接向 `gao497868860@163.com` 发送“运动日志网站更新完成”邮件，包含网站地址、北京时间、实际发布版本和 Actions 运行链接。发件人与收件人均为该邮箱；需开启网易 SMTP 服务并配置客户端授权码。同步、构建或部署失败，以及跳过的重复事件不会发信。通知失败会在 Actions 单独报错，不回滚成功部署、不重新确认或重试运动事件，也不自动重发邮件；排查后可只重新运行 `notify` job。
+每次更新结束后，独立的 `notify` job 通过 `smtp.163.com:465` 的 TLS 连接向 `gao497868860@163.com` 发送结果邮件。成功时主题为“运动日志网站更新完成”，包含网站地址、北京时间、实际发布版本和 Actions 运行链接；同步、构建、测试、推送、部署或状态回写失败时，主题为“运动日志网站更新失败”，并读取当前运行尝试的失败步骤和 GitHub 已脱敏日志，附上失败环节及错误摘要。错误详情接口不可用时仍发信，注明详情暂时无法读取并提供运行链接。取消运行也会通知，跳过的重复事件不发信。
+
+发件人与收件人均为该邮箱；需开启网易 SMTP 服务并配置客户端授权码。通知 job 只增加 `actions: read` 权限用于读取失败原因。通知失败会在 Actions 单独报错，不回滚成功部署、不重新确认或重试运动事件，也不自动重发邮件；排查后可只重新运行 `notify` job。
 
 在 Settings → Actions → General 允许 workflow 读写仓库；如 main 有分支保护，允许该工作流提交数据，否则推送步骤会失败。`github-pages` environment 必须允许 `main` 自动部署；不要设置每次发布都需人工批准，否则 webhook 无法全自动运行。
 
