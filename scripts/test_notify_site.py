@@ -49,8 +49,8 @@ class NotificationTests(unittest.TestCase):
         smtp.send_message.assert_called_once()
         message = smtp.send_message.call_args.args[0]
         self.assertEqual(message["To"], "gao497868860@163.com")
-        self.assertEqual(message["From"], "gao497868860@163.com")
-        body = message.get_content()
+        self.assertEqual(message["From"].addresses[0].addr_spec, "gao497868860@163.com")
+        body = message.get_body(preferencelist=("plain",)).get_content()
         self.assertIn(self.env["SITE_URL"], body)
         self.assertIn("/commit/" + self.env["DEPLOYED_COMMIT"], body)
         self.assertIn("/actions/runs/123/attempts/2", body)
@@ -93,7 +93,7 @@ class NotificationTests(unittest.TestCase):
         notification.notify(self.env)
         message = smtp.send_message.call_args.args[0]
         self.assertEqual(message["Subject"], "运动日志网站更新失败")
-        body = message.get_content()
+        body = message.get_body(preferencelist=("plain",)).get_content()
         self.assertIn("Update and build snapshot", body)
         self.assertIn("Intervals.icu request failed: HTTP 503", body)
         self.assertIn("/actions/runs/123/attempts/2", body)
@@ -112,8 +112,9 @@ class NotificationTests(unittest.TestCase):
             self.env["UPDATE_RESULT"] = result
             notification.notify(self.env)
             message = smtp.send_message.call_args.args[0]
-            self.assertIn("详细错误暂时无法读取", message.get_content())
-            self.assertIn("/actions/runs/123/attempts/2", message.get_content())
+            body = message.get_body(preferencelist=("plain",)).get_content()
+            self.assertIn("详细错误暂时无法读取", body)
+            self.assertIn("/actions/runs/123/attempts/2", body)
             self.assertNotEqual(message["Subject"], "运动日志网站更新完成")
         self.assertEqual(smtp.send_message.call_count, 2)
 
@@ -142,6 +143,32 @@ class NotificationTests(unittest.TestCase):
         connect.return_value.__enter__.return_value.send_message.return_value = {}
         notification.notify(self.env)
         api.assert_not_called()
+
+    def test_html_email_keeps_plain_fallback_and_short_links(self):
+        message = notification.build_message(self.env, test=True)
+        self.assertEqual(message.get_content_type(), "multipart/alternative")
+        plain = message.get_body(preferencelist=("plain",)).get_content()
+        html = message.get_body(preferencelist=("html",)).get_content()
+        self.assertIn("样式测试邮件", plain)
+        self.assertIn("【测试】", message["Subject"])
+        self.assertIn("打开运动日志", html)
+        self.assertIn('href="' + self.env["SITE_URL"] + '"', html)
+        self.assertNotIn('>' + self.env["SITE_URL"] + '<', html)
+        self.assertIn("aaaaaaa &nbsp;↗", html)
+        self.assertIn("样式测试 · 不代表实际更新结果", html)
+
+    @patch.object(notification, "failure_details", return_value='失败环节：Build\n错误摘要：<script>alert("x")</script> & unexpected')
+    def test_failure_html_escapes_diagnostics_and_links_to_run(self, details):
+        self.env["UPDATE_RESULT"] = "failure"
+        message = notification.build_message(self.env)
+        html = message.get_body(preferencelist=("html",)).get_content()
+        plain = message.get_body(preferencelist=("plain",)).get_content()
+        self.assertIn("本次更新未完成", html)
+        self.assertIn("查看失败原因", html)
+        self.assertIn("&lt;script&gt;", html)
+        self.assertNotIn("<script>", html)
+        self.assertIn('<script>alert("x")</script>', plain)
+        self.assertIn('href="https://github.com/Pircate/activity-journal/actions/runs/123/attempts/2"', html)
 
 
 if __name__ == "__main__":

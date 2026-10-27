@@ -59,6 +59,8 @@ npx wrangler secret put STRAVA_SUBSCRIPTION_ID --config workers/strava-webhook/w
 
 发件人与收件人均为该邮箱；需开启网易 SMTP 服务并配置客户端授权码。通知 job 只增加 `actions: read` 权限用于读取失败原因。通知失败会在 Actions 单独报错，不回滚成功部署、不重新确认或重试运动事件，也不自动重发邮件；排查后可只重新运行 `notify` job。
 
+邮件使用 `scripts/notification-email.html` 中的深色卡片模板：橙色主按钮、结果状态标签、北京时间及短版本链接；失败原因单独显示，较长日志摘要截断后可通过按钮查看完整记录。采用内联样式与表格布局适配邮件客户端，同时提供纯文本正文。测试预览邮件会在主题和正文注明“测试”。
+
 在 Settings → Actions → General 允许 workflow 读写仓库；如 main 有分支保护，允许该工作流提交数据，否则推送步骤会失败。`github-pages` environment 必须允许 `main` 自动部署；不要设置每次发布都需人工批准，否则 webhook 无法全自动运行。
 
 在 Settings → Pages 将 **Source** 从 Deploy from a branch 改成 **GitHub Actions**。网站地址不变。工作流使用 `contents: write`、`pages: write`、`id-token: write`，部署 `docs/` artifact；不依赖 `GITHUB_TOKEN` 推送触发旧 Pages 构建。
