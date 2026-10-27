@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {formatRunTime, paceRecords, powerRecords, longestRide, buildPersonalBests, fetchPersonalBests} from '../scripts/update-personal-bests.mjs';
+import {paceRecords, powerRecords, longestRide, buildPersonalBests, fetchPersonalBests} from '../scripts/update-personal-bests.mjs';
 
 // 曲线按运动大类聚合：跑步曲线含越野跑与虚拟跑步，骑行曲线含虚拟骑行。
 const paceCurves = {list:[{distance:[45.72, 1000, 5000, 10000, 21097.5, 42195], values:[5, 200, 1092, 2253, 5069, 10629],
@@ -8,22 +8,18 @@ const paceCurves = {list:[{distance:[45.72, 1000, 5000, 10000, 21097.5, 42195], 
 const powerCurves = {list:[{secs:[1, 60, 300, 1200, 3600], watts:[725, 406, 288, 233, 206],
   activity_id:['i9', 'i9', 'i146848137', 'i192532318', 'i9']}]};
 const activities = [
-  {date:'2025-05-11', sport:'骑行', distanceKm:154.86, activityUrl:'https://intervals.icu/activities/i77934321'},
-  {date:'2026-01-01', sport:'虚拟骑行', distanceKm:60.91, activityUrl:'https://intervals.icu/activities/i555'},
-  {date:'2022-11-06', sport:'跑步', distanceKm:10.01, activityUrl:'https://intervals.icu/activities/i17229425'},
-  {date:'2022-10-27', sport:'跑步', distanceKm:21.11, activityUrl:'https://intervals.icu/activities/i17229384'},
-  {date:'2023-11-19', sport:'跑步', distanceKm:42.52, activityUrl:'https://intervals.icu/activities/i27581543'},
-  {date:'2026-05-10', sport:'骑行', distanceKm:40, activityUrl:'https://intervals.icu/activities/i146848137'},
-  {date:'2026-10-02', sport:'骑行', distanceKm:30, activityUrl:'https://intervals.icu/activities/i192532318'},
+  {date:'2025-05-11', sport:'Ride', distanceKm:154.86, activityUrl:'https://intervals.icu/activities/i77934321'},
+  {date:'2026-01-01', sport:'VirtualRide', distanceKm:60.91, activityUrl:'https://intervals.icu/activities/i555'},
+  {date:'2022-11-06', sport:'Run', distanceKm:10.01, activityUrl:'https://intervals.icu/activities/i17229425'},
+  {date:'2022-10-27', sport:'Run', distanceKm:21.11, activityUrl:'https://intervals.icu/activities/i17229384'},
+  {date:'2023-11-19', sport:'Run', distanceKm:42.52, activityUrl:'https://intervals.icu/activities/i27581543'},
+  {date:'2026-05-10', sport:'Ride', distanceKm:40, activityUrl:'https://intervals.icu/activities/i146848137'},
+  {date:'2026-10-02', sport:'Ride', distanceKm:30, activityUrl:'https://intervals.icu/activities/i192532318'},
 ];
 
-test('跑步成绩按目标距离取首个不短于目标的点，不足一小时省略小时位', () => {
-  assert.equal(formatRunTime(1092), '18:12');
-  assert.equal(formatRunTime(2253), '37:33');
-  assert.equal(formatRunTime(5069), '1:24:29');
-  assert.equal(formatRunTime(10629), '2:57:09');
-  assert.deepEqual(paceRecords(paceCurves).map(record => [record.event, record.result]), [
-    ['5 公里', '18:12'], ['10 公里', '37:33'], ['半程马拉松', '1:24:29'], ['全程马拉松', '2:57:09']]);
+test('跑步成绩按目标距离取首个不短于目标的点，保存数值秒', () => {
+  assert.deepEqual(paceRecords(paceCurves).map(record => [record.event, record.value]), [
+    ['run5k', 1092], ['run10k', 2253], ['halfMarathon', 5069], ['marathon', 10629]]);
 });
 
 test('曲线缺少目标距离时跳过该项而不是报错', () => {
@@ -31,29 +27,29 @@ test('曲线缺少目标距离时跳过该项而不是报错', () => {
   assert.deepEqual(paceRecords(short), []);
   const shortPower = {list:[{secs:[1, 60], watts:[725, 406], activity_id:['i9', 'i9']}]};
   assert.deepEqual(powerRecords(shortPower), []);
-  assert.equal(longestRide([{date:'2026-01-01', sport:'跑步', distanceKm:10, activityUrl:'https://intervals.icu/activities/i1'}]), null);
+  assert.equal(longestRide([{date:'2026-01-01', sport:'Run', distanceKm:10, activityUrl:'https://intervals.icu/activities/i1'}]), null);
 });
 
 test('骑行功率按秒数精确定位，保留原始最佳努力值的小幅回弹', () => {
   // watts 是各时长上的原始最佳努力值，允许多处微降，不能做单调性校验或插值。
   const bounce = {list:[{secs:[290, 300, 310, 1200], watts:[289, 288, 289, 233], activity_id:['i1', 'i2', 'i3', 'i4']}]};
-  assert.deepEqual(powerRecords(bounce).map(record => [record.event, record.result]), [['CP5', '288 W'], ['CP20', '233 W']]);
-  assert.deepEqual(powerRecords(powerCurves).map(record => record.result), ['288 W', '233 W']);
+  assert.deepEqual(powerRecords(bounce).map(record => [record.event, record.value]), [['cp5', 288], ['cp20', 233]]);
+  assert.deepEqual(powerRecords(powerCurves).map(record => record.value), [288, 233]);
 });
 
 test('最远骑行包含虚拟骑行，并按活动快照给出日期与链接', () => {
-  assert.deepEqual(longestRide(activities), {sport:'骑行', event:'最远距离', result:'154.86 km', date:'2025-05-11', activityUrl:'https://intervals.icu/activities/i77934321'});
+  assert.deepEqual(longestRide(activities), {sport:'Ride', event:'longestRide', value:154.86, date:'2025-05-11', activityUrl:'https://intervals.icu/activities/i77934321'});
   // 仅虚拟骑行更远时也应入选。
-  const virtualOnly = [...activities, {date:'2026-02-02', sport:'虚拟骑行', distanceKm:200, activityUrl:'https://intervals.icu/activities/i777'}];
-  assert.equal(longestRide(virtualOnly).result, '200.00 km');
+  const virtualOnly = [...activities, {date:'2026-02-02', sport:'VirtualRide', distanceKm:200, activityUrl:'https://intervals.icu/activities/i777'}];
+  assert.equal(longestRide(virtualOnly).value, 200);
   assert.equal(longestRide(virtualOnly).date, '2026-02-02');
 });
 
 test('Strava 独有的最远骑行保留日期和真实链接，不生成 Intervals.icu 链接', () => {
-  const ride = {date:'2021-05-12', sport:'骑行', distanceKm:200, stravaUrl:'https://www.strava.com/activities/901'};
+  const ride = {date:'2021-05-12', sport:'Ride', distanceKm:200, stravaUrl:'https://www.strava.com/activities/901'};
   const data = buildPersonalBests({activities:[...activities, ride], paceCurves, powerCurves});
-  assert.deepEqual(data.records.find(record => record.event === '最远距离'), {
-    sport:'骑行', event:'最远距离', result:'200.00 km', date:ride.date, activityUrl:null, stravaUrl:ride.stravaUrl,
+  assert.deepEqual(data.records.find(record => record.event === 'longestRide'), {
+    sport:'Ride', event:'longestRide', value:200, date:ride.date, activityUrl:null, stravaUrl:ride.stravaUrl,
   });
 });
 
@@ -62,7 +58,7 @@ test('组装成绩固定顺序，并用活动快照精确关联日期及 Strava 
   const data = buildPersonalBests({activities:linkedActivities, paceCurves, powerCurves, now:new Date('2026-10-16T04:00:00Z')});
   assert.equal(data.source, 'Intervals.icu');
   assert.equal(data.syncedAt, '2026-10-16T04:00:00.000Z');
-  assert.deepEqual(data.records.map(record => record.sport + ' ' + record.event), ['跑步 5 公里', '跑步 10 公里', '跑步 半程马拉松', '跑步 全程马拉松', '骑行 最远距离', '骑行 CP5', '骑行 CP20']);
+  assert.deepEqual(data.records.map(record => record.sport + ' ' + record.event), ['Run run5k', 'Run run10k', 'Run halfMarathon', 'Run marathon', 'Ride longestRide', 'Ride cp5', 'Ride cp20']);
   assert.equal(data.records[0].date, '2022-11-06');
   assert.equal(data.records[4].date, '2025-05-11');
   assert.deepEqual(data.records.map(record => record.stravaUrl), [9002, 9002, 9003, 9004, 9000, 9005, 9006].map(id => 'https://www.strava.com/activities/' + id));

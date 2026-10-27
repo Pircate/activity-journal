@@ -1,59 +1,59 @@
 {
   "source": "Intervals.icu",
-  "syncedAt": "2026-10-27T12:25:17.989Z",
+  "syncedAt": "2026-10-27T12:25:16.000Z",
   "records": [
     {
-      "sport": "跑步",
-      "event": "5 公里",
-      "result": "18:12",
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1092,
       "date": "2022-11-06",
       "activityUrl": "https://intervals.icu/activities/i17229425",
       "stravaUrl": "https://www.strava.com/activities/8074592205"
     },
     {
-      "sport": "跑步",
-      "event": "10 公里",
-      "result": "37:33",
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2253,
       "date": "2022-11-06",
       "activityUrl": "https://intervals.icu/activities/i17229425",
       "stravaUrl": "https://www.strava.com/activities/8074592205"
     },
     {
-      "sport": "跑步",
-      "event": "半程马拉松",
-      "result": "1:24:29",
+      "sport": "Run",
+      "event": "halfMarathon",
+      "value": 5069,
       "date": "2022-10-27",
       "activityUrl": "https://intervals.icu/activities/i17229384",
       "stravaUrl": "https://www.strava.com/activities/8026642371"
     },
     {
-      "sport": "跑步",
-      "event": "全程马拉松",
-      "result": "2:57:09",
+      "sport": "Run",
+      "event": "marathon",
+      "value": 10629,
       "date": "2023-11-19",
       "activityUrl": "https://intervals.icu/activities/i27581543",
       "stravaUrl": "https://www.strava.com/activities/10242864989"
     },
     {
-      "sport": "骑行",
-      "event": "最远距离",
-      "result": "164.19 km",
+      "sport": "Ride",
+      "event": "longestRide",
+      "value": 164.19,
       "date": "2023-04-26",
       "activityUrl": "https://intervals.icu/activities/8969808360",
       "stravaUrl": "https://www.strava.com/activities/8969808360"
     },
     {
-      "sport": "骑行",
-      "event": "CP5",
-      "result": "288 W",
+      "sport": "Ride",
+      "event": "cp5",
+      "value": 288,
       "date": "2026-05-10",
       "activityUrl": "https://intervals.icu/activities/i146848137",
       "stravaUrl": "https://www.strava.com/activities/18445078306"
     },
     {
-      "sport": "骑行",
-      "event": "CP20",
-      "result": "233 W",
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 233,
       "date": "2026-10-02",
       "activityUrl": "https://intervals.icu/activities/i192532318",
       "stravaUrl": "https://www.strava.com/activities/20416696791"

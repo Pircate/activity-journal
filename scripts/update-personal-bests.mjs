@@ -1,3 +1,4 @@
+import {isRide} from '../docs/activity-data.mjs';
 import {readFile, writeFile, rename, unlink} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 import {readConfig} from './update-data.mjs';
@@ -5,26 +6,17 @@ import {validatePersonalBests} from '../docs/personal-bests.mjs';
 
 // 跑步按距离取最佳成绩，骑行按最远距离与 5／20 分钟最佳平均功率。
 const runEvents = [
-  {event:'5 公里', metres:5000},
-  {event:'10 公里', metres:10000},
-  {event:'半程马拉松', metres:21097.5},
-  {event:'全程马拉松', metres:42195},
+  {event:'run5k', metres:5000},
+  {event:'run10k', metres:10000},
+  {event:'halfMarathon', metres:21097.5},
+  {event:'marathon', metres:42195},
 ];
 const powerEvents = [
-  {event:'CP5', seconds:300},
-  {event:'CP20', seconds:1200},
+  {event:'cp5', seconds:300},
+  {event:'cp20', seconds:1200},
 ];
 
 const activityUrl = id => typeof id === 'string' && /^(?:i)?\d+$/.test(id) ? 'https://intervals.icu/activities/' + id : null;
-
-// 全程马拉松超过一小时，5 公里和 10 公里不足一小时，两种位数都要覆盖。
-export function formatRunTime(seconds) {
-  const total = Math.round(seconds);
-  const hours = Math.floor(total / 3600);
-  const minutes = Math.floor(total % 3600 / 60);
-  const rest = String(total % 60).padStart(2, '0');
-  return hours ? hours + ':' + String(minutes).padStart(2, '0') + ':' + rest : minutes + ':' + rest;
-}
 
 // 曲线按运动大类聚合：type=Run 已含越野跑与虚拟跑步，type=Ride 已含虚拟骑行。
 export function paceRecords(paceCurves) {
@@ -38,7 +30,7 @@ export function paceRecords(paceCurves) {
     const index = distance.findIndex(value => value >= metres);
     if (index < 0) continue;
     if (!Number.isFinite(values[index]) || values[index] <= 0) throw new Error('跑步配速曲线成绩无效，未更新数据');
-    records.push({sport:'跑步', event, result:formatRunTime(values[index]), date:null, activityUrl:activityUrl(ids[index])});
+    records.push({sport:'Run', event, value:values[index], date:null, activityUrl:activityUrl(ids[index])});
   }
   return records;
 }
@@ -54,7 +46,7 @@ export function powerRecords(powerCurves) {
     const index = secs.indexOf(seconds);
     if (index < 0) continue;
     if (!Number.isFinite(watts[index]) || watts[index] <= 0) throw new Error('骑行功率曲线成绩无效，未更新数据');
-    records.push({sport:'骑行', event, result:Math.round(watts[index]) + ' W', date:null, activityUrl:activityUrl(ids[index])});
+    records.push({sport:'Ride', event, value:watts[index], date:null, activityUrl:activityUrl(ids[index])});
   }
   return records;
 }
@@ -63,12 +55,12 @@ export function longestRide(activities) {
   if (!Array.isArray(activities)) throw new Error('活动列表无效，未更新数据');
   let best = null;
   for (const activity of activities) {
-    if (!activity || typeof activity.sport !== 'string' || !activity.sport.includes('骑行')) continue;
+    if (!activity || typeof activity.sport !== 'string' || !isRide(activity.sport)) continue;
     if (typeof activity.distanceKm !== 'number' || !Number.isFinite(activity.distanceKm)) continue;
     if (!best || activity.distanceKm > best.distanceKm) best = activity;
   }
   if (!best) return null;
-  return {sport:'骑行', event:'最远距离', result:best.distanceKm.toFixed(2) + ' km', date:best.date ?? null, activityUrl:best.activityUrl ?? null,
+  return {sport:'Ride', event:'longestRide', value:best.distanceKm, date:best.date ?? null, activityUrl:best.activityUrl ?? null,
     ...(best.stravaUrl ? {stravaUrl:best.stravaUrl} : {})};
 }
 
@@ -81,7 +73,7 @@ export function buildPersonalBests({activities = [], paceCurves, powerCurves, no
   });
   const ride = longestRide(activities);
   const records = withActivity([...paceRecords(paceCurves), ...(ride ? [ride] : []), ...powerRecords(powerCurves)]);
-  if (!records.some(record => record.sport === '跑步') && !records.some(record => record.sport === '骑行')) throw new Error('未取得任何个人最佳成绩，未更新数据');
+  if (!records.some(record => record.sport === 'Run') && !records.some(record => record.sport === 'Ride')) throw new Error('未取得任何个人最佳成绩，未更新数据');
   return {source:'Intervals.icu', syncedAt:now.toISOString(), records};
 }
 

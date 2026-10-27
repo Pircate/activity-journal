@@ -1,13 +1,19 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml:esc, isDate, formatDistance, formatTime, durationSeconds} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml:esc, isDate, formatDistance, formatTime} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 
 // 事件白名单同时决定分组的展示顺序：跑步按距离，骑行按距离与功率。
-export const personalBestEvents = {'跑步':['5 公里', '10 公里', '半程马拉松', '全程马拉松'], '骑行':['最远距离', 'CP5', 'CP20']};
+const {sportLabel} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
+export const personalBestEvents = {Run:['run5k', 'run10k', 'halfMarathon', 'marathon'], Ride:['longestRide', 'cp5', 'cp20']};
+const events = {
+  run5k:{label:'5 公里', unit:'seconds'}, run10k:{label:'10 公里', unit:'seconds'},
+  halfMarathon:{label:'半程马拉松', unit:'seconds'}, marathon:{label:'全程马拉松', unit:'seconds'},
+  longestRide:{label:'最远距离', unit:'km'}, cp5:{label:'5 分钟功率', unit:'W'}, cp20:{label:'20 分钟功率', unit:'W'},
+};
 const eventOrder = Object.values(personalBestEvents).flat();
 const eventSport = new Map(Object.entries(personalBestEvents).flatMap(([sport, events]) => events.map(event => [event, sport])));
 const sportMarks = {
-  '跑步':'<circle cx="19" cy="5" r="2"/><path d="m12 12 4-4 4 4 5 1M16 8l-3 9 5 4 1 6M13 17l-4 5H4M7 10l5 2"/>',
-  '骑行':'<circle cx="7" cy="22" r="6"/><circle cx="25" cy="22" r="6"/><circle cx="21" cy="5" r="2"/><path d="m15 9-4 6 7 3-2 7m-1-16 6 5h6M7 22l4-7m10-1 4 8"/>',
+  Run:'<circle cx="19" cy="5" r="2"/><path d="m12 12 4-4 4 4 5 1M16 8l-3 9 5 4 1 6M13 17l-4 5H4M7 10l5 2"/>',
+  Ride:'<circle cx="7" cy="22" r="6"/><circle cx="25" cy="22" r="6"/><circle cx="21" cy="5" r="2"/><path d="m15 9-4 6 7 3-2 7m-1-16 6 5h6M7 22l4-7m10-1 4 8"/>',
 };
 
 export function validatePersonalBests(data) {
@@ -18,9 +24,9 @@ export function validatePersonalBests(data) {
   } else if (typeof data.syncedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(data.syncedAt) || !Number.isFinite(Date.parse(data.syncedAt)) || new Date(data.syncedAt).toISOString() !== data.syncedAt) fail();
   const keys = new Set();
   for (const record of data.records) {
-    if (!record || Object.keys(record).filter(key => key !== 'stravaUrl').sort().join(',') !== 'activityUrl,date,event,result,sport' ||
-      !['sport', 'event', 'result'].every(key => typeof record[key] === 'string' && record[key].trim()) ||
-      !Object.hasOwn(personalBestEvents, record.sport) || eventSport.get(record.event) !== record.sport ||
+    if (!record || Object.keys(record).filter(key => key !== 'stravaUrl').sort().join(',') !== 'activityUrl,date,event,sport,value' ||
+      !['sport', 'event'].every(key => typeof record[key] === 'string' && record[key].trim()) ||
+      !Object.hasOwn(personalBestEvents, record.sport) || eventSport.get(record.event) !== record.sport || typeof record.value !== 'number' || !Number.isFinite(record.value) || record.value <= 0 ||
       record.date !== null && !isDate(record.date) ||
       Object.hasOwn(record, 'stravaUrl') && (typeof record.stravaUrl !== 'string' || !/^https:\/\/www\.strava\.com\/activities\/[1-9]\d*$/.test(record.stravaUrl)) ||
       record.activityUrl !== null && (typeof record.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(record.activityUrl))) fail();
@@ -39,14 +45,13 @@ export function renderPersonalBests(data) {
   for (const record of data.records) groups.get(record.sport).push(record);
   for (const records of groups.values()) records.sort((a, b) => eventOrder.indexOf(a.event) - eventOrder.indexOf(b.event));
   for (const [sport, records] of groups) if (!records.length) groups.delete(sport);
-  return [...groups].map(([sport, records]) => `<section class="pb-group" data-sport="${esc(sport)}"><div class="pb-group-head"><div class="pb-sport-heading"><span class="pb-sport-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportMarks[sport]}</svg></span><div><h3>${esc(sport)}</h3></div></div><span class="pb-count">${records.length} 项纪录</span></div><div class="pb-grid">${records.map(record => {
+  return [...groups].map(([sport, records]) => `<section class="pb-group" data-sport="${esc(sport)}"><div class="pb-group-head"><div class="pb-sport-heading"><span class="pb-sport-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${sportMarks[sport]}</svg></span><div><h3>${esc(sportLabel(sport))}</h3></div></div><span class="pb-count">${records.length} 项纪录</span></div><div class="pb-grid">${records.map(record => {
     const date = record.date ? `<time datetime="${record.date}">${record.date.replaceAll('-', '.')}</time>` : '<span>日期未提供</span>';
-    const eventLabel = {CP5:'5 分钟功率', CP20:'20 分钟功率'}[record.event] ?? record.event;
-    const displayedResult = record.event === '最远距离' && /^\d+(?:\.\d+)? km$/.test(record.result) ? formatDistance(Number.parseFloat(record.result)) + ' km'
-      : sport === '跑步' && /^\d+:\d{2}(?::\d{2})?$/.test(record.result) ? formatTime(durationSeconds(record.result)) : record.result;
-    const units = /^([\d,]+(?:\.\d+)?)(\s+)(km|W)$/.exec(displayedResult);
-    const value = units ? `${esc(units[1])}${units[2]}<small class="pb-unit">${units[3]}</small>` : esc(displayedResult);
-    const result = record.stravaUrl ? `<a class="pb-link" href="${esc(record.stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sport + ' ' + eventLabel + '，' + displayedResult + '，' + (record.date ?? '日期未提供') + '，在 Strava 查看（新标签页）')}">${value}<span class="pb-arrow" aria-hidden="true">↗</span></a>` : value;
+    const {label:eventLabel, unit} = events[record.event];
+    const number = unit === 'seconds' ? formatTime(Math.round(record.value)) : unit === 'km' ? formatDistance(record.value) : String(Math.round(record.value));
+    const displayedResult = number + (unit === 'seconds' ? '' : ' ' + unit);
+    const value = esc(number) + (unit === 'seconds' ? '' : ` <small class="pb-unit">${unit}</small>`);
+    const result = record.stravaUrl ? `<a class="pb-link" href="${esc(record.stravaUrl)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(sportLabel(sport) + ' ' + eventLabel + '，' + displayedResult + '，' + (record.date ?? '日期未提供') + '，在 Strava 查看（新标签页）')}">${value}<span class="pb-arrow" aria-hidden="true">↗</span></a>` : value;
     return `<article class="pb-card" data-event="${esc(record.event)}"><h4>${esc(eventLabel)}</h4><p class="pb-result">${result}</p><p class="pb-meta">${date}${record.stravaUrl ? '' : '<span>Strava 链接未提供</span>'}</p></article>`;
   }).join('')}</div></section>`).join('');
 }

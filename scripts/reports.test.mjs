@@ -1,8 +1,9 @@
+import {sportLabel} from '../docs/activity-data.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createReport, reportSummary, renderReportPanel, initializeReports, drawReport} from '../docs/reports.mjs';
 
-const activity = (date, values = {}) => ({date, sport:'跑步', distanceKm:5.25, duration:'0:30:00', trainingLoad:20, activityUrl:'https://intervals.icu/activities/i1', ...values});
+const activity = (date, values = {}) => ({date, sport:'Run', distanceKm:5.25, durationSeconds:1800, trainingLoad:20, activityUrl:'https://intervals.icu/activities/i1', ...values});
 const fixture = (activities = [], values = {}) => ({period:{start:'2023-01-01', end:'2026-10-16'}, syncedAt:'2026-10-16 16:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[], ...values});
 const today = '2026-10-16';
 
@@ -17,7 +18,7 @@ test('自然月包含首尾与同日多次活动，闰月不跨到相邻月份',
   assert.equal(report.durationSeconds, 5400);
   assert.equal(report.buckets.length, 29);
   assert.equal(report.buckets.at(-1).count, 2);
-  assert.equal(report.sports[0].sport, '跑步');
+  assert.equal(report.sports[0].sport, 'Run');
   assert.equal(report.sports[0].count, 3);
   assert.equal(report.sports[0].distanceKm, 15.75);
   assert.equal(report.sports[0].durationSeconds, 5400);
@@ -58,7 +59,7 @@ test('已同步无活动为零；未同步或仅不可读取时不伪造零运�
 });
 
 test('部分距离缺失仅合计可读值，力量训练距离不误报应有指标缺失', () => {
-  const data = fixture([activity('2024-02-01', {distanceKm:null}), activity('2024-02-02'), activity('2024-02-03', {sport:'力量训练', distanceKm:null, sets:12, averageHeartRate:100})], {unavailableActivities:[{date:'2024-02-15'}]});
+  const data = fixture([activity('2024-02-01', {distanceKm:null}), activity('2024-02-02'), activity('2024-02-03', {sport:'WeightTraining', distanceKm:null, sets:12, averageHeartRate:100})], {unavailableActivities:[{date:'2024-02-15'}]});
   const report = createReport(data, 'month', '2024-02', today);
   assert.equal(report.count, 3);
   assert.equal(report.distanceKm, 5.25);
@@ -72,16 +73,16 @@ test('部分距离缺失仅合计可读值，力量训练距离不误报应有�
 test('总负荷与各运动距离、时长、次数、负荷一致，未知负荷不伪装为零', () => {
   const data = fixture([
     activity('2024-02-01', {trainingLoad:null}),
-    activity('2024-02-02', {sport:'骑行', distanceKm:30, trainingLoad:0}),
-    activity('2024-02-03', {sport:'骑行', distanceKm:50, trainingLoad:70}),
-    activity('2024-02-03', {sport:'力量训练', distanceKm:null, sets:3, averageHeartRate:110, trainingLoad:10}),
+    activity('2024-02-02', {sport:'Ride', distanceKm:30, trainingLoad:0}),
+    activity('2024-02-03', {sport:'Ride', distanceKm:50, trainingLoad:70}),
+    activity('2024-02-03', {sport:'WeightTraining', distanceKm:null, sets:3, averageHeartRate:110, trainingLoad:10}),
   ]);
   const report = createReport(data, 'month', '2024-02', today);
   assert.equal(report.trainingLoad, 80);
   assert.equal(report.missingLoad, 1);
-  const running = report.sports.find(item => item.sport === '跑步');
+  const running = report.sports.find(item => item.sport === 'Run');
   assert.equal(running.trainingLoad, null);
-  const riding = report.sports.find(item => item.sport === '骑行');
+  const riding = report.sports.find(item => item.sport === 'Ride');
   assert.equal(riding.distanceKm, 80);
   assert.equal(riding.count, 2);
   assert.equal(riding.durationSeconds, 3600);
@@ -96,13 +97,13 @@ test('总负荷与各运动距离、时长、次数、负荷一致，未知负�
 });
 
 test('图片支持四项图表指标，完整显示所有运动统计，图片高度容纳明细', () => {
-  const data = fixture(['跑步','骑行','步行','游泳','徒步','体能训练','越野跑'].map(sport => activity(today, {sport})));
+  const data = fixture(['Run','Ride','Walk','Swim','Hike','Workout','TrailRun'].map(sport => activity(today, {sport})));
   const report = createReport(data, 'month', '2026-10', today);
   for (const metric of ['distanceKm', 'durationSeconds', 'count', 'trainingLoad']) {
     const texts = [];
     const canvas = {getContext:() => ({fillRect() {}, strokeRect() {}, fillText(value, x, y) {texts.push({value, y});}})};
     drawReport(canvas, report, '测试', metric);
-    for (const sport of report.sports) assert.ok(texts.some(text => text.value === sport.sport), '所有运动类型都有明细');
+    for (const sport of report.sports) assert.ok(texts.some(text => text.value === sportLabel(sport.sport)), '所有运动类型都有明细');
     assert.ok(texts.some(text => text.value === '负荷 / TL'));
     assert.ok(texts.every(text => text.y < canvas.height));
     assert.ok(canvas.height > 1440, '明细较多时自动增加图片高度');

@@ -108,7 +108,7 @@ test('折叠提醒区分未知和已达建议里程，展开优先显示需更�
   assert.ok(html.indexOf('<h4>飞轮</h4>') < html.indexOf('<h4>同名链条</h4>'));
   assert.ok(html.indexOf('<h4>外胎</h4>') < html.indexOf('<h4>轮组</h4>'));
   const shared = normalizeGear([bike('<甲>',['共享']),bike('乙',['共享']),part('共享','Chain',{reminders:[reminder()]})]);
-  assert.match(renderGearLibrary(shared), /共享配件 · &lt;甲&gt; \/ 乙/);
+  assert.match(renderGearLibrary(shared), /共享配件　&lt;甲&gt; \/ 乙/);
   assert.doesNotMatch(renderGearLibrary(library), /共享配件/);
   for (const sharedBy of [[], ['甲'], ['甲','不存在'], '甲']) {
     const invalid = structuredClone(library);
@@ -172,7 +172,7 @@ test('维护摘要合并真实共享实例，同名同里程的不同共享配�
   const maintenance = html.slice(0, html.indexOf('<details'));
   assert.equal((maintenance.match(/<li data-state="soon"/g) ?? []).length, 4);
   assert.equal((maintenance.match(/data-gear-target=/g) ?? []).length, 6);
-  assert.match(maintenance, /4 件重点配件 · 2 件共享配件各计一次/);
+  assert.match(maintenance, /4 件重点配件　2 件共享配件各计一次/);
 });
 
 test('维护摘要优先已达、接近、信息缺失；未知日期和零里程准确区分', () => {

@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createTrends, compareTrend, renderTrendContent} from '../docs/trends.mjs';
 
-const activity = (date, distanceKm = 10, duration = '1:00:00', trainingLoad = 30) => ({date, sport:'骑行', distanceKm, duration, trainingLoad});
+const activity = (date, distanceKm = 10, duration = 3600, trainingLoad = 30) => ({date, sport:'Ride', distanceKm, durationSeconds:duration, trainingLoad});
 const snapshot = activities => ({period:{start:'2020-01-01', end:'2026-10-16'}, activities, unavailableActivities:[]});
 
 test('自然周按周一开始、跨年不断开，保留同日多次记录并精确累计', () => {
-  const data = snapshot([activity('2025-12-28', 99), activity('2025-12-29', 0.1), activity('2026-01-01', 0.2, '10:00:00'), activity('2026-01-01', 0, '0:00:01'), activity('2026-01-04', 30), activity('2026-01-05', 50)]);
+  const data = snapshot([activity('2025-12-28', 99), activity('2025-12-29', 0.1), activity('2026-01-01', 0.2, 36000), activity('2026-01-01', 0, 1), activity('2026-01-04', 30), activity('2026-01-05', 50)]);
   const before = structuredClone(data);
   const first = createTrends(data, '2026', 'week', '2026-10-16')[0];
   assert.equal(first.start, '2025-12-29');
@@ -65,7 +65,7 @@ test('环比区分零基数、持平、增减和缺失指标，不把未知当�
   assert.equal(compareTrend(months[2], months[2].previous, 'distanceKm'), '减少 50.0%');
   assert.equal(compareTrend(months[3], months[3].previous, 'distanceKm'), '减少 100.0%');
   assert.equal(compareTrend(months[4], months[4].previous, 'distanceKm'), '持平');
-  const missing = createTrends(snapshot([activity('2026-02-01', null, '1:00:00', null)]), '2026', 'month', '2026-10-16')[1];
+  const missing = createTrends(snapshot([activity('2026-02-01', null, 3600, null)]), '2026', 'month', '2026-10-16')[1];
   assert.equal(missing.distanceKm, null);
   assert.equal(missing.trainingLoad, null);
   assert.equal(compareTrend(missing, missing.previous, 'distanceKm'), '数据不完整，暂不比较');
@@ -91,7 +91,7 @@ test('部分指标缺失只阻止该指标比较，受限记录和未同步日�
 });
 
 test('趋势明细区分未同步与详情不可读取，指标缺失只说指标缺失', () => {
-  const data = snapshot([activity('2026-02-01', null, '1:00:00', 20)]);
+  const data = snapshot([activity('2026-02-01', null, 3600, 20)]);
   const januaryUnavailable = createTrends({...data, unavailableActivities:[{date:'2026-01-15'}]}, '2026', 'month', '2026-10-16')[0];
   const januaryHtml = renderTrendContent([januaryUnavailable]);
   assert.match(januaryHtml, /详情不可读取 1 条（平台只返回当地日期，没有距离、时长和运动类型），未计入统计/);
@@ -117,7 +117,7 @@ test('最近一年显示相交的完整自然月，不输出未来周期；空�
 
 test('趋势保留周期合计，不展示活动列表和分页', () => {
   const records = Array.from({length:45}, (_, i) => ({...activity('2026-01-02', i), activityUrl:'https://intervals.icu/activities/i' + i}));
-  records[0] = {...records[0], sport:'力量训练', sets:12, averageHeartRate:131};
+  records[0] = {...records[0], sport:'WeightTraining', sets:12, averageHeartRate:131};
   const periods = createTrends(snapshot(records), '2026', 'month', '2026-10-16');
   const first = renderTrendContent(periods, {selected:'2026-01-01'});
   assert.match(first, /<span>45 次<\/span>/);

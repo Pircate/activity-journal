@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {validatePersonalBests, renderPersonalBests, renderPersonalBestsPanel, initializePersonalBests} from '../docs/personal-bests.mjs';
 
-const record = {sport:'跑步', event:'5 公里', result:'21:02', date:'2025-05-01', activityUrl:'https://intervals.icu/activities/i123', stravaUrl:'https://www.strava.com/activities/9123'};
+const record = {sport:'Run', event:'run5k', value:1262, date:'2025-05-01', activityUrl:'https://intervals.icu/activities/i123', stravaUrl:'https://www.strava.com/activities/9123'};
 const snapshot = records => ({source:'Intervals.icu', syncedAt:'2026-10-16T04:00:00.000Z', records});
 
 test('统一显示用时且保留快照原文、按运动分组，并链接正确活动', () => {
-  const data = snapshot([record, {...record, event:'10 公里', result:'44:03'}, {...record, sport:'骑行', event:'CP20', result:'233 W'}]);
+  const data = snapshot([record, {...record, event:'run10k', value:2643}, {...record, sport:'Ride', event:'cp20', value:233}]);
   const before = structuredClone(data);
   const html = renderPersonalBests(data);
   assert.equal((html.match(/class="pb-group"/g) ?? []).length, 2);
@@ -30,20 +30,20 @@ test('成绩板只展示标题与同步时间，不重复来源说明', () => {
 
 test('功率名称直接说明时长，标准单位缩小显示且保留原始精度', () => {
   const data = snapshot([
-    {...record, sport:'骑行', event:'最远距离', result:'154.86 km'},
-    {...record, sport:'骑行', event:'CP5', result:'288 W'},
-    {...record, sport:'骑行', event:'CP20', result:'233 W'},
+    {...record, sport:'Ride', event:'longestRide', value:154.86},
+    {...record, sport:'Ride', event:'cp5', value:288},
+    {...record, sport:'Ride', event:'cp20', value:233},
   ]);
   const html = renderPersonalBests(data);
-  assert.match(html, /data-sport="骑行"/);
+  assert.match(html, /data-sport="Ride"/);
   assert.match(html, /<h4>5 分钟功率<\/h4>/);
   assert.match(html, /<h4>20 分钟功率<\/h4>/);
   assert.match(html, /154\.86 <small class="pb-unit">km<\/small>/);
   assert.match(html, /288 <small class="pb-unit">W<\/small>/);
   assert.match(html, /aria-label="骑行 5 分钟功率，288 W，2025-05-01，在 Strava 查看（新标签页）"/);
-  assert.equal(data.records[0].result, '154.86 km');
-  for (const result of ['1:24:29', '约 288 W', '288 W 估算', '288 <W>']) {
-    assert.doesNotMatch(renderPersonalBests(snapshot([{...record, result}])), /pb-unit/);
+  assert.equal(data.records[0].value, 154.86);
+  for (const value of ['288 W', 'banana', null, NaN, Infinity, 0, -1]) {
+    assert.throws(() => validatePersonalBests(snapshot([{...record, value}])), /格式无效/);
   }
 });
 
@@ -54,8 +54,8 @@ test('有链接时显示装饰箭头，日期缺失时仍提供完整链接名�
 });
 
 test('分组与组内顺序固定，不随记录顺序变化', () => {
-  const shuffled = snapshot([{...record, sport:'骑行', event:'CP20', result:'233 W'}, {...record, event:'10 公里', result:'44:03'},
-    {...record, sport:'骑行', event:'最远距离', result:'154.86 km'}, {...record, event:'5 公里', result:'21:02'}]);
+  const shuffled = snapshot([{...record, sport:'Ride', event:'cp20', value:233}, {...record, event:'run10k', value:2643},
+    {...record, sport:'Ride', event:'longestRide', value:154.86}, {...record, event:'run5k', value:1262}]);
   assert.deepEqual(renderPersonalBests(shuffled), renderPersonalBests(snapshot([...shuffled.records].reverse())));
   const html = renderPersonalBests(shuffled);
   assert.match(html, /<h3>跑步<\/h3>[\s\S]*<h3>骑行<\/h3>/);
@@ -77,15 +77,13 @@ test('首次未同步、成功空列表与缺失日期链接分别表达', () =>
 test('拒绝重复项目、错误来源、异常日期、额外字段与非法平台链接', () => {
   for (const data of [snapshot([record, record]), {...snapshot([]), source:'Strava'}, {...snapshot([]), syncedAt:'2026-02-30T04:00:00.000Z'}, {source:'Intervals.icu', syncedAt:null, records:[record]},
     snapshot([{...record, date:'2026-02-30'}]), snapshot([{...record, activityUrl:'javascript:alert(1)'}]), snapshot([{...record, activityUrl:'https://intervals.icu.evil/activities/i123'}]),
-    snapshot([{...record, sport:'力量训练'}]), snapshot([{...record, sport:'骑行'}]), snapshot([{...record, event:'<script>alert(1)</script>'}]), snapshot([{...record, secret:'no'}])]) {
+    snapshot([{...record, sport:'WeightTraining'}]), snapshot([{...record, sport:'Ride'}]), snapshot([{...record, event:'<script>alert(1)</script>'}]), snapshot([{...record, secret:'no'}])]) {
     assert.throws(() => validatePersonalBests(data), /格式无效/);
   }
   for (const stravaUrl of ['javascript:alert(1)', 'https://strava.com.evil/activities/1', 'https://www.strava.com/activities/i123', 'https://www.strava.com/activities/123?x=1', null]) {
     assert.throws(() => validatePersonalBests(snapshot([{...record, stravaUrl}])), /格式无效/);
   }
-  const html = renderPersonalBests(snapshot([{...record, result:'<img src=x>onerror=alert(1)'}]));
-  assert.doesNotMatch(html, /<img/);
-  assert.match(html, /&lt;img/);
+  assert.throws(() => validatePersonalBests(snapshot([{...record, value:'<img src=x>onerror=alert(1)'}])), /格式无效/);
 });
 
 test('PB 独立刷新拒绝旧快照，失败保留成绩，恢复后清除提示', async t => {
@@ -110,7 +108,7 @@ test('PB 独立刷新拒绝旧快照，失败保留成绩，恢复后清除提�
   const refresh = initializePersonalBests(initial);
   await refresh();
   assert.equal(content.writes, 0, '首屏和无变化刷新保留静态节点');
-  latest = snapshot([{...record, result:'20:00'}]);
+  latest = snapshot([{...record, value:1200}]);
   await refresh();
   assert.equal(content.writes, 1);
   fail = true;

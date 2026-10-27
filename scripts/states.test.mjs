@@ -4,7 +4,7 @@ import {createJournal, dayMetricState, describeDay, hasMissingMetric, dayStateLa
 
 const snapshot = (activities, unavailableActivities = [], period = {start:'2021-01-01', end:'2026-10-16'}) =>
   ({period, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities, gearLibrary:[]});
-const activity = (date, overrides = {}) => ({date, sport:'骑行', distanceKm:10, duration:'1:00:00', trainingLoad:30, ...overrides});
+const activity = (date, overrides = {}) => ({date, sport:'Ride', distanceKm:10, durationSeconds:3600, trainingLoad:30, ...overrides});
 // 未同步需要“日期晚于已同步范围”，因此把已同步末日期设为 10 月 15 日。
 const syncedThrough14 = (activities, unavailableActivities = []) => snapshot(activities, unavailableActivities, {start:'2021-01-01', end:'2026-10-15'});
 
@@ -48,7 +48,7 @@ test('指标缺失按运动应有指标判断，组数替代距离的力量训�
   assert.equal(hasMissingMetric(activity('2026-10-10')), false);
   assert.equal(hasMissingMetric(activity('2026-10-10', {distanceKm:null})), true);
   assert.equal(hasMissingMetric(activity('2026-10-10', {trainingLoad:null})), true);
-  assert.equal(hasMissingMetric({date:'2026-10-10', sport:'力量训练', distanceKm:null, duration:'0:30:00', trainingLoad:20, sets:12, averageHeartRate:131}), false);
-  assert.equal(hasMissingMetric({date:'2026-10-10', sport:'力量训练', distanceKm:null, duration:'0:30:00', trainingLoad:20, sets:null, averageHeartRate:131}), true);
-  assert.equal(hasMissingMetric({date:'2026-10-10', sport:'力量训练', distanceKm:null, duration:'0:30:00', trainingLoad:20, sets:12, averageHeartRate:null}), true);
+  assert.equal(hasMissingMetric({date:'2026-10-10', sport:'WeightTraining', distanceKm:null, durationSeconds:1800, trainingLoad:20, sets:12, averageHeartRate:131}), false);
+  assert.equal(hasMissingMetric({date:'2026-10-10', sport:'WeightTraining', distanceKm:null, durationSeconds:1800, trainingLoad:20, sets:null, averageHeartRate:131}), true);
+  assert.equal(hasMissingMetric({date:'2026-10-10', sport:'WeightTraining', distanceKm:null, durationSeconds:1800, trainingLoad:20, sets:12, averageHeartRate:null}), true);
 });

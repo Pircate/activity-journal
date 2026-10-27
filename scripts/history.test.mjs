@@ -5,9 +5,9 @@ import {createJournal, renderDayRecords, validateData} from '../docs/journal.mjs
 import {normalizeActivities} from './update-data.mjs';
 import {createTrends} from '../docs/trends.mjs';
 
-const activity = (date, distanceKm, sport = '骑行', duration = '1:00:00') => ({date, distanceKm, sport, duration, trainingLoad:30});
-const records = [activity('2026-10-10', 0), activity('2026-10-11', null, '力量训练'),
-  activity('2026-10-12', 20), activity('2026-10-12', 30), activity('2026-10-13', 40, '跑步', '0:45:00')];
+const activity = (date, distanceKm, sport = 'Ride', duration = 3600) => ({date, distanceKm, sport, durationSeconds:duration, trainingLoad:30});
+const records = [activity('2026-10-10', 0), activity('2026-10-11', null, 'WeightTraining'),
+  activity('2026-10-12', 20), activity('2026-10-12', 30), activity('2026-10-13', 40, 'Run', 2700)];
 
 test('开始时间按北京时间保留，近期、历史、日历与趋势详情同日最新在前', () => {
   const period = {start:'2026-01-01', end:'2026-10-13'};
@@ -38,11 +38,11 @@ test('开始时间按北京时间保留，近期、历史、日历与趋势详�
 
 test('组合筛选使用含边界的日期和距离，保留同日多次活动且不修改源数据', () => {
   const before = structuredClone(records);
-  assert.deepEqual(filterActivities(records, {start:'2026-10-12', end:'2026-10-12', sport:'骑行', minDistance:20, maxDistance:30}), records.slice(2, 4));
+  assert.deepEqual(filterActivities(records, {start:'2026-10-12', end:'2026-10-12', sport:'Ride', minDistance:20, maxDistance:30}), records.slice(2, 4));
   assert.equal(filterActivities(records, {minDistance:0, maxDistance:0})[0], records[0]);
   assert.equal(filterActivities(records).length, 5, '不筛距离时保留未提供距离的活动');
   assert.equal(filterActivities(records, {minDistance:0}).length, 4, '距离未知不视为零');
-  assert.deepEqual(filterActivities(records, {sport:'游泳'}), []);
+  assert.deepEqual(filterActivities(records, {sport:'Swim'}), []);
   assert.deepEqual(records, before);
 });
 
@@ -51,9 +51,9 @@ test('排序按日期、距离和实际秒数，未知距离始终排在末尾',
   assert.equal(filterActivities(records, {sort:'date-asc'})[0], records[0]);
   assert.deepEqual(filterActivities(records, {sort:'distance-asc'}).map(a => a.distanceKm), [0, 20, 30, 40, null]);
   assert.deepEqual(filterActivities(records, {sort:'distance-desc'}).map(a => a.distanceKm), [40, 30, 20, 0, null]);
-  const times = [activity('2026-10-10', 10, '骑行', '10:00:00'), activity('2026-10-11', 10, '骑行', '2:00:00'), activity('2026-10-12', 10, '骑行', '0:59:59')];
-  assert.deepEqual(filterActivities(times, {sort:'duration-desc'}).map(a => a.duration), ['10:00:00', '2:00:00', '0:59:59']);
-  assert.deepEqual(filterActivities(times, {sort:'duration-asc'}).map(a => a.duration), ['0:59:59', '2:00:00', '10:00:00']);
+  const times = [activity('2026-10-10', 10, 'Ride', 36000), activity('2026-10-11', 10, 'Ride', 7200), activity('2026-10-12', 10, 'Ride', 3599)];
+  assert.deepEqual(filterActivities(times, {sort:'duration-desc'}).map(a => a.durationSeconds), [36000, 7200, 3599]);
+  assert.deepEqual(filterActivities(times, {sort:'duration-asc'}).map(a => a.durationSeconds), [3599, 7200, 36000]);
   assert.deepEqual(filterActivities(records, {sort:'distance-asc'}).slice(2, 4), [records[3], records[4]]);
 });
 
@@ -84,37 +84,37 @@ test('历史列表分页、组合筛选、校验、重置与新快照更新', t 
   const update = initializeHistory(data);
   const click = id => get(id).events.get('click')();
   const apply = () => get('history-filters').events.get('submit')({preventDefault() {}});
-  assert.equal(get('history-count').textContent, '共 45 条 · 显示第 1–20 条');
+  assert.equal(get('history-count').textContent, '共 45 条　显示第 1–20 条');
   assert.equal((get('history-results').innerHTML.match(/class="activity-row/g) ?? []).length, 20);
   assert.equal(get('history-previous').disabled, true);
   click('history-next');
-  assert.equal(get('history-count').textContent, '共 45 条 · 显示第 21–40 条');
+  assert.equal(get('history-count').textContent, '共 45 条　显示第 21–40 条');
   click('history-next');
-  assert.equal(get('history-count').textContent, '共 45 条 · 显示第 41–45 条');
+  assert.equal(get('history-count').textContent, '共 45 条　显示第 41–45 条');
   assert.equal(get('history-next').disabled, true);
   click('history-previous');
   assert.equal(get('history-page').textContent, '第 2 / 3 页');
   get('history-min-distance').value = '40';
   get('history-sort').value = 'distance-desc';
   apply();
-  assert.equal(get('history-count').textContent, '共 5 条 · 显示第 1–5 条');
+  assert.equal(get('history-count').textContent, '共 5 条　显示第 1–5 条');
   assert.ok(get('history-results').innerHTML.indexOf('/1044"') < get('history-results').innerHTML.indexOf('/1040"'));
   assert.equal(get('history-page').textContent, '第 1 / 1 页');
   get('history-max-distance').value = '10';
   apply();
   assert.equal(get('history-error').hidden, false);
   assert.match(get('history-error').textContent, /最短距离不能大于最长距离/);
-  assert.equal(get('history-count').textContent, '共 5 条 · 显示第 1–5 条', '无效筛选保留上次结果');
+  assert.equal(get('history-count').textContent, '共 5 条　显示第 1–5 条', '无效筛选保留上次结果');
   get('history-max-distance').value = '';
   update({...data, activities:[...data.activities, activity('2026-10-13', 50)]});
-  assert.equal(get('history-count').textContent, '共 6 条 · 显示第 1–6 条');
+  assert.equal(get('history-count').textContent, '共 6 条　显示第 1–6 条');
   assert.equal(get('history-min-distance').value, '40');
   click('history-reset');
   assert.equal(get('history-error').hidden, true);
   assert.equal(get('history-sort').value, 'date-desc');
   assert.equal(get('history-min-distance').value, '');
-  assert.equal(get('history-count').textContent, '共 46 条 · 显示第 1–20 条');
-  get('history-sport').value = '游泳';
+  assert.equal(get('history-count').textContent, '共 46 条　显示第 1–20 条');
+  get('history-sport').value = 'Swim';
   apply();
   assert.equal(get('history-count').textContent, '共 0 条');
   assert.match(get('history-results').innerHTML, /没有符合条件/);

@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import {readFile, writeFile, rename, unlink, mkdir, open} from 'node:fs/promises';
 import {resolve, dirname} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
@@ -10,6 +11,8 @@ import {buildHtml} from './build.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const week = 7 * 86400000;
 const iso = value => typeof value === 'string' && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
+// 受限记录用不可逆摘要关联，不发布原始平台标识。
+export const unavailableId = stravaId => createHash('sha256').update('strava:' + stravaId).digest('hex');
 const keyFor = a => a.stravaUrl || a.activityUrl;
 const json = data => JSON.stringify(data, null, 2) + '\n';
 
@@ -54,7 +57,7 @@ export function mergeActivities({previous, intervalsRecords, corosRecords, stren
   const matchedSets = matchCorosStrengthSets(intervalsRecords, corosRecords);
   for (const row of matchedSets) sets.set(row.activityUrl, row.sets);
   const seen = new Set(), linked = new Set(), touched = new Set();
-  const unavailableActivities = previous.unavailableActivities.filter(a => a.date < window.oldest || a.date > window.end);
+  const unavailable = new Map(previous.unavailableActivities.map(a => [a.id, {...a}]));
   let updated = 0, added = 0, restrictedRetained = 0, restrictedUnavailable = 0;
   for (const record of intervalsRecords) {
     if (!record || !/^(?:i)?\d+$/.test(String(record.id)) || seen.has(String(record.id))) throw new Error('Intervals.icu 活动标识无效或重复');
@@ -79,7 +82,7 @@ export function mergeActivities({previous, intervalsRecords, corosRecords, stren
       if (typeof local !== 'string' || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(local) || !isDate(local.slice(0,10))) throw new Error('受限活动当地日期无效');
       const date = local.slice(0,10);
       if (date < window.oldest || date > window.end) continue;
-      if (!old) { unavailableActivities.push({date}); restrictedUnavailable++; continue; }
+      if (!old) { unavailable.set(unavailableId(sourceId), {id:unavailableId(sourceId), date}); restrictedUnavailable++; continue; }
       next = {...related, ...known, activityUrl, stravaUrl};
       restrictedRetained++;
     } else {
@@ -89,15 +92,16 @@ export function mergeActivities({previous, intervalsRecords, corosRecords, stren
       if (stravaUrl) next.stravaUrl = stravaUrl;
       if (old) updated++; else added++;
     }
+    if (id !== null) unavailable.delete(unavailableId(id));
     next.trainingLoad ??= known?.trainingLoad ?? related?.trainingLoad ?? null;
-    if (next.sport === '力量训练') next.sets ??= known?.sets ?? related?.sets ?? null;
+    if (next.sport === 'WeightTraining') next.sets ??= known?.sets ?? related?.sets ?? null;
     for (const row of [known, related]) if (row) { activities.delete(row); touched.add(row); }
     activities.add(next);
     byIntervals.set(activityUrl, next);
     if (stravaUrl) byStrava.set(stravaUrl, next);
   }
-  for (const a of activities) if (a.sport === '力量训练' && sets.has(a.activityUrl)) a.sets = sets.get(a.activityUrl);
-  unavailableActivities.sort((a,b) => a.date.localeCompare(b.date));
+  for (const a of activities) if (a.sport === 'WeightTraining' && sets.has(a.activityUrl)) a.sets = sets.get(a.activityUrl);
+  const unavailableActivities = [...unavailable.values()].sort((a,b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
   const end = beijingDate(now), rows = [...activities].sort((a,b) => compareActivityDates(a, b) || keyFor(a).localeCompare(keyFor(b)));
   const earliest = [...rows, ...unavailableActivities].reduce((date, a) => a.date < date ? a.date : date, shiftDate(end, -364));
   const data = {period:{start:earliest.slice(0,4) + '-01-01', end}, syncedAt:'',

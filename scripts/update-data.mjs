@@ -1,18 +1,7 @@
 import {readFile} from 'node:fs/promises';
 import {homedir} from 'node:os';
 import {join} from 'node:path';
-import {beijingDate, beijingTime, compareActivityDates, shiftDate, formatTime, replacementTargets, isDate} from '../docs/journal.mjs';
-
-export const sports = {
-  Ride:'骑行', VirtualRide:'虚拟骑行', EBikeRide:'电助力骑行', EMountainBikeRide:'电助力山地骑行',
-  MountainBikeRide:'山地骑行', GravelRide:'砾石骑行', Handcycle:'手摇自行车', Velomobile:'卧式骑行',
-  Run:'跑步', VirtualRun:'虚拟跑步', TrailRun:'越野跑', Walk:'步行', Hike:'徒步', Swim:'游泳',
-  WeightTraining:'力量训练', Workout:'体能训练', Yoga:'瑜伽', Pilates:'普拉提', Rowing:'划船',
-  VirtualRow:'虚拟划船', Elliptical:'椭圆机', StairStepper:'踏步机', RockClimbing:'攀岩',
-  NordicSki:'越野滑雪', AlpineSki:'高山滑雪', BackcountrySki:'野外滑雪', Snowboard:'单板滑雪',
-  Kayaking:'皮划艇', Canoeing:'划独木舟', StandUpPaddling:'桨板', Surfing:'冲浪',
-  Soccer:'足球', Tennis:'网球', Badminton:'羽毛球', Basketball:'篮球', Golf:'高尔夫',
-};
+import {beijingDate, beijingTime, compareActivityDates, shiftDate, replacementTargets, isDate} from '../docs/journal.mjs';
 
 // COROS 原始标识只用于内存中的精确关联，补充文件仅保留网站已有链接和组数。
 export function matchCorosStrengthSets(records, corosRecords) {
@@ -41,8 +30,8 @@ export function normalizeActivities(records, period, strengthSets = []) {
   const ids = new Set();
   return records.map(record => {
     // Strava 空壳与缺失时长不能视为零运动；整次同步失败，保留已发布的数据。
-    if (!record || !/^(?:i)?\d+$/.test(String(record.id)) || ids.has(String(record.id)) || !record.type || !record.start_date ||
-        !Number.isInteger(record.moving_time) || record.moving_time < 0) {
+    if (!record || !/^(?:i)?\d+$/.test(String(record.id)) || ids.has(String(record.id)) || typeof record.type !== 'string' || !/^[A-Za-z][A-Za-z0-9]*$/.test(record.type) || !record.start_date ||
+        !Number.isSafeInteger(record.moving_time) || record.moving_time < 0) {
       throw new Error('活动不完整或 ID 重复（可能是 API 不提供的 Strava 记录），未更新数据');
     }
     ids.add(String(record.id));
@@ -59,9 +48,9 @@ export function normalizeActivities(records, period, strengthSets = []) {
     return {
       date:beijingDate(instant),
       startTime:beijingTime(instant),
-      sport:sports[record.type] ?? `其他运动（${record.type}）`,
-      distanceKm:distance === null ? null : Math.round(distance / 10) / 100,
-      duration:formatTime(record.moving_time),
+      sport:record.type,
+      distanceKm:distance === null ? null : distance / 1000,
+      durationSeconds:record.moving_time,
       trainingLoad:number(record.icu_training_load, '训练负荷'),
       ...(record.total_elevation_gain != null ? {elevationGain:number(record.total_elevation_gain, '累计爬升')} : {}),
       activityUrl:'https://intervals.icu/activities/' + record.id,

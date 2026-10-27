@@ -2,7 +2,7 @@ const version = new URL(import.meta.url).searchParams.get('v');
 const {escapeHtml, isDate, renderDayRecords, dayStateLabels, compareActivityDates} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 
 export const historyPageSize = 20;
-const seconds = duration => duration.split(':').reduce((value, part) => value * 60 + Number(part), 0);
+const {sportLabel} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
 
 export function filterActivities(activities, {start = '', end = '', sport = '', minDistance = null, maxDistance = null, sort = 'date-desc'} = {}) {
   if (start && !isDate(start) || end && !isDate(end)) throw new Error('请输入有效日期。');
@@ -22,7 +22,7 @@ export function filterActivities(activities, {start = '', end = '', sport = '', 
     if (sort.startsWith('distance') && (a.distanceKm === null || b.distanceKm === null)) {
       return Number(a.distanceKm === null) - Number(b.distanceKm === null) || compareActivityDates(a, b);
     }
-    const difference = sort.startsWith('distance') ? a.distanceKm - b.distanceKm : seconds(a.duration) - seconds(b.duration);
+    const difference = sort.startsWith('distance') ? a.distanceKm - b.distanceKm : a.durationSeconds - b.durationSeconds;
     return (ascending ? difference : -difference) || compareActivityDates(a, b);
   });
 }
@@ -48,7 +48,7 @@ export function initializeHistory(initialData) {
     const start = (page - 1) * historyPageSize;
     results.innerHTML = records.length ? renderDayRecords(records.slice(start, start + historyPageSize), '历史运动记录') :
       '<p class="history-empty">' + (data.activities.length ? '没有符合条件的运动记录，请调整筛选条件或重置。' : '尚无可读取的历史运动记录。') + '</p>';
-    count.textContent = records.length ? `共 ${records.length} 条 · 显示第 ${start + 1}–${Math.min(start + historyPageSize, records.length)} 条` : '共 0 条';
+    count.textContent = records.length ? `共 ${records.length} 条　显示第 ${start + 1}–${Math.min(start + historyPageSize, records.length)} 条` : '共 0 条';
     document.getElementById('history-page').textContent = `第 ${page} / ${pages} 页`;
     previous.disabled = page === 1;
     next.disabled = page === pages;
@@ -85,13 +85,13 @@ export function initializeHistory(initialData) {
   function update(latest) {
     data = latest;
     const options = '<option value="">全部运动</option>' + [...new Set(data.activities.map(activity => activity.sport))]
-      .sort((a, b) => a.localeCompare(b, 'zh-CN')).map(sport => `<option value="${escapeHtml(sport)}">${escapeHtml(sport)}</option>`).join('');
+      .sort((a, b) => sportLabel(a).localeCompare(sportLabel(b), 'zh-CN')).map(sport => `<option value="${escapeHtml(sport)}">${escapeHtml(sportLabel(sport))}</option>`).join('');
     if (options !== sportOptions) {
       const selected = fields.sport.value;
       fields.sport.innerHTML = options;
       // 保留正在填写的类型，即使本次同步已不再包含该类型。
       if (selected && !data.activities.some(activity => activity.sport === selected)) {
-        fields.sport.innerHTML += `<option value="${escapeHtml(selected)}">${escapeHtml(selected)}</option>`;
+        fields.sport.innerHTML += `<option value="${escapeHtml(selected)}">${escapeHtml(sportLabel(selected))}</option>`;
       }
       fields.sport.value = selected;
       sportOptions = options;

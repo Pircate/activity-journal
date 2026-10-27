@@ -6,13 +6,13 @@ import {setImmediate} from 'node:timers/promises';
 test('刷新复用缓存、只在内容或北京时间日期改变时重绘，并保留失败兜底', async t => {
   const initial = {
     period:{start:'2025-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00',
-    activities:[{date:'2026-10-09', sport:'骑行', distanceKm:20, duration:'1:00:00', trainingLoad:30, activityUrl:'https://intervals.icu/activities/i1'}],
+    activities:[{date:'2026-10-09', sport:'Ride', distanceKm:20, durationSeconds:3600, trainingLoad:30, activityUrl:'https://intervals.icu/activities/i1'}],
     unavailableActivities:[], gearLibrary:[{name:'公路车', type:'Bike', distanceKm:100, components:[]}, {name:'通勤车', type:'Bike', distanceKm:200, components:[]}],
   };
   let latest = structuredClone(initial);
   let respond = async () => ({ok:true, json:async () => structuredClone(latest)});
   const requests = [];
-  const initialBests = {source:'Intervals.icu', syncedAt:'2026-10-15T04:00:00.000Z', records:[{sport:'跑步', event:'5 公里', result:'25:00', date:'2026-10-09', activityUrl:'https://intervals.icu/activities/i123'}]};
+  const initialBests = {source:'Intervals.icu', syncedAt:'2026-10-15T04:00:00.000Z', records:[{sport:'Run', event:'run5k', value:1500, date:'2026-10-09', activityUrl:'https://intervals.icu/activities/i123'}]};
   let latestBests = structuredClone(initialBests);
   let failBests = false;
   const elements = new Map();
@@ -115,7 +115,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   chooseTrend('[data-trend-mode]', {trendMode:'week'});
   chooseTrend('[data-period]', {period:'2026-10-05'});
   element('#trend-metric').events.get('change')({target:{value:'durationSeconds'}});
-  assert.match(trends.innerHTML, /周一至周日 · 时长/);
+  assert.match(trends.innerHTML, /周一至周日　时长/);
   assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/);
 
   latest = structuredClone(initial);
@@ -134,7 +134,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   t.mock.timers.setTime(Date.parse('2026-10-16T04:00:00Z'));
   await refresh();
   assert.equal(grid.writes, 4);
-  assert.match(trends.innerHTML, /周一至周日 · 时长/);
+  assert.match(trends.innerHTML, /周一至周日　时长/);
   assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/, '跨天刷新保留选中周期和指标');
   assert.equal(element('#selected-date').max, '2026-10-16');
   assert.match(element('#calendar-days').innerHTML, /data-date="2026-10-16" data-level="missing" data-state="pending"/, '月历跨天保留未同步状态');
@@ -143,7 +143,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.match(grid.children.at(-1).title, /未同步/);
   assert.equal(status.textContent, '', '正常读取后不显示额外同步说明');
 
-  latestBests.records[0].result = '24:00';
+  latestBests.records[0].value = 1440;
   latestBests.syncedAt = '2026-10-16T04:00:00.000Z';
   respond = async () => { throw new Error('offline'); };
   t.mock.timers.setTime(Date.parse('2026-10-17T04:00:00Z'));
@@ -242,7 +242,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     const gearWrites = gear.writes;
     const trendWrites = trends.writes;
     const sport = element('sport-chip');
-    sport.dataset = {sport:'骑行'};
+    sport.dataset = {sport:'Ride'};
     sport.closest = selector => selector === '#sport-filter' ? filter : null;
     sport.matches = () => false;
     sport.focus = () => { document.activeElement = sport; };
@@ -256,7 +256,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     assert.equal(gear.writes, gearWrites);
     assert.equal(document.activeElement, sport, '重绘筛选后恢复键盘焦点');
     assert.match(element('#sport-filter-status').textContent, /^已筛选：骑行/);
-    assert.match(filter.innerHTML, /data-sport="骑行" aria-pressed="true"/);
+    assert.match(filter.innerHTML, /data-sport="Ride" aria-pressed="true"/);
     assert.equal(trends.writes, trendWrites, '年度运动类型不重建独立的运动趋势');
     filter.events.get('click')({target:{closest:() => sport}});
     assert.equal(grid.writes, gridWrites + 2, '再次点击清除筛选');
@@ -273,7 +273,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     year.value = '2025';
     year.events.get('change')();
     assert.match(trends.innerHTML, /2025\.12\.29 — 2026\.01\.04/, '趋势范围的边界周包含完整自然周');
-    sport.value = '骑行';
+    sport.value = 'Ride';
     sport.events.get('change')();
     const html = trends.innerHTML;
     assert.equal(grid.writes, gridWrites, '趋势筛选不重建全年活动');
@@ -282,21 +282,21 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     latest.syncedAt = '2026-10-18 12:00:00 +08:00';
     await refresh();
     assert.equal(year.value, '2025', '数据刷新保留趋势范围');
-    assert.equal(sport.value, '骑行', '数据刷新保留趋势运动类型');
+    assert.equal(sport.value, 'Ride', '数据刷新保留趋势运动类型');
     assert.equal(trends.innerHTML, html, '刷新保留周期、指标和选中项');
     year.value = 'recent';
     year.events.get('change')();
     chooseTrend('[data-period]', {period:'2026-10-05'});
-    assert.match(trends.innerHTML, /周一至周日 · 时长/);
+    assert.match(trends.innerHTML, /周一至周日　时长/);
     assert.match(trends.innerHTML, /<span>25\.00 km<\/span>/);
     // 合法但该范围内没有记录的类型应呈现零合计，不回退到全部运动。
-    latest.activities.push({...latest.activities[0], date:'2025-01-01', sport:'跑步', distanceKm:5, activityUrl:'https://intervals.icu/activities/i2'});
+    latest.activities.push({...latest.activities[0], date:'2025-01-01', sport:'Run', distanceKm:5, activityUrl:'https://intervals.icu/activities/i2'});
     await refresh();
-    sport.value = '跑步';
+    sport.value = 'Run';
     sport.events.get('change')();
     assert.match(trends.innerHTML, /<span>0 次<\/span>/);
     assert.doesNotMatch(trends.innerHTML, /<span>25\.00 km<\/span>/);
-    assert.match(sport.innerHTML, /value="跑步"/);
+    assert.match(sport.innerHTML, /value="Run"/);
     sport.value = '';
     sport.events.get('change')();
     latest.activities.pop();

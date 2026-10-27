@@ -1,3 +1,4 @@
+import {unavailableId} from './sync.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fetchAllActivities} from './fetch-site-data.mjs';
@@ -36,13 +37,13 @@ test('incremental updates preserve older history, unseen activities and timezone
   const updated = record('i3', '2026-10-24', {distance:30000});
   const deleted = record('i4', '2026-10-25');
   const fresh = record('i5', '2026-10-27');
-  const baseData = baseline([old, padding, {...updated, distance:10000}, deleted], [{date:'2020-01-02'}, {date:'2026-10-24'}]);
+  const baseData = baseline([old, padding, {...updated, distance:10000}, deleted], [{id:unavailableId('903'),date:'2020-01-02'}, {id:unavailableId('904'),date:'2026-10-24'}]);
   const client = api([padding, updated, fresh]);
   const data = await sync({...client, baseData, since});
   assert.equal(client.calls.find(url => url.pathname.endsWith('/activities')).searchParams.get('oldest'), '2026-10-22');
   assert.deepEqual(data.activities.map(a => a.activityUrl.split('/').at(-1)), ['i5', 'i4', 'i3', 'i2', 'i1']);
   assert.equal(data.activities[2].distanceKm, 30);
-  assert.deepEqual(data.unavailableActivities, [{date:'2020-01-02'}]);
+  assert.deepEqual(data.unavailableActivities, baseData.unavailableActivities);
   assert.equal(baseData.activities.length, 4, 'input snapshot must not be mutated');
 });
 
@@ -75,7 +76,7 @@ test('unknown event date falls back to full query and a restricted stub may publ
   const client = api([stub('901', '2021-02-02')]);
   const data = await sync({...client, baseData:baseline([]), since, eventActivityIds:['901']});
   assert.equal(client.calls.find(url => url.pathname.endsWith('/activities')).searchParams.get('oldest'), '1900-01-01');
-  assert.deepEqual(data.unavailableActivities, [{date:'2021-02-02'}]);
+  assert.deepEqual(data.unavailableActivities, [{id:unavailableId('901'),date:'2021-02-02'}]);
 });
 
 test('missing event, malformed response, future date, HTTP and gear failures reject without changing baseline', async () => {

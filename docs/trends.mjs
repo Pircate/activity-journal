@@ -1,5 +1,6 @@
 const version = new URL(import.meta.url).searchParams.get('v');
 const {escapeHtml, formatTime, formatDistance, formatLoad, beijingDate, renderYearOptions, availableYears, dayStateLabels, dayStateNotes, compareActivityDates} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {sportLabel, summarizeActivities} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
 const shift = (date, days) => new Date(Date.parse(date + 'T00:00:00Z') + days * 86400000).toISOString().slice(0, 10);
 const monthStart = date => date.slice(0, 7) + '-01';
 const nextMonth = date => new Date(Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)), 1)).toISOString().slice(0, 10);
@@ -22,13 +23,7 @@ export function createTrends(data, range = 'recent', mode = 'month', today = bei
   const unavailableActivities = sport ? [] : data.unavailableActivities;
   function summarize(first, last) {
     const records = activities.filter(a => a.date >= first && a.date <= last).slice().sort(compareActivityDates);
-    const missingDistance = records.filter(a => a.distanceKm === null).length;
-    const missingLoad = records.filter(a => a.trainingLoad === null).length;
-    return {start:first, end:last, records, count:records.length,
-      distanceKm:records.length && missingDistance === records.length ? null : records.reduce((sum, a) => sum + Math.round((a.distanceKm ?? 0) * 100), 0) / 100,
-      durationSeconds:records.reduce((sum, a) => sum + a.duration.split(':').reduce((value, part) => value * 60 + Number(part), 0), 0),
-      trainingLoad:records.length && missingLoad === records.length ? null : records.reduce((sum, a) => sum + (a.trainingLoad ?? 0), 0),
-      missingDistance, missingLoad,
+    return {start:first, end:last, records, ...summarizeActivities(records),
       unavailable:unavailableActivities.filter(a => a.date >= first && a.date <= last).length,
       pending:first < data.period.start || last > data.period.end};
   }
@@ -74,7 +69,7 @@ function notes(period) {
   if (period.unavailable) result.push(dayStateLabels.unavailable + ' ' + period.unavailable + ' 条（' + dayStateNotes.unavailable + '），未计入统计');
   if (period.missingDistance) result.push(dayStateLabels.missing + '：' + period.missingDistance + ' 次未提供距离');
   if (period.missingLoad) result.push(dayStateLabels.missing + '：' + period.missingLoad + ' 次未提供负荷');
-  return result.length ? result.join(' · ') + '；合计仅含可读取指标。' : '';
+  return result.length ? result.join('　') + '；合计仅含可读取指标。' : '';
 }
 
 export function renderTrendContent(periods, {mode = 'month', metric = 'distanceKm', selected = periods.at(-1)?.start} = {}) {
@@ -91,17 +86,17 @@ export function renderTrendContent(periods, {mode = 'month', metric = 'distanceK
   const heading = mode === 'week' ? '本周' : '本月';
   const previousLabel = mode === 'week' ? '上周' : '上月';
   const comparedLabel = previousLabel + (active.ongoing ? '同期' : '');
-  return `<p class="trend-guide">${mode === 'week' ? '周一至周日' : '自然月'} · ${metrics[metric].label}${metric === 'durationSeconds' ? '（小时）' : metrics[metric].unit ? '（' + metrics[metric].unit + '）' : ''}</p>
+  return `<p class="trend-guide">${mode === 'week' ? '周一至周日' : '自然月'}　${metrics[metric].label}${metric === 'durationSeconds' ? '（小时）' : metrics[metric].unit ? '（' + metrics[metric].unit + '）' : ''}</p>
     <div class="trend-scroll" tabindex="0" role="region" aria-label="${mode === 'week' ? '每周' : '每月'}${metrics[metric].label}趋势，可横向滚动"><div class="trend-bars" style="--periods:${periods.length}">${bars}</div></div>
-    <div class="trend-selection" aria-live="polite"><div class="trend-period"><h3>${pretty(active.start)} — ${pretty(active.end)}</h3><span>${active.ongoing ? heading + '进行中 · 与' + comparedLabel + '比较' : '与' + previousLabel + '比较'}</span></div>
+    <div class="trend-selection" aria-live="polite"><div class="trend-period"><h3>${pretty(active.start)} — ${pretty(active.end)}</h3><span>${active.ongoing ? heading + '进行中　与' + comparedLabel + '比较' : '与' + previousLabel + '比较'}</span></div>
     <p class="trend-previous">${comparedLabel}：${pretty(active.previous.start)} — ${pretty(active.previous.end)}</p>
     <dl class="trend-stats">${Object.entries(metrics).map(([key, spec]) => `<div><dt>${spec.label}</dt><dd><span>${valueText(active, key)}</span><p>${comparedLabel} ${valueText(active.previous, key)}</p><p class="trend-change">${compareTrend(active, active.previous, key)}</p></dd></div>`).join('')}</dl>
     ${notes(active) ? '<p class="trend-note">所选周期：' + notes(active) + '</p>' : ''}${notes(active.previous) ? '<p class="trend-note">比较周期：' + notes(active.previous) + '</p>' : ''}</div>`;
 }
 
 function renderSportOptions(data) {
-  const sports = [...new Set(data.activities.map(activity => activity.sport))].sort((a, b) => a.localeCompare(b, 'zh-CN'));
-  return '<option value="">全部运动</option>' + sports.map(sport => `<option value="${escapeHtml(sport)}">${escapeHtml(sport)}</option>`).join('');
+  const sports = [...new Set(data.activities.map(activity => activity.sport))].sort((a, b) => sportLabel(a).localeCompare(sportLabel(b), 'zh-CN'));
+  return '<option value="">全部运动</option>' + sports.map(sport => `<option value="${escapeHtml(sport)}">${escapeHtml(sportLabel(sport))}</option>`).join('');
 }
 
 export function renderTrendPanel(data, today = beijingDate()) {

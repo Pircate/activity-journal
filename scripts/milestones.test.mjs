@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMilestones, renderMilestones, renderMilestonePanel, initializeMilestones} from '../docs/milestones.mjs';
 
-const activity = (date, overrides = {}) => ({date, sport:'骑行', distanceKm:10, duration:'1:00:00', trainingLoad:30, ...overrides});
+const activity = (date, overrides = {}) => ({date, sport:'Ride', distanceKm:10, durationSeconds:3600, trainingLoad:30, ...overrides});
 const snapshot = (activities, unavailableActivities = []) => ({period:{start:'2021-01-01', end:'2026-10-16'}, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities, gearLibrary:[]});
 const track = (summary, key) => summary.tracks.find(item => item.key === key);
 
@@ -20,36 +20,36 @@ test('按日期顺序累计，跨过目标的活动记录达成日期，下一�
   const data = snapshot([
     activity('2026-01-03', {distanceKm:3000}),
     activity('2026-01-01', {distanceKm:2500}),
-    activity('2026-01-04', {distanceKm:500, sport:'力量训练', sets:10, averageHeartRate:120}),
+    activity('2026-01-04', {distanceKm:500, sport:'WeightTraining', sets:10, averageHeartRate:120}),
   ]);
   const before = structuredClone(data);
   const summary = createMilestones(data);
   const distance = track(summary, 'distance');
-  assert.equal(distance.total, 6000);
+  assert.equal(distance.total, 5500);
   assert.deepEqual(distance.milestones[0], {value:5000, reached:true, date:'2026-01-03'});
   assert.deepEqual(distance.milestones[1], {value:10000, reached:false, date:null});
   assert.equal(distance.next.value, 10000);
-  assert.equal(distance.remainingText, '还差 4,000.00 km');
+  assert.equal(distance.remainingText, '还差 4,500.00 km');
   assert.deepEqual(data, before, '不修改输入快照');
 });
 
 test('同一日多次运动只算一个活跃日，全部类型与跑步口径正确', () => {
   const summary = createMilestones(snapshot([
-    activity('2026-01-01', {distanceKm:600, sport:'跑步'}),
-    activity('2026-01-01', {distanceKm:500, sport:'越野跑'}),
-    activity('2026-01-02', {distanceKm:500, sport:'虚拟跑步'}),
-    activity('2026-01-02', {distanceKm:100, sport:'力量训练', sets:8, averageHeartRate:110}),
+    activity('2026-01-01', {distanceKm:600, sport:'Run'}),
+    activity('2026-01-01', {distanceKm:500, sport:'TrailRun'}),
+    activity('2026-01-02', {distanceKm:500, sport:'VirtualRun'}),
+    activity('2026-01-02', {distanceKm:100, sport:'WeightTraining', sets:8, averageHeartRate:110}),
   ]));
   assert.equal(track(summary, 'activeDays').total, 2);
   assert.equal(track(summary, 'run').total, 1600);
   assert.equal(track(summary, 'run').milestones[0].date, '2026-01-01');
-  assert.equal(track(summary, 'distance').total, 1700);
+  assert.equal(track(summary, 'distance').total, 1600);
 });
 
 test('距离未知不参与距离累计，但仍计入次数、活跃天和时长', () => {
   const summary = createMilestones(snapshot([
-    activity('2026-01-01', {distanceKm:null, duration:'0:30:00'}),
-    activity('2026-01-02', {distanceKm:2000, duration:'2:00:00'}),
+    activity('2026-01-01', {distanceKm:null, durationSeconds:1800}),
+    activity('2026-01-02', {distanceKm:2000, durationSeconds:7200}),
   ]));
   assert.equal(track(summary, 'distance').total, 2000);
   assert.equal(track(summary, 'count').total, 2);
@@ -58,14 +58,14 @@ test('距离未知不参与距离累计，但仍计入次数、活跃天和时�
 });
 
 test('时长以小时为目标，展示精确时分秒；全部目标达成后显示完成态', () => {
-  const summary = createMilestones(snapshot([activity('2026-01-01', {distanceKm:100, duration:'501:00:00'})]));
+  const summary = createMilestones(snapshot([activity('2026-01-01', {distanceKm:100, durationSeconds:1803600})]));
   const duration = track(summary, 'duration');
   assert.equal(duration.total, 1803600);
   assert.equal(duration.valueText, '501:00:00');
   assert.equal(duration.milestones[0].date, '2026-01-01');
   assert.equal(duration.next.value, 1000);
   assert.equal(duration.remainingText, '还差 499:00:00');
-  const done = track(createMilestones(snapshot([activity('2026-01-01', {distanceKm:60000, duration:'2100:00:00'})])), 'duration');
+  const done = track(createMilestones(snapshot([activity('2026-01-01', {distanceKm:60000, durationSeconds:7560000})])), 'duration');
   assert.equal(done.next, null);
   assert.equal(done.progress, 1);
   assert.equal(done.remainingText, '已达成全部目标');
@@ -78,14 +78,14 @@ test('最近达成按日期排序，同日按较高里程碑和固定栏目顺�
     activity('2026-01-03', {distanceKm:4000}),
   ]));
   assert.equal(summary.latest.date, '2026-01-03');
-  assert.equal(summary.latest.text, '累计里程 · 5,000.00 km');
+  assert.equal(summary.latest.text, '累计里程　5,000.00 km');
   assert.equal(summary.reached, 2);
 });
 
 test('同一活动跨过多个目标时共享达成日期，并进入下一阶段或完成态', () => {
   const summary = createMilestones(snapshot([
-    activity('2026-01-01', {distanceKm:3000, sport:'跑步'}),
-    activity('2026-01-02', {distanceKm:8000, sport:'跑步'}),
+    activity('2026-01-01', {distanceKm:3000, sport:'Run'}),
+    activity('2026-01-02', {distanceKm:8000, sport:'Run'}),
   ]));
   const run = track(summary, 'run');
   assert.deepEqual(run.milestones.filter(item => item.reached).map(item => [item.value, item.date]), [[1000, '2026-01-01'], [2000, '2026-01-01'], [5000, '2026-01-02'], [10000, '2026-01-02']]);
@@ -98,7 +98,7 @@ test('空记录显示第一个目标而非虚假达成', () => {
   const html = renderMilestones(snapshot([], [{date:'2026-01-01'}]));
   assert.equal(summary.reached, 0);
   assert.match(html, /第一个里程碑/);
-  assert.match(html, /累计里程 · 5,000\.00 km/);
+  assert.match(html, /累计里程　5,000\.00 km/);
   assert.equal(summary.unavailableCount, 1);
   assert.doesNotMatch(html, /NaN|Infinity|undefined/);
 });

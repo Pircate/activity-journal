@@ -1,5 +1,6 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {beijingDate, availableYears, createJournal, durationSeconds, formatTime, formatDistance, formatLoad, hasMissingMetric} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {beijingDate, availableYears, createJournal, formatTime, formatDistance, formatLoad} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {sportLabel, summarizeActivities} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
 const pretty = date => date.replaceAll('-', '.');
 const reportMetrics = {
   distanceKm:{label:'距离', unit:'km'},
@@ -11,17 +12,8 @@ const distanceNumber = value => value === null ? '—' : formatDistance(value);
 const loadNumber = value => value === null ? '—' : formatLoad(value);
 const number = value => value === null ? '—' : value.toLocaleString('zh-CN', {maximumFractionDigits:2});
 function summarize(records, unknown = false) {
-  const distance = records.filter(activity => activity.distanceKm !== null && activity.sport !== '力量训练');
-  const load = records.filter(activity => activity.trainingLoad !== null);
-  return {
-    count:unknown ? null : records.length,
-    distanceKm:unknown || records.length && !distance.length ? null : distance.reduce((sum, activity) => sum + Math.round(activity.distanceKm * 100), 0) / 100,
-    durationSeconds:unknown ? null : records.reduce((sum, activity) => sum + durationSeconds(activity.duration), 0),
-    trainingLoad:unknown || records.length && !load.length ? null : load.reduce((sum, activity) => sum + activity.trainingLoad, 0),
-    missingDistance:records.filter(activity => activity.distanceKm === null && activity.sport !== '力量训练').length,
-    missingLoad:records.filter(activity => activity.trainingLoad === null).length,
-    missingMetrics:records.filter(hasMissingMetric).length,
-  };
+  const summary = summarizeActivities(records);
+  return unknown ? {...summary, count:null, distanceKm:null, durationSeconds:null, trainingLoad:null} : summary;
 }
 
 export function createReport(data, mode, selection, today = beijingDate()) {
@@ -38,7 +30,7 @@ export function createReport(data, mode, selection, today = beijingDate()) {
   const unavailable = daily.reduce((sum, day) => sum + day.unavailable, 0);
   const unknown = !records.length && Boolean(pendingDays || unavailable);
   const summary = summarize(records, unknown);
-  const sports = [...new Set(records.map(activity => activity.sport))].map(sport => ({sport, ...summarize(records.filter(activity => activity.sport === sport))})).sort((a, b) => b.count - a.count || a.sport.localeCompare(b.sport, 'zh-CN'));
+  const sports = [...new Set(records.map(activity => activity.sport))].map(sport => ({sport, ...summarize(records.filter(activity => activity.sport === sport))})).sort((a, b) => b.count - a.count || sportLabel(a.sport).localeCompare(sportLabel(b.sport), 'zh-CN'));
   const bucket = (label, days) => {
     const pending = days.some(day => day.pending || day.unavailable);
     const records = days.flatMap(day => day.records);
@@ -53,7 +45,7 @@ export function createReport(data, mode, selection, today = beijingDate()) {
     })
     : daily.map(day => bucket(String(Number(day.date.slice(8))), [day]));
   const title = mode === 'month' ? year + ' 年 ' + Number(selection.slice(5)) + ' 月运动月报' : year + ' 年运动年报';
-  const notes = ['仅统计可读取记录 · 力量训练不计距离 · 日期按北京时间'];
+  const notes = ['仅统计可读取记录　力量训练不计距离　日期按北京时间'];
   if (pendingDays) notes.push('未同步 ' + pendingDays + ' 天，不当作没有运动');
   if (unavailable) notes.push('详情不可读取 ' + unavailable + ' 条，未计入统计');
   if (summary.missingMetrics) notes.push('指标缺失 ' + summary.missingMetrics + ' 次：距离未提供 ' + summary.missingDistance + ' 次，负荷未提供 ' + summary.missingLoad + ' 次');
@@ -65,7 +57,7 @@ export function createReport(data, mode, selection, today = beijingDate()) {
 
 export function reportSummary(report) {
   const distance = report.distanceKm === null ? '未提供' : formatDistance(report.distanceKm) + ' km';
-  const sports = report.sports.map(item => `${item.sport} ${item.count} 次 / ${distanceNumber(item.distanceKm)} km / ${formatTime(item.durationSeconds)} / ${loadNumber(item.trainingLoad)} TL`).join('；');
+  const sports = report.sports.map(item => `${sportLabel(item.sport)} ${item.count} 次 / ${distanceNumber(item.distanceKm)} km / ${formatTime(item.durationSeconds)} / ${loadNumber(item.trainingLoad)} TL`).join('；');
   return `${report.title}，${pretty(report.start)} 至 ${pretty(report.end)}${report.ongoing ? '（周期进行中）' : ''}。已记录距离 ${distance}，运动时长 ${report.durationSeconds === null ? '未提供' : formatTime(report.durationSeconds)}，总负荷 ${loadNumber(report.trainingLoad)} TL，运动 ${report.count ?? '未知'} 次，活跃 ${report.activeDays ?? '未知'} 天。${sports ? '各运动统计：' + sports + '。' : ''}${report.notes.join('；')}。`;
 }
 
@@ -130,7 +122,7 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
   if (!report.sports.length) text(report.pendingDays || report.unavailable ? '暂无可读取记录' : '暂无运动记录', 72, 1070, 26, '#b5b5b5');
   report.sports.forEach((item, index) => {
     const y = 1064 + index * 68;
-    text(item.sport, 72, y, 25, '#f5f5f5', 600, 250);
+    text(sportLabel(item.sport), 72, y, 25, '#f5f5f5', 600, 250);
     text(item.count + ' 次', 72, y + 26, 20, '#b5b5b5');
     text(distanceNumber(item.distanceKm), 350, y + 9, 27, '#f5f5f5', 600, 215);
     text(formatTime(item.durationSeconds), 590, y + 9, 27, '#f5f5f5', 600, 235);
@@ -151,7 +143,7 @@ export function renderReportPanel(data, today = beijingDate()) {
     <div class="history-field"><label for="report-metric">图表指标</label><select id="report-metric">${Object.entries(reportMetrics).map(([key, spec]) => `<option value="${key}">${spec.label}</option>`).join('')}</select></div>
     <button type="submit" id="report-generate">生成分享图片</button></form>
     <p id="report-status" class="report-intro" role="status" aria-live="polite"></p>
-    <div id="report-result" hidden><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整 · 手机也可长按下方图片保存。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
+    <div id="report-result" hidden><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整　手机也可长按下方图片保存。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
     <noscript><p>启用 JavaScript 后可生成与下载图片。</p></noscript></div></section>`;
 }
 
@@ -205,7 +197,7 @@ export function initializeReports(initialData, name) {
       image.height = canvas.height;
       image.alt = reportSummary(report);
       document.getElementById('report-summary').textContent = image.alt;
-      document.getElementById('report-image-info').textContent = `1080 × ${canvas.height} 像素 · 手机也可长按下方图片保存。`;
+      document.getElementById('report-image-info').textContent = `1080 × ${canvas.height} 像素　手机也可长按下方图片保存。`;
       download.href = imageUrl;
       download.download = '运动' + (report.mode === 'month' ? '月报' : '年报') + '-' + report.selection + '.png';
       result.hidden = false;

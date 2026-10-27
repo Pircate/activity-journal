@@ -3,7 +3,7 @@ import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
 import {beijingDate, shiftDate, validateData, isDate} from '../docs/journal.mjs';
 import {fetchIntervalsData, readConfig} from './update-data.mjs';
-import {mergeActivities} from './sync.mjs';
+import {mergeActivities, unavailableId} from './sync.mjs';
 
 // The cloud runner reuses the current merger: preserve history and known
 // metrics, including restricted Strava history and saved COROS strength sets.
@@ -36,7 +36,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
     if (!response.ok && response.status !== 404) throw new Error('Intervals.icu 请求失败（HTTP ' + response.status + '）');
     const detail = response.ok ? await response.json() : null;
     const matches = detail && (String(detail.id) === expected || String(detail.strava_id) === id);
-    const date = matches && isDate(dateFor(detail)) ? dateFor(detail) : previous.activities.find(a => a.stravaUrl === urlFor(id))?.date;
+    const date = matches && isDate(dateFor(detail)) ? dateFor(detail) : previous.activities.find(a => a.stravaUrl === urlFor(id))?.date ?? previous.unavailableActivities.find(a => a.id === unavailableId(id))?.date;
     if (!date) start = '1900-01-01';
     else if (date < start) start = date;
   }

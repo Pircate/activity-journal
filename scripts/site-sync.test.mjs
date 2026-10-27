@@ -4,11 +4,14 @@ import {mkdtemp, mkdir, readFile, writeFile, rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
-import {workerRequest, updateSnapshot, commitSnapshot} from './site-sync.mjs';
+import {createHash} from 'node:crypto';
+import {workerRequest, updateSnapshot, commitSnapshot, publishedSnapshot} from './site-sync.mjs';
 import {manageSubscription} from './strava-subscription.mjs';
 
 const commit = 'a'.repeat(40);
 const claim = {runId:'1:1', mode:'sync', startedAt:'2026-10-27T00:00:00Z', cursor:'2026-10-26T00:00:00Z', publishedCommit:commit, events:[{activityId:'901'}]};
+const activities = JSON.stringify({period:{start:'2020-01-01',end:'2026-10-27'},syncedAt:'2026-10-27 12:00:00 +08:00',activities:[],unavailableActivities:[],gearLibrary:[]});
+const personalBests = JSON.stringify({source:'Intervals.icu',syncedAt:'2026-10-27T04:00:00.000Z',records:[]});
 const env = {SYNC_WORKER_URL:'https://worker.test', SYNC_TOKEN:'test-token'};
 
 async function workspace(t) {
@@ -21,12 +24,12 @@ async function workspace(t) {
 test('sync scripts use the published version, cursor and all claimed event IDs', async t => {
   const directory = await workspace(t);
   const calls = [];
-  await updateSnapshot(claim, {directory, full:true, runImpl:(command, args) => {calls.push({command, args}); return '{"published":true}';}});
+  await updateSnapshot(claim, {directory, full:true, runImpl:(command, args) => {calls.push({command, args}); return args[1]?.endsWith('personal-bests.json') ? personalBests : activities;}});
   assert.deepEqual(calls[0].args, ['show', commit + ':docs/activities.json']);
-  assert.equal(await readFile(join(directory, 'site-sync-baseline.json'), 'utf8'), '{"published":true}');
+  assert.equal(await readFile(join(directory, 'site-sync-baseline.json'), 'utf8'), activities);
   assert.deepEqual(JSON.parse(await readFile(join(directory, 'site-sync-events.json'), 'utf8')), ['901']);
-  assert.deepEqual(calls[1].args, ['scripts/fetch-site-data.mjs', '--baseline', join(directory,'site-sync-baseline.json'), '--since', claim.cursor, '--events', join(directory,'site-sync-events.json'), '--full']);
-  assert.deepEqual(calls.slice(2).map(call => call.args[0]), ['scripts/update-personal-bests.mjs', 'scripts/build.mjs']);
+  assert.deepEqual(calls[2].args, ['scripts/fetch-site-data.mjs', '--baseline', join(directory,'site-sync-baseline.json'), '--since', claim.cursor, '--events', join(directory,'site-sync-events.json'), '--full']);
+  assert.deepEqual(calls.slice(3).map(call => call.args[0]), ['scripts/update-personal-bests.mjs', 'scripts/build.mjs']);
 });
 
 test('activities, personal bests and build failures stop before subsequent work', async t => {
@@ -36,7 +39,7 @@ test('activities, personal bests and build failures stop before subsequent work'
     await assert.rejects(updateSnapshot(claim, {directory, runImpl:(command, args) => {
       calls.push(args[0]);
       if (args[0] === failAt) throw new Error('simulated failure');
-      return '{}';
+      return args[1]?.endsWith('personal-bests.json') ? personalBests : activities;
     }}), /simulated failure/);
     assert.equal(calls.at(-1), failAt);
     assert.ok(!calls.includes('commit'));
@@ -53,10 +56,10 @@ test('code-only publication restores the successful snapshot rather than a faile
     const calls = [];
     await updateSnapshot({...claim, mode:'publish'}, {directory, runImpl:(command, args) => {
       calls.push(args);
-      return args[1]?.endsWith('personal-bests.json') ? 'published PB' : 'published data';
+      return args[1]?.endsWith('personal-bests.json') ? personalBests : activities;
     }});
-    assert.equal(await readFile('docs/activities.json', 'utf8'), 'published data');
-    assert.equal(await readFile('docs/personal-bests.json', 'utf8'), 'published PB');
+    assert.equal(await readFile('docs/activities.json', 'utf8'), activities);
+    assert.equal(await readFile('docs/personal-bests.json', 'utf8'), personalBests);
     assert.deepEqual(calls.map(args => args[0]), ['show', 'show', 'scripts/build.mjs']);
   } finally { process.chdir(original); }
 });
@@ -64,6 +67,26 @@ test('code-only publication restores the successful snapshot rather than a faile
 test('a corrupt published version is rejected without executing git', async t => {
   const directory = await workspace(t);
   await assert.rejects(updateSnapshot({...claim, publishedCommit:'HEAD:other'}, {directory, runImpl:() => assert.fail('must not execute')}), /Invalid published commit/);
+});
+
+test('格式切换只采用成功来源和已审核目标均完全匹配的快照', async t => {
+  const directory = await workspace(t);
+  await mkdir(join(directory, 'data'));
+  const original = process.cwd();
+  process.chdir(directory);
+  try {
+    const source = {activities:'旧活动快照', personalBests:'旧成绩快照'};
+    const target = {activities, personalBests};
+    const hashes = data => Object.fromEntries(Object.entries(data).map(([key, value]) => [key, createHash('sha256').update(value).digest('hex')]));
+    await writeFile('data/snapshot-release.json', JSON.stringify({source:hashes(source), target:hashes(target)}));
+    await writeFile('docs/activities.json', activities);
+    await writeFile('docs/personal-bests.json', personalBests);
+    assert.deepEqual(await publishedSnapshot(source.activities, source.personalBests), target);
+    await assert.rejects(publishedSnapshot(source.activities + '变化', source.personalBests), /凭据不匹配/);
+    await writeFile('docs/activities.json', activities + '\n');
+    await assert.rejects(publishedSnapshot(source.activities, source.personalBests), /凭据不匹配/);
+    assert.deepEqual(await publishedSnapshot(activities, personalBests), target, '新格式成功基线不依赖切换凭据');
+  } finally { process.chdir(original); }
 });
 
 test('real git push conflicts are rejected without overwriting remote changes', async t => {

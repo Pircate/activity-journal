@@ -1,8 +1,8 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {escapeHtml:esc, formatDistance, formatTime, durationSeconds} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {escapeHtml:esc, formatDistance, formatTime} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 
-const runSports = new Set(['跑步', '越野跑', '虚拟跑步']);
-const isRide = sport => sport.includes('骑行');
+const {distanceApplies, isRide} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
+const runSports = new Set(['Run', 'TrailRun', 'VirtualRun']);
 
 const icons = {
   distance:'<path d="M4 24h5l5-16 8 16h6"/><circle cx="9" cy="24" r="2"/><circle cx="28" cy="24" r="2"/>',
@@ -15,12 +15,12 @@ const icons = {
 
 // 目标是固定的个人累计里程碑，不写入快照或配置；修改这里即可调整下一阶段。
 const definitions = [
-  {key:'distance', label:'累计里程', targets:[5000, 10000, 20000, 30000, 50000], amount:activity => activity.distanceKm},
+  {key:'distance', label:'累计里程', targets:[5000, 10000, 20000, 30000, 50000], amount:activity => distanceApplies(activity) ? activity.distanceKm : null},
   {key:'ride', label:'骑行里程', targets:[5000, 10000, 20000, 30000], amount:activity => isRide(activity.sport) ? activity.distanceKm : null},
   {key:'run', label:'跑步里程', targets:[1000, 2000, 5000, 10000], amount:activity => runSports.has(activity.sport) ? activity.distanceKm : null},
   {key:'count', label:'运动次数', targets:[100, 500, 1000, 1500, 2000], amount:() => 1},
   {key:'activeDays', label:'活跃天数', targets:[100, 365, 730, 1000, 1500], amount:() => 1},
-  {key:'duration', label:'运动时长', targets:[500, 1000, 1500, 2000], amount:activity => durationSeconds(activity.duration)},
+  {key:'duration', label:'运动时长', targets:[500, 1000, 1500, 2000], amount:activity => activity.durationSeconds},
 ];
 
 const targetValue = (key, target) => key === 'duration' ? target * 3600 : target;
@@ -51,7 +51,7 @@ function track(definition, activities) {
     }
     const amount = definition.amount(activity);
     if (amount === null || !Number.isFinite(amount)) continue;
-    total = definition.key === 'distance' || definition.key === 'ride' || definition.key === 'run' ? roundDistance(total + amount) : total + amount;
+    total += amount;
     for (const target of definition.targets) {
       if (!reachedOn.has(target) && total >= targetValue(definition.key, target)) reachedOn.set(target, activity.date);
     }
@@ -70,7 +70,7 @@ export function createMilestones(data) {
   const tracks = definitions.map(definition => track(definition, data.activities));
   const achievements = tracks.flatMap((item, trackIndex) => item.milestones.filter(milestone => milestone.reached)
     .map(milestone => ({track:item, trackIndex, value:milestone.value, date:milestone.date,
-      text:item.label + ' · ' + targetText(item.key, milestone.value)})))
+      text:item.label + '　' + targetText(item.key, milestone.value)})))
     .sort((a, b) => b.date.localeCompare(a.date) || b.value - a.value || a.trackIndex - b.trackIndex);
   const firstDate = data.activities.reduce((first, activity) => !first || activity.date < first ? activity.date : first, '') || data.period?.start || null;
   return {
@@ -107,12 +107,12 @@ export function renderMilestones(data) {
     : summary.tracks.find(item => item.next)
       ? (() => {
         const first = summary.tracks.find(item => item.next);
-        return `<span>第一个里程碑</span><strong>${esc(first.label + ' · ' + targetText(first.key, first.next.value))}</strong><p>${esc(first.remainingText)}</p>`;
+        return `<span>第一个里程碑</span><strong>${esc(first.label + '　' + targetText(first.key, first.next.value))}</strong><p>${esc(first.remainingText)}</p>`;
       })()
       : '<span>里程碑</span><strong>全部目标已达成</strong>';
-  return `<div class="ms-overview"><div class="ms-overview-copy"><div class="ms-kicker"><span>记录以来${summary.firstDate ? ' · ' + summary.firstDate.replaceAll('-', '.') + ' 起' : ''}</span><span>已达成 ${summary.reached} / ${summary.totalMilestones} 项</span></div>
+  return `<div class="ms-overview"><div class="ms-overview-copy"><div class="ms-kicker"><span>记录以来${summary.firstDate ? '　' + summary.firstDate.replaceAll('-', '.') + ' 起' : ''}</span><span>已达成 ${summary.reached} / ${summary.totalMilestones} 项</span></div>
     <p class="ms-distance"><strong>${formatDistance(summary.distanceKm)}</strong><small>km</small></p>
-    <p class="ms-meta">${summary.activityCount.toLocaleString('zh-CN')} 次运动 · ${summary.activeDays.toLocaleString('zh-CN')} 个活跃日 · ${formatTime(summary.durationSeconds)}</p></div>
+    <p class="ms-meta">${summary.activityCount.toLocaleString('zh-CN')} 次运动　${summary.activeDays.toLocaleString('zh-CN')} 个活跃日　${formatTime(summary.durationSeconds)}</p></div>
     <div class="ms-latest"${summary.latest ? '' : ' data-state="empty"'}>${latest}</div></div>
     <div class="ms-grid">${summary.tracks.map(renderTrack).join('')}</div>
     `;

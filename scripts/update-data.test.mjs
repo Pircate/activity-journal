@@ -14,8 +14,8 @@ test('北京时间边界、米到公里、零负荷、缺失值及同日多次�
     {...record, id:'i3', start_date:'2025-10-15T15:59:59Z'},
     {...record, id:'i4', start_date:'2026-10-15T16:00:00Z'}], period);
   assert.deepEqual(activities, [
-    {date:'2026-10-15', startTime:'00:30:00', sport:'骑行', distanceKm:20.07, duration:'1:00:01', trainingLoad:0, activityUrl:'https://intervals.icu/activities/i1'},
-    {date:'2026-10-15', startTime:'00:30:00', sport:'骑行', distanceKm:null, duration:'1:00:01', trainingLoad:null, activityUrl:'https://intervals.icu/activities/i2'},
+    {date:'2026-10-15', startTime:'00:30:00', sport:'Ride', distanceKm:20.07, durationSeconds:3601, trainingLoad:0, activityUrl:'https://intervals.icu/activities/i1'},
+    {date:'2026-10-15', startTime:'00:30:00', sport:'Ride', distanceKm:null, durationSeconds:3601, trainingLoad:null, activityUrl:'https://intervals.icu/activities/i2'},
   ]);
 });
 
@@ -112,7 +112,7 @@ test('自然年覆盖闰日与年界，未来和未同步日期标记未知，�
 });
 
 test('首屏摘要固定最近七天，保留多次活动及缺失距离，不显示部分日期未同步提示', () => {
-  const activity = {date:'2026-10-09', sport:'骑行', distanceKm:0.1, duration:'0:30:01', trainingLoad:0};
+  const activity = {date:'2026-10-09', sport:'Ride', distanceKm:0.1, durationSeconds:1801, trainingLoad:0};
   const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:[],
     activities:[activity, {...activity, distanceKm:0.2}, {...activity, date:'2026-10-15', distanceKm:null}, {...activity, date:'2026-10-08', distanceKm:999}, {...activity, date:'2026-10-16', distanceKm:999}],
     unavailableActivities:[{date:'2026-10-15'}, {date:'2026-10-08'}]};
@@ -137,12 +137,12 @@ test('首屏摘要固定最近七天，保留多次活动及缺失距离，不�
 });
 
 test('七天累计负荷合计所有运动、排除范围外记录，并区分零、部分缺失和全部缺失', () => {
-  const activity = {date:'2026-10-15', sport:'骑行', distanceKm:10, duration:'0:30:00', trainingLoad:25.25};
+  const activity = {date:'2026-10-15', sport:'Ride', distanceKm:10, durationSeconds:1800, trainingLoad:25.25};
   const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:[], unavailableActivities:[],
-    activities:[activity, {...activity, sport:'跑步', trainingLoad:10.15}, {...activity, date:'2026-10-08', trainingLoad:999}, {...activity, date:'2026-10-16', trainingLoad:999}]};
+    activities:[activity, {...activity, sport:'Run', trainingLoad:10.15}, {...activity, date:'2026-10-08', trainingLoad:999}, {...activity, date:'2026-10-16', trainingLoad:999}]};
   const summary = createJournal(data).recentSummary;
   assert.match(summary, /<dt>累计负荷<\/dt><dd>35\.4<\/dd>/);
-  assert.equal(createJournal(data, data.period.end, '2024', '跑步').recentSummary, summary);
+  assert.equal(createJournal(data, data.period.end, '2024', 'Run').recentSummary, summary);
   const render = loads => createJournal({...data, activities:loads.map(trainingLoad => ({...activity, trainingLoad}))}).recentSummary;
   assert.match(render([0]), /<dt>累计负荷<\/dt><dd>0<\/dd>/);
   assert.match(render([25.25, null]), /<dt>累计负荷<\/dt><dd>25\.3<\/dd>/);

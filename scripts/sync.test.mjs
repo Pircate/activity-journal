@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, readFile, rm, access, rename} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
-import {syncWindow, validateCorosInput, mergeActivities, sync, recoverTransaction} from './sync.mjs';
+import {unavailableId, syncWindow, validateCorosInput, mergeActivities, sync, recoverTransaction} from './sync.mjs';
 import {fetchIntervalsData, normalizeActivities} from './update-data.mjs';
 import {fetchPersonalBests} from './update-personal-bests.mjs';
 
@@ -55,7 +55,7 @@ test('Intervals.icu 覆盖基础指标，新增完整活动，重复运行不重
   assert.deepEqual(merge({previous:first.data,intervalsRecords:records}).data.activities,first.data.activities);
   const corrected = merge({previous:first.data, intervalsRecords:[interval({distance:12345,moving_time:1800,total_elevation_gain:0})]});
   const row = corrected.data.activities.find(a=>a.stravaUrl);
-  assert.equal(row.distanceKm,12.35); assert.equal(row.duration,'0:30:00'); assert.equal(row.elevationGain,0);
+  assert.equal(row.distanceKm,12.345); assert.equal(row.durationSeconds,1800); assert.equal(row.elevationGain,0);
 });
 
 test('精确关联历史并保留 Strava 链接，不按同日或相同指标猜测关联', () => {
@@ -125,21 +125,26 @@ test('已知受限记录保留详情与真实链接，新受限记录只生成�
   for (const previous of [snapshot([old]),snapshot([stravaOnly])]) {
     const result = merge({previous,intervalsRecords:[stub(),stub('902')]});
     assert.deepEqual(result.data.activities,[old]);
-    assert.deepEqual(result.data.unavailableActivities,[{date:'2026-10-24'}]);
+    assert.deepEqual(result.data.unavailableActivities,[{id:unavailableId('902'),date:'2026-10-24'}]);
     assert.equal(result.report.restrictedRetained,1); assert.equal(result.report.restrictedUnavailable,1);
     assert.deepEqual(merge({previous:result.data,intervalsRecords:[stub(),stub('902')]}).data,result.data);
   }
 });
 
-test('受限提示在查询范围内重建，保留范围外提示及同日多次活动', () => {
+test('受限提示按身份保留，重复查询不增项，恢复可读仅移除对应记录', () => {
   const window = {...syncWindow(null,now),full:false,oldest:'2026-10-20'};
-  const previous = snapshot([], [{date:'2026-10-19'},{date:'2026-10-23'},{date:'2026-10-24'}]);
+  const prior = [{id:unavailableId('903'),date:'2026-10-19'}, {id:unavailableId('901'),date:'2026-10-23'}];
+  const previous = snapshot([], prior);
   const first = merge({previous,window,intervalsRecords:[stub(),stub('902')]});
-  assert.deepEqual(first.data.unavailableActivities,[{date:'2026-10-19'},{date:'2026-10-24'},{date:'2026-10-24'}]);
-  const resolved = merge({previous:first.data,window,intervalsRecords:[interval({id:'901'}),stub('902')]});
+  assert.equal(first.data.unavailableActivities.length, 3);
+  assert.equal(first.data.unavailableActivities.filter(a => a.date === '2026-10-24').length, 2);
+  assert.equal(first.data.unavailableActivities.find(a => a.id === unavailableId('901')).date, '2026-10-24');
+  assert.deepEqual(merge({previous:first.data,window,intervalsRecords:[]}).data.unavailableActivities, first.data.unavailableActivities);
+  const resolved = merge({previous:first.data,window,intervalsRecords:[interval({id:'i9'}),stub('902')]});
   assert.equal(resolved.data.activities.length,1);
-  assert.deepEqual(resolved.data.unavailableActivities,[{date:'2026-10-19'},{date:'2026-10-24'}]);
-  assert.deepEqual(merge({previous:resolved.data,window,intervalsRecords:[]}).data.unavailableActivities,[{date:'2026-10-19'}]);
+  assert.deepEqual(resolved.data.unavailableActivities,[prior[0], {id:unavailableId('902'),date:'2026-10-24'}]);
+  assert.deepEqual(merge({previous:resolved.data,window,intervalsRecords:[]}).data.unavailableActivities,resolved.data.unavailableActivities);
+  assert.deepEqual(previous.unavailableActivities, prior, '不修改输入快照');
 });
 
 test('仅识别明确的 Strava 空壳，其他缺字段、错误结构及无效数值失败', () => {

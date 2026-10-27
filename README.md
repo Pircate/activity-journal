@@ -176,7 +176,7 @@ gh workflow run site.yml --repo Pircate/activity-journal --ref main -f full=true
 
 本机调试可运行 node scripts/fetch-site-data.mjs（全量），也支持 --baseline、--since、--events 和 --full；随后运行 update-personal-bests.mjs 与 build.mjs。脚本优先使用 INTERVALS_ICU_API_KEY 环境变量，否则读取仓库外 ~/.config/interval-icu/config.json。本机调试不会推进云端成功游标。旧 scripts/sync.mjs 保留用于显式维护 COROS 组数，需提供真实的新鲜 COROS 输入，不属于自动网站更新链路。
 
-活动公开北京时间日期、可选 startTime、类型、距离、时长、负荷、爬升及真实平台链接；同日按开始时间排序。力量训练额外包含组数和平均心率。凭据、原始平台响应、坐标与心率明细不发布。
+活动公开北京时间日期、可选 startTime、平台运动代码 sport、保留来源精度的 distanceKm、数值秒 durationSeconds、负荷、爬升及真实平台链接；同日按开始时间排序。中文名称与单位在展示层生成。PB 使用项目代码与数值 value，字段约定见 docs/SITE-SYNC.md。力量训练额外包含组数和平均心率。凭据、原始平台响应、坐标与心率明细不发布。
 
 ## 本地预览
 

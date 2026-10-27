@@ -2,6 +2,33 @@ import {readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+import {validateData} from '../docs/journal.mjs';
+import {validatePersonalBests} from '../docs/personal-bests.mjs';
+
+const digest = text => createHash('sha256').update(text).digest('hex');
+
+// 格式切换只接受已审核文件的精确摘要，不解析旧字段或使用任意 main 快照。
+export async function publishedSnapshot(activities, personalBests) {
+  try {
+    validateData(JSON.parse(activities));
+    validatePersonalBests(JSON.parse(personalBests));
+    return {activities, personalBests};
+  } catch {
+    const release = JSON.parse(await readFile('data/snapshot-release.json', 'utf8'));
+    const current = {
+      activities:await readFile('docs/activities.json', 'utf8'),
+      personalBests:await readFile('docs/personal-bests.json', 'utf8'),
+    };
+    if (release.source.activities !== digest(activities) || release.source.personalBests !== digest(personalBests) ||
+        release.target.activities !== digest(current.activities) || release.target.personalBests !== digest(current.personalBests)) {
+      throw new Error('快照格式切换凭据不匹配，保留已发布数据，请重新核对成功基线与目标快照');
+    }
+    validateData(JSON.parse(current.activities));
+    validatePersonalBests(JSON.parse(current.personalBests));
+    return current;
+  }
+}
 
 export function run(command, args) {
   try {
@@ -34,10 +61,14 @@ export async function updateSnapshot(claim, {runImpl = run, directory = process.
   const args = ['scripts/fetch-site-data.mjs'];
   if (claim.publishedCommit) {
     if (!/^[a-f0-9]{40}$/.test(claim.publishedCommit)) throw new Error('Invalid published commit');
-    const baseline = runImpl('git', ['show', claim.publishedCommit + ':docs/activities.json']);
+    const snapshot = await publishedSnapshot(
+      runImpl('git', ['show', claim.publishedCommit + ':docs/activities.json']),
+      runImpl('git', ['show', claim.publishedCommit + ':docs/personal-bests.json']),
+    );
+    const baseline = snapshot.activities;
     if (claim.mode === 'publish') {
       await writeFile('docs/activities.json', baseline);
-      await writeFile('docs/personal-bests.json', runImpl('git', ['show', claim.publishedCommit + ':docs/personal-bests.json']));
+      await writeFile('docs/personal-bests.json', snapshot.personalBests);
     } else {
       const baselinePath = join(directory, 'site-sync-baseline.json');
       await writeFile(baselinePath, baseline);
