@@ -3,8 +3,19 @@
     "start": "2020-01-01",
     "end": "2026-10-27"
   },
-  "syncedAt": "2026-10-27 11:27:36 +08:00",
+  "syncedAt": "2026-10-27 13:48:51 +08:00",
   "activities": [
+    {
+      "date": "2026-10-27",
+      "startTime": "12:59:21",
+      "sport": "徒步",
+      "distanceKm": 1.23,
+      "duration": "0:21:17",
+      "trainingLoad": 1,
+      "elevationGain": 6,
+      "activityUrl": "https://intervals.icu/activities/i202151740",
+      "stravaUrl": "https://www.strava.com/activities/20746263434"
+    },
     {
       "date": "2026-10-26",
       "startTime": "20:03:36",
