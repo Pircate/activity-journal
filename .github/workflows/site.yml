@@ -36,6 +36,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+      deployed_commit: ${{ steps.snapshot.outputs.commit }}
     env:
       SYNC_WORKER_URL: ${{ secrets.SYNC_WORKER_URL }}
       SYNC_FULL: ${{ inputs.full || false }}
@@ -62,11 +65,14 @@ jobs:
         run: node scripts/site-sync.mjs update
       - name: Test
         if: steps.claim.outputs.skip != 'true'
-        run: npm test
+        run: |
+          npm test
+          python3 -m unittest discover -s scripts -p 'test_*.py'
       - name: Validate Worker bundle
         if: steps.claim.outputs.skip != 'true'
         run: npm run worker:check
       - name: Commit snapshot
+        id: snapshot
         if: steps.claim.outputs.skip != 'true'
         run: node scripts/site-sync.mjs commit
       - name: Configure Pages
@@ -91,3 +97,22 @@ jobs:
         env:
           SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
         run: node scripts/site-sync.mjs fail
+
+  notify:
+    needs: update-and-deploy
+    if: needs.update-and-deploy.outputs.page_url != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.update-and-deploy.outputs.deployed_commit }}
+          persist-credentials: false
+      - name: Email successful website update
+        env:
+          SMTP_PASSWORD: ${{ secrets.SITE_SMTP_PASSWORD }}
+          SITE_URL: ${{ needs.update-and-deploy.outputs.page_url }}
+          DEPLOYED_COMMIT: ${{ needs.update-and-deploy.outputs.deployed_commit }}
+        run: python3 scripts/notify-site.py

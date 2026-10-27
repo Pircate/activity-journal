@@ -53,6 +53,9 @@ npx wrangler secret put STRAVA_SUBSCRIPTION_ID --config workers/strava-webhook/w
 | `SYNC_WORKER_URL` | Worker 的 HTTPS origin，不包含 webhook 路径 |
 | `SYNC_TOKEN` | 与 Worker 相同的管理接口 token |
 | `INTERVALS_ICU_API_KEY` | 现有 Intervals.icu API Key |
+| `SITE_SMTP_PASSWORD` | `gao497868860@163.com` 的 SMTP 客户端授权码（不是邮箱登录密码） |
+
+每次成功发布后，独立的 `notify` job 通过 `smtp.163.com:465` 的 TLS 连接向 `gao497868860@163.com` 发送“运动日志网站更新完成”邮件，包含网站地址、北京时间、实际发布版本和 Actions 运行链接。发件人与收件人均为该邮箱；需开启网易 SMTP 服务并配置客户端授权码。同步、构建或部署失败，以及跳过的重复事件不会发信。通知失败会在 Actions 单独报错，不回滚成功部署、不重新确认或重试运动事件，也不自动重发邮件；排查后可只重新运行 `notify` job。
 
 在 Settings → Actions → General 允许 workflow 读写仓库；如 main 有分支保护，允许该工作流提交数据，否则推送步骤会失败。`github-pages` environment 必须允许 `main` 自动部署；不要设置每次发布都需人工批准，否则 webhook 无法全自动运行。
 
@@ -99,6 +102,7 @@ Strava 到达不代表 Intervals.icu 已准备好：目标活动未出现在查�
 ```sh
 npm ci
 npm test
+python3 -m unittest discover -s scripts -p 'test_*.py'
 npm run worker:check
 npm run worker:dev
 ```

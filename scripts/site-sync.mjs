@@ -87,6 +87,7 @@ export async function main(command, env = process.env) {
   if (command === 'commit') {
     const commit = commitSnapshot(claim);
     await writeFile(claimPath, JSON.stringify({...claim, commit}));
+    await writeFile(env.GITHUB_OUTPUT, 'commit=' + commit + '\n', {flag:'a'});
     return;
   }
   if (command === 'complete') {
