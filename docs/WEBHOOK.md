@@ -77,7 +77,7 @@ node --input-type=module -e 'import {workerRequest} from "./scripts/site-sync.mj
 - `lastSuccessfulAt`：最近一次成功部署时间（UTC）。
 - `cursor`：最近一次成功**数据同步开始**的时间（UTC），不会取部署完成时间；普通代码发布不推进。
 - `publishedCommit`：成功同步数据的 Git 版本。代码发布复用该快照，避免发布失败同步留在 main 上的数据；补充文件改动后需触发全量同步才能完整生效。
-- `pending`、`active`、`attempts`、`nextAt`、`lastError`：待处理数量、当前 Actions 运行、重试次数、下次重试时间（Unix 毫秒）及简要错误；具体原因查看 Actions 失败步骤。
+- `pending`、`active`、`attempts`、`nextAt`、`lastError`：待处理数量、当前 Actions 运行、重试次数、下次重试时间（Unix 毫秒）及简要错误；具体原因查看 Actions 失败步骤。派发失败时 `lastError` 形如 `GitHub dispatch failed: Dispatch refused (HTTP 401)`，可区分 token 失效（401）、缺少 Contents 写权限（403）和网络/超时；`pending` 有值却长时间没有新 Actions 运行，就是派发环节出了问题。
 
 首次事件后两分钟派发；活动级、API、构建、测试、推送或部署失败后等待 5、15、60 分钟重试。耗尽后保留事件并停止自动重试；新事件或手动 Actions 可以恢复。重复投递不重置重试计数。派发未被领取也会退避；Actions 取消或无法回报时，30 分钟租约到期后保留批次并重试。工作流总时限为 25 分钟。
 

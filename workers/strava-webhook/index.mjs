@@ -13,7 +13,10 @@ export class SyncCoordinator {
     this.ctx = ctx;
     this.env = env;
     this.now = () => Date.now();
-    this.fetchImpl = fetch;
+    // Never assign the global fetch by reference: calling it as this.fetchImpl
+    // rebinds `this` to the coordinator and Workers rejects it as an illegal
+    // invocation. The arrow keeps the global receiver.
+    this.fetchImpl = (...args) => fetch(...args);
   }
 
   async load() {
@@ -144,14 +147,16 @@ export class SyncCoordinator {
             headers:{Authorization:'Bearer ' + this.env.GITHUB_DISPATCH_TOKEN, Accept:'application/vnd.github+json', 'Content-Type':'application/json', 'User-Agent':'activity-journal-webhook'},
             body:JSON.stringify({event_type:'strava-activity-created'}),
           });
-          if (!response.ok) throw new Error('Dispatch failed');
+          // Distinguish auth, scope and transport failures; the token itself
+          // never reaches the status payload.
+          if (!response.ok) throw new Error('Dispatch refused (HTTP ' + response.status + ')');
           // If Actions never claims the batch (disabled or dropped pending run),
           // dispatch again rather than leaving acknowledged events stranded.
           state.dispatchUntil = this.now() + 10 * minute;
           state.nextAt = state.dispatchUntil;
           state.lastError = null;
-        } catch {
-          this.retry(state, 'GitHub dispatch failed');
+        } catch (error) {
+          this.retry(state, error.message === 'Missing configuration' ? error.message : 'GitHub dispatch failed: ' + (error.message ?? 'network error'));
         }
       }
       await this.save(state);

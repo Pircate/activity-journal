@@ -193,3 +193,21 @@ test('storage failures return 503 without exposing the webhook path or secrets',
   assert.equal(response.status, 503);
   assert.equal((await response.text()).includes('private-path'), false);
 });
+
+test('the default dispatch transport keeps the global fetch receiver', async () => {
+  // Regression: assigning the global fetch to this.fetchImpl made Workers
+  // reject every dispatch with an illegal invocation error, and the stubbed
+  // transport here hid it because production never replaced fetchImpl.
+  const c = coordinator();
+  c.object.fetchImpl = new SyncCoordinator(c.ctx, c.env).fetchImpl;
+  let receivedThis;
+  const original = globalThis.fetch;
+  globalThis.fetch = function () { receivedThis = this; return Promise.resolve(new Response(null, {status:204})); };
+  try {
+    await c.post();
+    c.advance(2 * minute);
+    await c.object.alarm();
+  } finally { globalThis.fetch = original; }
+  assert.notEqual(receivedThis, c.object, 'the global fetch must not be called with the coordinator as this');
+  assert.equal(c.state().dispatchUntil !== null, true);
+});
