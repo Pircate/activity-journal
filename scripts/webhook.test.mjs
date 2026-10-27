@@ -211,3 +211,17 @@ test('the default dispatch transport keeps the global fetch receiver', async () 
   assert.notEqual(receivedThis, c.object, 'the global fetch must not be called with the coordinator as this');
   assert.equal(c.state().dispatchUntil !== null, true);
 });
+
+test('dispatch uses only request options the Workers runtime implements', async () => {
+  // Regression: redirect:'error' is not implemented at the edge and made every
+  // dispatch throw, so the guards below pin the transport to supported values.
+  const c = coordinator();
+  await c.post();
+  c.advance(2 * minute);
+  await c.object.alarm();
+  const [url, init] = c.calls.at(-1);
+  assert.equal(url, 'https://api.github.com/repos/owner/repo/dispatches');
+  assert.equal(init.method, 'POST');
+  assert.ok(['follow', 'manual'].includes(init.redirect), 'redirect must be follow or manual');
+  assert.equal(init.body, JSON.stringify({event_type:'strava-activity-created'}));
+});

@@ -142,8 +142,11 @@ export class SyncCoordinator {
       } else {
         try {
           if (!/^[\w.-]+\/[\w.-]+$/.test(this.env.GITHUB_REPOSITORY) || !this.env.GITHUB_DISPATCH_TOKEN) throw new Error('Missing configuration');
+          // Workers only implements 'follow' and 'manual'; 'error' throws.
+          // 'manual' surfaces a redirect as a non-ok status, which is refused
+          // below like any other unexpected response.
           const response = await this.fetchImpl('https://api.github.com/repos/' + this.env.GITHUB_REPOSITORY + '/dispatches', {
-            method:'POST', redirect:'error', signal:AbortSignal.timeout(10_000),
+            method:'POST', redirect:'manual', signal:AbortSignal.timeout(10_000),
             headers:{Authorization:'Bearer ' + this.env.GITHUB_DISPATCH_TOKEN, Accept:'application/vnd.github+json', 'Content-Type':'application/json', 'User-Agent':'activity-journal-webhook'},
             body:JSON.stringify({event_type:'strava-activity-created'}),
           });
