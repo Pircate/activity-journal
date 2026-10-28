@@ -1,114 +1,84 @@
-import {unavailableId} from './sync.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {fetchAllActivities} from './fetch-site-data.mjs';
-import {normalizeActivities, readConfig} from './update-data.mjs';
+import {normalizeStravaActivity} from './strava-data.mjs';
+import {readConfig} from './update-data.mjs';
 
-const now = new Date('2026-10-27T01:00:00Z');
-const since = '2026-10-25T16:30:00Z'; // Beijing October 26, refresh from October 24.
-const record = (id, date, extra = {}) => ({id, type:'Ride', start_date:date + 'T00:00:00Z', moving_time:3600, distance:20000, ...extra});
-const baseline = (rows, unavailableActivities = []) => ({period:{start:'2020-01-01', end:'2026-10-26'}, syncedAt:'2026-10-26 00:30:00 +08:00',
-  activities:normalizeActivities(rows, {start:'2020-01-01', end:'2026-10-26'}), unavailableActivities, gearLibrary:[]});
-const stub = (id, date) => ({id, source:'STRAVA', start_date_local:date + 'T12:00:00', _note:'STRAVA activities are not available via the API'});
-
-function api(rows, details = {}, failGear = false) {
-  const calls = [];
-  return {calls, fetchImpl:async input => {
-    const url = new URL(input);
-    calls.push(url);
-    let data;
-    if (url.pathname === '/api/v1/athlete/0') data = {id:'i123'};
-    else if (url.pathname.endsWith('/activities')) data = rows;
-    else if (url.pathname.endsWith('/gear')) {
-      if (failGear) return {ok:false, status:503};
-      data = [];
-    } else {
-      data = details[url.pathname.split('/').at(-1)];
-      if (!data) return {ok:false, status:404};
-    }
-    return {ok:true, json:async () => data};
-  }};
+const now=new Date('2026-10-27T01:00:00Z'),since='2026-10-25T16:30:00Z';
+const record=(id,date,extra={})=>({id,sport_type:'Ride',start_date:date+'T00:00:00Z',moving_time:3600,distance:20000,...extra});
+const baseline=(rows=[],extra={})=>({sourcePolicyVersion:2,period:{start:'2020-01-01',end:'2026-10-26'},syncedAt:'2026-10-26 00:30:00 +08:00',
+  activities:rows.map(normalizeStravaActivity),unavailableActivities:[],gearLibrary:[],...extra});
+function api(rows=[],intervals=[],details={}) {
+  const calls=[];
+  const stravaClient={verifyAthlete:async id=>{assert.equal(id,'78720097');},activities:async window=>{calls.push(window);return rows;},activity:async id=>{calls.push(id);return details[id]??null;}};
+  const fetchImpl=async input=>{
+    const url=new URL(input);calls.push(url);
+    return Response.json(url.pathname.endsWith('/athlete/0')?{id:'i123'}:url.pathname.endsWith('/gear')?[]:intervals);
+  };
+  return {calls,stravaClient,fetchImpl};
 }
-const sync = options => fetchAllActivities({config:{INTERVALS_ICU_API_KEY:'test'}, now, ...options});
+const sync=options=>fetchAllActivities({config:{INTERVALS_ICU_API_KEY:'test'},now,...options});
 
-test('incremental updates preserve older history, unseen activities and timezone padding rows', async () => {
-  const old = record('i1', '2020-01-01');
-  const padding = record('i2', '2026-10-23');
-  const updated = record('i3', '2026-10-24', {distance:30000});
-  const deleted = record('i4', '2026-10-25');
-  const fresh = record('i5', '2026-10-27');
-  const baseData = baseline([old, padding, {...updated, distance:10000}, deleted], [{id:unavailableId('903'),date:'2020-01-02'}, {id:unavailableId('904'),date:'2026-10-24'}]);
-  const client = api([padding, updated, fresh]);
-  const data = await sync({...client, baseData, since});
-  assert.equal(client.calls.find(url => url.pathname.endsWith('/activities')).searchParams.get('oldest'), '2026-10-22');
-  assert.deepEqual(data.activities.map(a => a.activityUrl.split('/').at(-1)), ['i5', 'i4', 'i3', 'i2', 'i1']);
-  assert.equal(data.activities[2].distanceKm, 30);
-  assert.deepEqual(data.unavailableActivities, baseData.unavailableActivities);
-  assert.equal(baseData.activities.length, 4, 'input snapshot must not be mutated');
+test('增量由 Strava 覆盖主数据，Intervals 仅补负荷，未返回历史保留',async()=>{
+  const baseData=baseline([record('1','2020-01-01'),record('2','2026-10-24'),record('3','2026-10-25')]);
+  baseData.activities[1].activityUrl='https://intervals.icu/activities/i2';
+  const client=api([record('2','2026-10-24',{distance:12345.67,moving_time:4000}),record('4','2026-10-27')],
+    [{id:'i2',strava_id:'2',distance:999999,moving_time:999999,type:'Run',icu_training_load:42}]);
+  const data=await sync({...client,baseData,since});
+  assert.deepEqual(data.activities.map(a=>a.stravaUrl.split('/').at(-1)),['4','3','2','1']);
+  assert.equal(data.activities[2].distanceKm,12.34567);assert.equal(data.activities[2].durationSeconds,4000);
+  assert.equal(data.activities[2].sport,'Ride');assert.equal(data.activities[2].trainingLoad,42);
+  assert.equal(client.calls.find(x=>x instanceof URL&&x.pathname.endsWith('/activities')).searchParams.get('oldest'),'2026-10-22');
+  assert.equal(baseData.activities[1].distanceKm,20);
 });
-
-test('first run without cursor or baseline and explicit full mode query all history', async () => {
-  for (const options of [{}, {since}, {baseData:baseline([])}, {baseData:baseline([]), since, full:true}]) {
-    const client = api([]);
-    await sync({...client, ...options});
-    assert.equal(client.calls.find(url => url.pathname.endsWith('/activities')).searchParams.get('oldest'), '1900-01-01');
-  }
+test('旧快照无规则版本强制全量，第二次按同一规则增量且不恢复旧距离',async()=>{
+  const old=baseline([record('1','2020-01-01')]);delete old.sourcePolicyVersion;
+  let report;
+  const client=api([record('1','2020-01-01',{distance:12345})],[{id:'i1',strava_id:'1',distance:999999}]);
+  const first=await sync({...client,baseData:old,since,onReport:value=>{report=value;}});
+  assert.equal(client.calls.find(x=>!(x instanceof URL)).after,null);assert.equal(report.mode,'full');
+  assert.equal(first.activities[0].distanceKm,12.345);
+  const secondClient=api([],[{id:'i1',strava_id:'1',distance:999999}]);
+  const second=await sync({...secondClient,baseData:first,since});
+  assert.notEqual(secondClient.calls.find(x=>!(x instanceof URL)).after,null);
+  assert.equal(second.activities[0].distanceKm,12.345);
 });
-
-test('old upload expands the range using its exact platform association', async () => {
-  const old = record('i7', '2021-02-02', {strava_id:'901'});
-  const client = api([old], {901:old});
-  const data = await sync({...client, baseData:baseline([]), since, eventActivityIds:['901']});
-  assert.equal(client.calls.find(url => url.pathname.includes('/activity/')).pathname, '/api/v1/activity/901');
-  assert.equal(client.calls.find(url => url.pathname.endsWith('/activities')).searchParams.get('oldest'), '2021-01-31');
-  assert.equal(data.activities[0].date, '2021-02-02');
+test('新活动无需 Intervals 收录，旧日期事件直接查询 Strava 扩大窗口',async()=>{
+  const event=record('9','2021-02-02');
+  const client=api([],[],{'9':event});
+  const data=await sync({...client,baseData:baseline(),since,eventActivityIds:['9']});
+  assert.equal(client.calls[0],'9');assert.equal(data.activities[0].date,'2021-02-02');
+  assert.equal(data.activities[0].trainingLoad,null);
+  assert.equal(client.calls.find(x=>x instanceof URL&&x.pathname.endsWith('/activities')).searchParams.get('oldest'),'2021-01-31');
 });
-
-test('known different platform IDs are resolved by real links, not by date', async () => {
-  const old = record('i7', '2021-02-02', {strava_id:'901'});
-  const client = api([old], {i7:old});
-  const data = await sync({...client, baseData:baseline([old]), since, eventActivityIds:['901']});
-  assert.equal(client.calls.find(url => url.pathname.includes('/activity/')).pathname, '/api/v1/activity/i7');
-  assert.equal(data.activities.length, 1);
+test('仅缺组数的力量训练读取详情卡路里，已存零组数不触发详情',async()=>{
+  const rows=[record('1','2026-10-25',{sport_type:'WeightTraining'}),record('2','2026-10-25',{sport_type:'WeightTraining'})];
+  const baseData=baseline(rows);baseData.activities[1].sets=0;
+  const client=api(rows,[],{'1':{...rows[0],calories:123.4,average_heartrate:130}});
+  const data=await sync({...client,baseData,since});
+  assert.deepEqual(client.calls.filter(x=>typeof x==='string'),['1']);
+  assert.equal(data.activities.find(a=>a.stravaUrl.endsWith('/1')).calories,123.4);
+  assert.equal(data.activities.find(a=>a.stravaUrl.endsWith('/2')).sets,0);
 });
-
-test('unknown event date falls back to full query and a restricted stub may publish', async () => {
-  const client = api([stub('901', '2021-02-02')]);
-  const data = await sync({...client, baseData:baseline([]), since, eventActivityIds:['901']});
-  assert.equal(client.calls.find(url => url.pathname.endsWith('/activities')).searchParams.get('oldest'), '1900-01-01');
-  assert.deepEqual(data.unavailableActivities, [{id:unavailableId('901'),date:'2021-02-02'}]);
+test('无法读取历史列入报告，未关联不猜测，同日记录不合并',async()=>{
+  const baseData=baseline([record('1','2020-01-01'),record('2','2020-01-01')]);
+  delete baseData.activities[1].stravaUrl;baseData.activities[1].activityUrl='https://intervals.icu/activities/i2';
+  let report;
+  const data=await sync({...api([record('3','2020-01-01')]),baseData,since,full:true,onReport:r=>{report=r;}});
+  assert.equal(data.activities.length,3);assert.equal(report.uncorrected.length,2);
+  assert.match(report.uncorrected[1].reason,/缺少 Strava/);
+  assert.equal(report.before.count,2);assert.equal(report.after.count,3);
 });
-
-test('missing event, malformed response, future date, HTTP and gear failures reject without changing baseline', async () => {
-  const baseData = baseline([record('i1', '2020-01-01')]);
-  const before = JSON.stringify(baseData);
-  await assert.rejects(sync({...api([]), baseData, since, eventActivityIds:['901']}), /尚未收录/);
-  await assert.rejects(sync({...api([record('i1', '2026-10-27', {moving_time:null})]), baseData, since}), /活动不完整/);
-  await assert.rejects(sync({...api([record('901', '2026-10-28')]), baseData, since, eventActivityIds:['901']}), /可发布日期/);
-  await assert.rejects(sync({...api([], {}, true), baseData, since}), /HTTP 503/);
-  await assert.rejects(sync({fetchImpl:async () => ({ok:false, status:401}), baseData, since}), /HTTP 401/);
-  assert.equal(JSON.stringify(baseData), before);
+test('事件缺失、未来日期、重复和鉴权或装备失败保持输入不变',async()=>{
+  const baseData=baseline([record('1','2020-01-01')]),before=JSON.stringify(baseData);
+  await assert.rejects(sync({...api(),baseData,since,eventActivityIds:['9']}),/尚无法读取/);
+  await assert.rejects(sync({...api([],[],{'9':record('9','2026-10-28')}),baseData,since,eventActivityIds:['9']}),/可发布日期/);
+  await assert.rejects(sync({...api([record('1','2026-10-25'),record('1','2026-10-25')]),baseData,since}),/重复/);
+  await assert.rejects(sync({...api(),baseData,since,fetchImpl:async()=>new Response(null,{status:503})}),/HTTP 503/);
+  for(const since of ['bad','2026-10-28T00:00:00Z']) await assert.rejects(sync({baseData,since}),/增量起点/);
+  assert.equal(JSON.stringify(baseData),before);
 });
-
-test('a run reuses only the published baseline; repetition produces no duplicates', async () => {
-  const row = record('i3', '2026-10-27', {strava_id:'901'});
-  const baseData = baseline([record('i1', '2020-01-01')]);
-  const options = {...api([row], {901:row}), baseData, since, eventActivityIds:['901']};
-  const first = await sync(options);
-  assert.deepEqual(await sync({...options, baseData:first}), first);
-});
-
-test('invalid cursors and event identifiers cannot silently trigger an incomplete query', async () => {
-  for (const bad of ['invalid', '2026-10-28T00:00:00Z', '2026-10-25T16:00:00']) await assert.rejects(sync({since:bad}), /增量起点/);
-  await assert.rejects(sync({eventActivityIds:['../settings']}), /事件活动 ID/);
-});
-
-test('environment configuration is supported without reading the local credential file', async () => {
-  const previous = process.env.INTERVALS_ICU_API_KEY;
-  process.env.INTERVALS_ICU_API_KEY = 'test-env-key';
-  try { assert.deepEqual(await readConfig(), {INTERVALS_ICU_API_KEY:'test-env-key'}); }
-  finally {
-    if (previous === undefined) delete process.env.INTERVALS_ICU_API_KEY;
-    else process.env.INTERVALS_ICU_API_KEY = previous;
-  }
+test('环境配置无需本机凭据文件',async()=>{
+  const previous=process.env.INTERVALS_ICU_API_KEY;process.env.INTERVALS_ICU_API_KEY='test-env';
+  try{assert.deepEqual(await readConfig(),{INTERVALS_ICU_API_KEY:'test-env'});}finally{if(previous===undefined)delete process.env.INTERVALS_ICU_API_KEY;else process.env.INTERVALS_ICU_API_KEY=previous;}
 });

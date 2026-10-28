@@ -62,7 +62,7 @@ test('力量训练列表使用组数、平均心率和杠铃图标；混合列�
   assert.match(html, /class="record-icon strength-icon"/);
   assert.doesNotMatch(html, /km\/h|data-label="距离"/);
   const unknown = renderDayRecords([{...strength, sets:null, averageHeartRate:null}]);
-  assert.match(unknown, /data-label="组数"><span class="record-metric-missing">未提供<\/span>/);
+  assert.match(unknown, /data-label="卡路里"><span class="record-metric-missing">未提供<\/span>/);
   assert.match(unknown, /data-label="平均心率"><span class="record-metric-missing">未提供<\/span>/);
   const ride = normalizeActivities([{...raw, id:'i2', type:'Ride', distance:20000}], period)[0];
   const mixed = renderDayRecords([strength, ride]);
@@ -80,6 +80,21 @@ test('近期力量训练卡片显示组数与心率，未知值不当作零', ()
   assert.match(cards, /class="sr-only">平均心率<\/span><\/span>137/);
   assert.doesNotMatch(cards, /km\/h|未记录距离/);
   const unknown = createJournal(snapshot([{...strength, sets:null, averageHeartRate:null}])).cards;
-  assert.match(unknown, /class="sr-only">组数<\/span><\/span><span class="record-metric-value"><span class="record-metric-missing">未提供/);
+  assert.match(unknown, /class="sr-only">卡路里<\/span><\/span><span class="record-metric-value"><span class="record-metric-missing">未提供/);
   assert.match(unknown, /class="sr-only">平均心率<\/span><\/span><span class="record-metric-missing">未提供/);
+});
+
+test('组数优先，卡路里保留精度仅展示取整，零值和缺失语义一致', () => {
+  const base = {...normalizeActivities([raw], period)[0], averageHeartRate:130};
+  for (const [sets,calories,label,value,unit] of [[12,200,'组数',12,'组'],[0,200,'组数',0,'组'],[null,123.6,'卡路里',124,'kcal'],[null,0,'卡路里',0,'kcal']]) {
+    const a={...base,sets,calories};
+    validateData(snapshot([a]));
+    const html=renderDayRecords([a]);
+    assert.ok(html.includes(`data-label="${label}">${value}<small>${unit}</small>`));
+    assert.ok(createJournal(snapshot([a])).cards.includes(`${value}<small>${unit}</small>`));
+    assert.equal(a.calories,calories);
+  }
+  for (const calories of [-1,Infinity,'100',undefined]) assert.throws(()=>validateData(snapshot([{...base,calories}])));
+  const mixed=renderDayRecords([{...base,sets:12,calories:null},{...base,sets:null,calories:100}]);
+  assert.match(mixed,/<th scope="col">组数 \/ 卡路里<\/th>/);
 });

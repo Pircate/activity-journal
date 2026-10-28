@@ -41,6 +41,44 @@ export class SyncCoordinator {
     state.nextAt = state.attempts < retryDelays.length ? this.now() + retryDelays[state.attempts++] : null;
   }
 
+  async stravaToken(state, credentials) {
+    if (!state.active || state.active.runId !== credentials.runId || state.active.mode !== 'sync' ||
+        this.now() >= Date.parse(state.active.startedAt) + leaseDuration) return json({error:'Stale sync lease'}, 409);
+    let token = await this.ctx.storage.get('strava-token');
+    if (!token || token.expiresAt * 1000 <= this.now() + 60_000) {
+      const refreshToken = token?.refreshToken ?? credentials.refreshToken;
+      if (!refreshToken || !credentials.clientId || !credentials.clientSecret) return json({error:'Strava credentials not configured'}, 503);
+      let response;
+      try {
+        response = await this.fetchImpl('https://www.strava.com/oauth/token', {
+          method:'POST', redirect:'manual', signal:AbortSignal.timeout(15_000),
+          body:new URLSearchParams({client_id:credentials.clientId, client_secret:credentials.clientSecret,
+            grant_type:'refresh_token', refresh_token:refreshToken}),
+        });
+      } catch { return json({error:'Strava token refresh unavailable'}, 503); }
+      if (!response.ok) return json({error:'Strava token refresh failed (HTTP ' + response.status + ')'}, response.status >= 500 ? 503 : 403);
+      let result;
+      try { result = await response.json(); } catch { return json({error:'Invalid Strava token response'}, 502); }
+      if (typeof result.access_token !== 'string' || !result.access_token || typeof result.refresh_token !== 'string' || !result.refresh_token ||
+          !Number.isSafeInteger(result.expires_at) || result.expires_at * 1000 <= this.now()) return json({error:'Invalid Strava token response'}, 502);
+      token = {accessToken:result.access_token, refreshToken:result.refresh_token, expiresAt:result.expires_at,
+        scopes:typeof result.scope === 'string' ? result.scope.split(/[ ,]+/) : token?.scopes ?? null};
+      // 刷新令牌与发布状态分开持久化，后续同步或部署失败也不能回滚令牌轮换。
+      await this.ctx.storage.put('strava-token', token);
+    }
+    if (token.scopes && !token.scopes.includes('activity:read_all')) return json({error:'Strava activity:read_all authorization required'}, 403);
+    let athlete;
+    try {
+      const response = await this.fetchImpl('https://www.strava.com/api/v3/athlete', {
+        headers:{Authorization:'Bearer ' + token.accessToken}, redirect:'manual', signal:AbortSignal.timeout(15_000),
+      });
+      if (!response.ok) return json({error:'Strava athlete verification failed'}, 503);
+      athlete = await response.json();
+    } catch { return json({error:'Strava athlete verification unavailable'}, 503); }
+    if (String(athlete?.id) !== this.env.STRAVA_ATHLETE_ID) return json({error:'Strava athlete mismatch'}, 403);
+    return json({accessToken:token.accessToken, expiresAt:token.expiresAt});
+  }
+
   async fetch(request) {
     return this.ctx.blockConcurrencyWhile(async () => {
       const url = new URL(request.url);
@@ -84,6 +122,7 @@ export class SyncCoordinator {
       let body;
       try { body = await request.json(); } catch { return json({error:'Invalid JSON'}, 400); }
       if (!body || typeof body.runId !== 'string' || !/^\d+:\d+$/.test(body.runId)) return json({error:'Invalid run ID'}, 400);
+      if (url.pathname === '/sync/strava-token') return this.stravaToken(state, body);
       if (url.pathname === '/sync/start') {
         if (state.active) return state.active.runId === body.runId ? json(state.active) : json({error:'Run already active'}, 409);
         if (!['sync', 'publish'].includes(body.mode)) return json({error:'Invalid mode'}, 400);

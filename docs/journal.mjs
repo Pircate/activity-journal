@@ -14,7 +14,7 @@ export const formatPace = secondsPerUnit => {
 const missingMetric = {text:'未提供', html:'<span class="record-metric-missing">未提供</span>'};
 const measuredMetric = (text, html) => ({text, html});
 // 运动专属副指标：跑步／步行／徒步看每公里配速，游泳看每百米配速，其余有距离的运动看速度。
-// 全部由 Intervals.icu 的距离与运动时长换算，缺少任一数值时按要求显示“未提供”，不推算缺失指标。
+// 由 Strava 的距离与运动时间换算，缺少任一数值时显示“未提供”。
 const paceSports = new Set(['Run', 'TrailRun', 'VirtualRun', 'Walk', 'Hike']);
 export function sportMetric({sport, distanceKm, durationSeconds:seconds}) {
   const measurable = distanceKm !== null && distanceKm > 0 && seconds > 0;
@@ -22,7 +22,7 @@ export function sportMetric({sport, distanceKm, durationSeconds:seconds}) {
   if (sport === 'Swim') return {label:'每百米配速', ...measurable ? measuredMetric(formatPace(seconds / (distanceKm * 10)) + ' /100m', formatPace(seconds / (distanceKm * 10)) + '<small>/100m</small>') : missingMetric};
   return {label:'平均速度', ...measurable ? measuredMetric(formatSpeed(distanceKm * 3600 / seconds) + ' km/h', formatSpeed(distanceKm * 3600 / seconds) + '<small>km/h</small>') : missingMetric};
 }
-const primaryOrder = ['距离', '组数'];
+const primaryOrder = ['距离', '组数', '卡路里'];
 const secondaryOrder = ['平均配速', '每百米配速', '平均速度', '平均心率'];
 const orderedLabels = (order, labels) => order.filter(label => labels.includes(label)).join(' / ');
 export const dayMetrics = {
@@ -123,11 +123,12 @@ const sportIcon = sport => {
   return `<svg class="record-icon${sport === 'WeightTraining' ? ' strength-icon' : ''}" data-sport="${escapeHtml(sport)}" style="color:${color}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${paths}</svg>`;
 };
 
-// 每条运动统一的指标层级：主指标（距离／组数）、副指标（配速、速度或平均心率）。
+// 力量训练优先显示组数，缺少组数时显示卡路里。
 function activityMetrics(activity) {
   if (activity.sport === 'WeightTraining') return {
-    primaryLabel:'组数',
-    primary:activity.sets === null ? missingMetric : measuredMetric(activity.sets + ' 组', escapeHtml(activity.sets) + '<small>组</small>'),
+    primaryLabel:activity.sets !== null ? '组数' : '卡路里',
+    primary:activity.sets !== null ? measuredMetric(activity.sets + ' 组', escapeHtml(activity.sets) + '<small>组</small>')
+      : activity.calories == null ? missingMetric : measuredMetric(Math.round(activity.calories) + ' kcal', Math.round(activity.calories) + '<small>kcal</small>'),
     secondaryLabel:'平均心率',
     secondary:activity.averageHeartRate === null ? missingMetric : measuredMetric(activity.averageHeartRate + ' bpm', escapeHtml(activity.averageHeartRate) + '<small>bpm</small>'),
   };
@@ -144,6 +145,7 @@ const metricPaths = {
   '每百米配速':'<path d="M4 15a8 8 0 1 1 16 0M12 5v2m0 7 4-4M2 19q2.5-2 5 0t5 0 5 0 5 0"/>',
   '累计爬升':'<path d="m3 17 6-6 4 4 8-10M15 5h6v6"/>',
   '组数':'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+  '卡路里':'<path d="M12 3c1 4-3 5-3 8 0 1 1 2 2 2 0-2 2-3 3-4 1 2 4 4 4 7a6 6 0 0 1-12 0c0-3 2-5 3-7 0 3 1 3 1 3"/>',
   '平均心率':'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/><path d="M3 12h4l2-4 4 8 2-4h6"/>',
 };
 const metricLabel = (label, className) => `<span class="${className}" title="${label}"><svg class="metric-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${metricPaths[label]}</svg><span class="sr-only">${label}</span></span>`;
@@ -323,12 +325,13 @@ export function renderGearLibrary(library) {
 }
 
 export function validateData(data) {
-  if (!data || Object.keys(data).sort().join(',') !== 'activities,gearLibrary,period,syncedAt,unavailableActivities' || !isDate(data.period?.start) || !isDate(data.period?.end) || Object.keys(data.period).sort().join(',') !== 'end,start' || data.period.start > data.period.end || !Array.isArray(data.activities) || typeof data.syncedAt !== 'string' || !/^\d{4}-\d{2}-\d{2} [0-2]\d:[0-5]\d:[0-5]\d \+08:00$/.test(data.syncedAt) || !Number.isFinite(syncTimestamp(data.syncedAt))) throw new Error('运动数据格式无效');
+  if (!data || Object.keys(data).filter(key => key !== 'sourcePolicyVersion').sort().join(',') !== 'activities,gearLibrary,period,syncedAt,unavailableActivities' || Object.hasOwn(data, 'sourcePolicyVersion') && data.sourcePolicyVersion !== 2 || !isDate(data.period?.start) || !isDate(data.period?.end) || Object.keys(data.period).sort().join(',') !== 'end,start' || data.period.start > data.period.end || !Array.isArray(data.activities) || typeof data.syncedAt !== 'string' || !/^\d{4}-\d{2}-\d{2} [0-2]\d:[0-5]\d:[0-5]\d \+08:00$/.test(data.syncedAt) || !Number.isFinite(syncTimestamp(data.syncedAt))) throw new Error('运动数据格式无效');
   validateGearLibrary(data.gearLibrary);
   if (!Array.isArray(data.unavailableActivities) || data.unavailableActivities.some(a => !a || Object.keys(a).sort().join(',') !== 'date,id' || typeof a.id !== 'string' || !/^[a-f0-9]{64}$/.test(a.id) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end) || new Set(data.unavailableActivities.map(a => a.id)).size !== data.unavailableActivities.length) throw new Error('无法读取的活动日期或标识无效');
   for (const a of data.activities) {
+    if (Object.hasOwn(a ?? {}, 'calories') && (a.sport !== 'WeightTraining' || a.calories !== null && (typeof a.calories !== 'number' || !Number.isFinite(a.calories) || a.calories < 0))) throw new Error('运动记录格式无效');
     const keys = a?.sport === 'WeightTraining' ? 'averageHeartRate,date,distanceKm,durationSeconds,sets,sport,trainingLoad' : 'date,distanceKm,durationSeconds,sport,trainingLoad';
-    if (!a || Object.keys(a).filter(key => !['activityUrl', 'stravaUrl', 'elevationGain', 'startTime'].includes(key)).sort().join(',') !== keys || Object.hasOwn(a, 'startTime') && (typeof a.startTime !== 'string' || !/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(a.startTime)) || Object.hasOwn(a, 'elevationGain') && a.elevationGain !== null && (typeof a.elevationGain !== 'number' || !Number.isFinite(a.elevationGain) || a.elevationGain < 0) || Object.hasOwn(a, 'activityUrl') && (typeof a.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(a.activityUrl)) || Object.hasOwn(a, 'stravaUrl') && (typeof a.stravaUrl !== 'string' || !/^https:\/\/www\.strava\.com\/activities\/[1-9]\d*$/.test(a.stravaUrl)) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !/^[A-Za-z][A-Za-z0-9]*$/.test(a.sport) || !Number.isSafeInteger(a.durationSeconds) || a.durationSeconds < 0 || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0) ||
+    if (!a || Object.keys(a).filter(key => !['activityUrl', 'stravaUrl', 'elevationGain', 'startTime', 'calories'].includes(key)).sort().join(',') !== keys || Object.hasOwn(a, 'startTime') && (typeof a.startTime !== 'string' || !/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(a.startTime)) || Object.hasOwn(a, 'elevationGain') && a.elevationGain !== null && (typeof a.elevationGain !== 'number' || !Number.isFinite(a.elevationGain) || a.elevationGain < 0) || Object.hasOwn(a, 'activityUrl') && (typeof a.activityUrl !== 'string' || !/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(a.activityUrl)) || Object.hasOwn(a, 'stravaUrl') && (typeof a.stravaUrl !== 'string' || !/^https:\/\/www\.strava\.com\/activities\/[1-9]\d*$/.test(a.stravaUrl)) || !isDate(a.date) || a.date < data.period.start || a.date > data.period.end || typeof a.sport !== 'string' || !/^[A-Za-z][A-Za-z0-9]*$/.test(a.sport) || !Number.isSafeInteger(a.durationSeconds) || a.durationSeconds < 0 || ![a.distanceKm,a.trainingLoad].every(v => v === null || typeof v === 'number' && Number.isFinite(v) && v >= 0) ||
         a.sport === 'WeightTraining' && (a.sets !== null && (!Number.isInteger(a.sets) || a.sets < 0) || a.averageHeartRate !== null && (typeof a.averageHeartRate !== 'number' || !Number.isFinite(a.averageHeartRate) || a.averageHeartRate <= 0))) throw new Error('运动记录格式无效');
   }
 }

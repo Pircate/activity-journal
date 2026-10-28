@@ -14,7 +14,8 @@ const pb = {source:'Intervals.icu',syncedAt:now.toISOString(),records:[]};
 const interval = (extra = {}) => ({id:'i1', strava_id:'901', type:'Ride', start_date:'2026-10-23T16:30:00Z', moving_time:3601, distance:20070, total_elevation_gain:123.4, icu_training_load:40, ...extra});
 const stub = (id = '901', extra = {}) => ({id, source:'STRAVA', start_date_local:'2026-10-24T00:30:00', _note:'STRAVA activities are not available via the API', ...extra});
 const activity = (extra = {}) => normalizeActivities([interval(extra)], period)[0];
-const merge = options => mergeActivities({previous:snapshot(), intervalsRecords:[interval()], corosRecords:[], strengthSets:[], window:syncWindow(null,now), now, ...options});
+const strava = (extra = {}) => ({id:'901',sport_type:'Ride',start_date:'2026-10-23T16:30:00Z',moving_time:3601,distance:20070,total_elevation_gain:123.4,...extra});
+const merge = options => mergeActivities({previous:snapshot(), stravaRecords:[strava()], intervalsRecords:[interval()], corosRecords:[], strengthSets:[], window:syncWindow(null,now), now, ...options});
 const response = (data, status = 200) => ({ok:status === 200,status,json:async () => data});
 async function directory(t) {
   const parent = resolve('output/sync-tests');
@@ -41,123 +42,6 @@ test('COROS 查询范围、时效和空列表校验', () => {
   for (const change of [{startDate:'2020-01-01'},{endDate:'2026-10-23'}, {queriedAt:'2026-10-22T10:00:00.000Z'}, {queriedAt:'2026-10-25T10:00:00.000Z'}, {records:[{labelId:'123',sets:-1}]}, {records:[{labelId:'123',sets:1},{labelId:'123',sets:2}]}]) {
     assert.throws(() => validateCorosInput({...corosInput,...change},syncWindow(null,now),now));
   }
-});
-
-test('Intervals.icu 覆盖基础指标，新增完整活动，重复运行不重复', () => {
-  const old = {...activity(), distanceKm:999, trainingLoad:30};
-  const historical = activity({id:'i2',strava_id:undefined,start_date:'2021-01-01T01:00:00Z'});
-  const records = [interval(),interval({id:'i3',strava_id:undefined})];
-  const first = merge({previous:snapshot([old,historical]), intervalsRecords:records});
-  assert.equal(first.data.activities.length,3);
-  assert.deepEqual(first.data.activities.find(a=>a.activityUrl===old.activityUrl),activity());
-  assert.deepEqual(first.data.activities.at(-1),historical);
-  assert.equal(first.report.added,1); assert.equal(first.report.updated,1); assert.equal(first.report.retainedHistory,1);
-  assert.deepEqual(merge({previous:first.data,intervalsRecords:records}).data.activities,first.data.activities);
-  const corrected = merge({previous:first.data, intervalsRecords:[interval({distance:12345,moving_time:1800,total_elevation_gain:0})]});
-  const row = corrected.data.activities.find(a=>a.stravaUrl);
-  assert.equal(row.distanceKm,12.345); assert.equal(row.durationSeconds,1800); assert.equal(row.elevationGain,0);
-});
-
-test('精确关联历史并保留 Strava 链接，不按同日或相同指标猜测关联', () => {
-  const old = activity();
-  const {activityUrl,...stravaOnly} = old;
-  const {stravaUrl,...intervalsOnly} = old;
-  for (const previous of [snapshot([stravaOnly]),snapshot([intervalsOnly]),snapshot([stravaOnly,intervalsOnly])]) {
-    const result = merge({previous});
-    assert.equal(result.data.activities.length,1); assert.deepEqual(result.data.activities[0],old);
-  }
-  assert.equal(merge({previous:snapshot([old]),intervalsRecords:[interval({strava_id:undefined})]}).data.activities[0].stravaUrl,old.stravaUrl);
-  const independent = merge({previous:snapshot([stravaOnly]),intervalsRecords:[interval({strava_id:undefined})]});
-  assert.equal(independent.data.activities.length,2);
-  assert.equal(independent.data.activities.filter(a=>a.stravaUrl).length,1);
-});
-
-test('同步合并按实际开始时间倒序，同日受限历史保留已知时间', () => {
-  const old = activity({id:'902', strava_id:'902', start_date:'2026-10-24T08:00:00Z'});
-  const result = merge({previous:snapshot([old]), intervalsRecords:[
-    interval({start_date:'2026-10-24T01:00:00Z'}),
-    stub('902'),
-    interval({id:'i2', strava_id:'903', start_date:'2026-10-24T09:00:00Z'}),
-  ]});
-  assert.deepEqual(result.data.activities.map(a => a.startTime), ['17:00:00', '16:00:00', '09:00:00']);
-});
-
-test('关联冲突、多重关联、历史及本次重复 ID 均失败', () => {
-  const old = activity();
-  for (const options of [
-    {previous:snapshot([old]),intervalsRecords:[interval({strava_id:'902'})]},
-    {previous:snapshot([old]),intervalsRecords:[interval({id:'i2'})]},
-    {intervalsRecords:[interval(),interval({id:'i2'})]},
-    {intervalsRecords:[interval(),interval()]},
-    {intervalsRecords:[stub('901',{strava_id:'902'})]},
-    {previous:snapshot([old,old])},
-    {previous:snapshot([old,{...old,activityUrl:'https://intervals.icu/activities/i2'}])},
-  ]) assert.throws(()=>merge(options),/冲突|不唯一|重复/);
-});
-
-test('COROS 组数精确关联，负荷和组数缺失保留历史，零值可以更新', () => {
-  const record = interval({type:'WeightTraining',source:'COROS',external_id:'123',average_heartrate:130});
-  const old = {...activity(record),sets:12,trainingLoad:10};
-  const options = {previous:snapshot([old]),intervalsRecords:[record],corosRecords:[{labelId:'123',sets:0}]};
-  const result = merge(options);
-  assert.equal(result.data.activities[0].sets,0); assert.equal(result.data.activities[0].averageHeartRate,130);
-  const missing = merge({...options,corosRecords:[{labelId:'456',sets:9}],intervalsRecords:[{...record,icu_training_load:null}]});
-  assert.equal(missing.data.activities[0].sets,12); assert.equal(missing.data.activities[0].trainingLoad,10);
-  const zero = merge({...options,intervalsRecords:[{...record,icu_training_load:0,average_heartrate:0}]});
-  assert.equal(zero.data.activities[0].trainingLoad,0); assert.equal(zero.data.activities[0].averageHeartRate,null);
-  const fresh = merge({intervalsRecords:[{...record,strava_id:undefined,distance:null,icu_training_load:null,average_heartrate:null}]});
-  assert.equal(fresh.data.activities[0].trainingLoad,null); assert.equal(fresh.data.activities[0].sets,null);
-  assert.equal(fresh.data.activities[0].averageHeartRate,null); assert.equal(fresh.data.activities[0].distanceKm,null);
-  assert.equal(fresh.data.activities[0].stravaUrl,undefined);
-});
-
-test('全量和增量都保留未返回历史，不执行删除请求', () => {
-  const old = activity();
-  for (const full of [true,false]) {
-    const result = merge({previous:snapshot([old]),intervalsRecords:[],window:{...syncWindow(null,now),full}});
-    assert.deepEqual(result.data.activities,[old]); assert.equal(result.report.retainedHistory,1);
-  }
-});
-
-test('已知受限记录保留详情与真实链接，新受限记录只生成日期提示', () => {
-  const old = activity({id:'901'});
-  const {activityUrl,...stravaOnly} = old;
-  for (const previous of [snapshot([old]),snapshot([stravaOnly])]) {
-    const result = merge({previous,intervalsRecords:[stub(),stub('902')]});
-    assert.deepEqual(result.data.activities,[old]);
-    assert.deepEqual(result.data.unavailableActivities,[{id:unavailableId('902'),date:'2026-10-24'}]);
-    assert.equal(result.report.restrictedRetained,1); assert.equal(result.report.restrictedUnavailable,1);
-    assert.deepEqual(merge({previous:result.data,intervalsRecords:[stub(),stub('902')]}).data,result.data);
-  }
-});
-
-test('受限提示按身份保留，重复查询不增项，恢复可读仅移除对应记录', () => {
-  const window = {...syncWindow(null,now),full:false,oldest:'2026-10-20'};
-  const prior = [{id:unavailableId('903'),date:'2026-10-19'}, {id:unavailableId('901'),date:'2026-10-23'}];
-  const previous = snapshot([], prior);
-  const first = merge({previous,window,intervalsRecords:[stub(),stub('902')]});
-  assert.equal(first.data.unavailableActivities.length, 3);
-  assert.equal(first.data.unavailableActivities.filter(a => a.date === '2026-10-24').length, 2);
-  assert.equal(first.data.unavailableActivities.find(a => a.id === unavailableId('901')).date, '2026-10-24');
-  assert.deepEqual(merge({previous:first.data,window,intervalsRecords:[]}).data.unavailableActivities, first.data.unavailableActivities);
-  const resolved = merge({previous:first.data,window,intervalsRecords:[interval({id:'i9'}),stub('902')]});
-  assert.equal(resolved.data.activities.length,1);
-  assert.deepEqual(resolved.data.unavailableActivities,[prior[0], {id:unavailableId('902'),date:'2026-10-24'}]);
-  assert.deepEqual(merge({previous:resolved.data,window,intervalsRecords:[]}).data.unavailableActivities,resolved.data.unavailableActivities);
-  assert.deepEqual(previous.unavailableActivities, prior, '不修改输入快照');
-});
-
-test('仅识别明确的 Strava 空壳，其他缺字段、错误结构及无效数值失败', () => {
-  for (const records of [null,{},[null],[stub('i1')],[stub('0')],[stub('901',{_note:'其他错误'})], [stub('901',{source:'COROS'})],[stub('901',{moving_time:null})],[stub('901',{start_date_local:'2026-02-30T10:00:00'})], [stub('901',{start_date_local:'2026-10-24T25:00:00'})],[interval({moving_time:null})], [interval({distance:-1})],[interval({icu_training_load:'12'})],[interval({strava_id:901})]]) {
-    assert.throws(()=>merge({intervalsRecords:records}));
-  }
-  assert.throws(()=>merge({intervalsRecords:[stub('901',{distance:-1})]}));
-});
-
-test('北京时间日期及任务开始时间上界，未来记录不提前加入', () => {
-  const result = merge({intervalsRecords:[interval(),interval({id:'i2',strava_id:undefined,start_date:now.toISOString()}), stub('902',{start_date_local:'2026-10-25T00:00:00'})]});
-  assert.equal(result.data.activities.length,1); assert.equal(result.data.activities[0].date,'2026-10-24');
-  assert.deepEqual(result.data.unavailableActivities,[]);
 });
 
 test('Intervals.icu 查询窗口、字段、装备及满页拆分', async () => {
@@ -187,7 +71,7 @@ async function workspace(t) {
   await writeFile(join(path,'data/strength-sets.json'),'[]');
   return path;
 }
-const syncOptions=directory=>({directory,now,corosInput, fetchIntervals:async()=>({records:[interval()],gearLibrary:[]}),fetchBests:async()=>pb,render:async()=>'new html',finishTime:()=>now});
+const syncOptions=directory=>({directory,now,corosInput, fetchActivities:async options=>{const merged=merge({...options,previous:options.baseData,window:syncWindow(null,options.now)});options.onReport(merged.report);return merged.data;},fetchBests:async()=>pb,render:async()=>'new html',finishTime:()=>now});
 
 test('整个同步成功后才推进游标，下一次执行为增量', async t => {
   const path=await workspace(t), options=syncOptions(path);
@@ -198,31 +82,14 @@ test('整个同步成功后才推进游标，下一次执行为增量', async t 
   assert.equal(second.mode,'incremental'); assert.equal(second.records,1);
 });
 
-test('完整入口不读取 Strava 凭据或资料，网络仅访问 Intervals.icu', async t => {
-  const path=await workspace(t), calls=[];
-  t.mock.method(globalThis,'fetch',async url=>{
-    const parsed=new URL(url); calls.push(parsed);
-    assert.equal(parsed.hostname,'intervals.icu');
-    if(parsed.pathname.endsWith('/athlete/0')) return response({id:'i123'});
-    if(parsed.pathname.endsWith('/gear')) return response([]);
-    if(parsed.pathname.endsWith('/activities')) return response([interval()]);
-    if(parsed.pathname.endsWith('/pace-curves.json')) return response({list:[{distance:[5000],values:[1500],activity_id:['i1']}]});
-    if(parsed.pathname.endsWith('/power-curves.json')) return response({list:[{secs:[300,1200],watts:[200,160],activity_id:['i1','i1']}]});
-    throw new Error('非预期请求');
-  });
-  const {fetchIntervals,fetchBests,...options}=syncOptions(path);
-  const result=await sync({...options, fetchIntervals:args=>fetchIntervalsData({...args,config:{INTERVALS_ICU_API_KEY:'test'}}), fetchBests:args=>fetchPersonalBests({...args,config:{INTERVALS_ICU_API_KEY:'test'}})});
-  assert.equal(result.records,1); assert.equal(calls.length,5);
-});
-
 test('COROS、活动、装备、成绩、构建失败及替换中断均保留旧文件和游标', async t => {
   const path=await workspace(t),options=syncOptions(path), files=['docs/activities.json','docs/personal-bests.json','docs/index.html','data/strength-sets.json'];
   const before=await Promise.all(files.map(f=>readFile(join(path,f),'utf8')));
   for(const change of [
     {corosInput:{...corosInput,records:null}},
-    {fetchIntervals:async()=>{throw Error('活动或装备失败');}},
-    {fetchIntervals:async()=>({records:[interval({moving_time:null})],gearLibrary:[]})},
-    {fetchIntervals:async()=>({records:[],gearLibrary:[{}]})},
+    {fetchActivities:async()=>{throw Error('活动或装备失败');}},
+    {fetchActivities:async()=>({activities:[{}]})},
+    {fetchActivities:async()=>({...snapshot(),gearLibrary:[{}]})},
     {fetchBests:async()=>{throw Error('成绩失败');}},
     {render:async()=>{throw Error('构建失败');}},
     {renameImpl:async (from,to)=>{if(to.endsWith('index.html'))throw Error('替换中断');await rename(from,to);}},
@@ -234,13 +101,13 @@ test('COROS、活动、装备、成绩、构建失败及替换中断均保留旧
   }
   await sync(options);
   const state=await readFile(join(path,'data/sync-state.json'),'utf8');
-  await assert.rejects(sync({...options,fetchIntervals:async()=>{throw Error('失败');}}));
+  await assert.rejects(sync({...options,fetchActivities:async()=>{throw Error('失败');}}));
   assert.equal(await readFile(join(path,'data/sync-state.json'),'utf8'),state);
 });
 
 test('全量发现更早历史时要求扩大 COROS 范围，不推进游标', async t => {
   const path=await workspace(t);
-  await assert.rejects(sync({...syncOptions(path),corosInput:{...corosInput,startDate:'2020-01-01'}, fetchIntervals:async()=>({records:[interval({start_date:'2019-01-01T00:00:00Z'})],gearLibrary:[]})}),/Intervals.icu 发现更早历史/);
+  await assert.rejects(sync({...syncOptions(path),corosInput:{...corosInput,startDate:'2020-01-01'}, fetchActivities:async()=>({...snapshot([{...activity(),date:'2019-01-01'}]),sourcePolicyVersion:2,period:{start:'2019-01-01',end:period.end}})}),/Strava 发现更早历史/);
   await assert.rejects(access(join(path,'data/sync-state.json')),{code:'ENOENT'});
 });
 

@@ -28,7 +28,7 @@ test('sync scripts use the published version, cursor and all claimed event IDs',
   assert.deepEqual(calls[0].args, ['show', commit + ':docs/activities.json']);
   assert.equal(await readFile(join(directory, 'site-sync-baseline.json'), 'utf8'), activities);
   assert.deepEqual(JSON.parse(await readFile(join(directory, 'site-sync-events.json'), 'utf8')), ['901']);
-  assert.deepEqual(calls[2].args, ['scripts/fetch-site-data.mjs', '--baseline', join(directory,'site-sync-baseline.json'), '--since', claim.cursor, '--events', join(directory,'site-sync-events.json'), '--full']);
+  assert.deepEqual(calls[2].args, ['scripts/fetch-site-data.mjs', '--baseline', join(directory,'site-sync-baseline.json'), '--since', claim.cursor, '--events', join(directory,'site-sync-events.json'), '--report', join(directory,'history-correction.json'), '--full']);
   assert.deepEqual(calls.slice(3).map(call => call.args[0]), ['scripts/update-personal-bests.mjs', 'scripts/build.mjs']);
 });
 

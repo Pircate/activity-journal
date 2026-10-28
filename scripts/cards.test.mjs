@@ -100,9 +100,9 @@ test('明细表头按出现顺序合并，行为空时不影响混合表头', ()
   assert.match(running, /<th scope="col">平均配速<\/th>/);
   assert.doesNotMatch(running, /平均速度|组数/);
   const strengthOnly = renderDayRecords([activity('WeightTraining', null, 1800, {sets:null, averageHeartRate:null})], '历史运动记录');
-  assert.match(strengthOnly, /<th scope="col">组数<\/th>/);
+  assert.match(strengthOnly, /<th scope="col">卡路里<\/th>/);
   assert.match(strengthOnly, /<th scope="col">平均心率<\/th>/);
-  assert.match(strengthOnly, /data-label="组数"><span class="record-metric-missing">未提供<\/span><\/td>/);
+  assert.match(strengthOnly, /data-label="卡路里"><span class="record-metric-missing">未提供<\/span><\/td>/);
   assert.match(strengthOnly, /data-label="平均心率"><span class="record-metric-missing">未提供<\/span><\/td>/);
 });
 

@@ -80,6 +80,7 @@ export async function updateSnapshot(claim, {runImpl = run, directory = process.
     const eventsPath = join(directory, 'site-sync-events.json');
     await writeFile(eventsPath, JSON.stringify(claim.events.map(event => event.activityId)));
     args.push('--events', eventsPath);
+    args.push('--report', join(directory, 'history-correction.json'));
     if (full) args.push('--full');
     runImpl(process.execPath, args);
     runImpl(process.execPath, ['scripts/update-personal-bests.mjs']);
@@ -141,7 +142,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     // Report controlled sync errors and Git failures, redacting all server
     // credentials before emitting child process output.
     let message = error.status ? `Site sync step ${error.syncStep} failed (${error.status}).\n${error.stderr ?? ''}` : error.message;
-    for (const key of ['SYNC_TOKEN', 'INTERVALS_ICU_API_KEY', 'GITHUB_TOKEN']) {
+    for (const key of ['SYNC_TOKEN', 'INTERVALS_ICU_API_KEY', 'GITHUB_TOKEN', 'STRAVA_ACCESS_TOKEN', 'STRAVA_CLIENT_SECRET', 'STRAVA_REFRESH_TOKEN']) {
       const secret = process.env[key];
       if (secret) {
         message = message.replaceAll(secret, '[redacted]');

@@ -12,7 +12,7 @@ export const sports = {
 export const sportLabel = sport => Object.hasOwn(sports, sport) ? sports[sport] : `其他运动（${sport}）`;
 export const distanceApplies = activity => activity.sport !== 'WeightTraining';
 export const isRide = sport => ['Ride', 'VirtualRide', 'EBikeRide', 'EMountainBikeRide', 'MountainBikeRide', 'GravelRide', 'Handcycle', 'Velomobile'].includes(sport);
-export const hasMissingMetric = activity => (distanceApplies(activity) ? activity.distanceKm === null : activity.sets === null || activity.averageHeartRate === null) || activity.trainingLoad === null;
+export const hasMissingMetric = activity => (distanceApplies(activity) ? activity.distanceKm === null : activity.sets === null && activity.calories == null || activity.averageHeartRate === null) || activity.trainingLoad === null;
 
 export function summarizeActivities(records) {
   const applicable = records.filter(distanceApplies);

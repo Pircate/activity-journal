@@ -1,6 +1,6 @@
 # Strava webhook 部署与恢复
 
-网站继续从 Intervals.icu、历史快照和 `data/strength-sets.json` 取数。Strava webhook 只触发更新，不读取 Strava 活动详情、不执行平台间同步。每日任务不负责网站更新。
+网站从 Strava 读取活动主数据，从 Intervals.icu 读取训练负荷、装备和个人最佳成绩，从 `data/strength-sets.json` 读取 COROS 组数。Strava webhook 触发更新；Actions 通过受同步租约保护的 Worker 接口刷新短期访问令牌，Worker 持久保存轮换后的刷新令牌。每日任务不负责网站更新。
 
 ## 1. 准备 Worker
 
@@ -23,7 +23,7 @@ npx wrangler secret put GITHUB_DISPATCH_TOKEN --config workers/strava-webhook/wr
 npm run worker:deploy
 ```
 
-`GITHUB_DISPATCH_TOKEN` 使用仅允许访问 `Pircate/activity-journal`、具有 **Contents: write** 的 GitHub fine-grained PAT，用于 `repository_dispatch`。不要把 Strava client secret 或 Intervals.icu API Key 放入 Worker。Durable Object 自动创建，保存事件和成功状态；不要删除绑定、迁移记录或清空其存储。Worker URL 通常为 `https://activity-journal-strava.<账号>.workers.dev`。
+`GITHUB_DISPATCH_TOKEN` 使用仅允许访问 `Pircate/activity-journal`、具有 **Contents: write** 的 GitHub fine-grained PAT，用于 `repository_dispatch`。不要把 Strava client secret 或 Intervals.icu API Key 放入 Worker。Durable Object 自动创建，保存事件、成功状态及轮换后的 Strava 刷新令牌；不要删除绑定、迁移记录或清空其存储。Worker URL 通常为 `https://activity-journal-strava.<账号>.workers.dev`。
 
 ## 2. 注册 Strava 订阅
 
@@ -53,6 +53,9 @@ npx wrangler secret put STRAVA_SUBSCRIPTION_ID --config workers/strava-webhook/w
 | `SYNC_WORKER_URL` | Worker 的 HTTPS origin，不包含 webhook 路径 |
 | `SYNC_TOKEN` | 与 Worker 相同的管理接口 token |
 | `INTERVALS_ICU_API_KEY` | 现有 Intervals.icu API Key |
+| `STRAVA_CLIENT_ID` | Strava API 应用 Client ID |
+| `STRAVA_CLIENT_SECRET` | Strava API 应用 Client Secret |
+| `STRAVA_REFRESH_TOKEN` | 首次刷新使用的 Strava OAuth Refresh Token |
 | `SITE_SMTP_PASSWORD` | `gao497868860@163.com` 的 SMTP 客户端授权码（不是邮箱登录密码） |
 
 每次更新结束后，独立的 `notify` job 通过 `smtp.163.com:465` 的 TLS 连接向 `gao497868860@163.com` 发送结果邮件。成功时主题为“运动日志网站更新完成”，包含网站地址、北京时间、实际发布版本和 Actions 运行链接；同步、构建、测试、推送、部署或状态回写失败时，主题为“运动日志网站更新失败”，并读取当前运行尝试的失败步骤和 GitHub 已脱敏日志，附上失败环节及错误摘要。错误详情接口不可用时仍发信，注明详情暂时无法读取并提供运行链接。取消运行也会通知，跳过的重复事件不发信。
@@ -95,9 +98,9 @@ gh workflow run site.yml --repo Pircate/activity-journal --ref main
 gh workflow run site.yml --repo Pircate/activity-journal --ref main -f full=true
 ```
 
-增量以游标对应北京时间日期向前重叠两天为起点；API 当地日期下界额外扩两天、上界扩一天，最后按完整北京时间范围合并，保留未返回的历史和已知指标。旧日期新增事件先按真实 ID 或已核对的平台链接定位，无法定位时全量查询。旧记录的编辑、删除不属于本次 webhook 处理范围；保持远端现有的保守合并，不自动删除历史，超出增量窗口时需手动全量更新。
+增量以游标对应北京时间日期向前重叠两天为起点；Strava 查询窗口额外扩两天，最后按完整北京时间范围合并，保留未返回的历史和已知指标。旧日期新增事件直接读取 Strava 活动详情并扩大窗口。旧记录的编辑、删除不属于本次 webhook 处理范围；保持远端现有的保守合并，不自动删除历史，超出增量窗口时需手动全量更新。
 
-Strava 到达不代表 Intervals.icu 已准备好：目标活动未出现在查询结果中会重试；已收录但受限则保留“详情不可读取”，视为正常可发布快照。永久缺失的活动需要处理上游收录或人工补充真实关联；不能用 Strava ID 猜测另一平台活动，也不能把 API 失败当成没有运动。
+新活动到达后由 Strava 提供基础指标，无需等待 Intervals.icu 收录；尚未取得 Intervals.icu 负荷时显示“未提供”，后续同步会通过真实平台关联补齐。不能用日期或名称猜测另一平台活动，也不能把 API 失败当成没有运动。
 
 数据文件和 HTML 在临时 Actions checkout 中生成，活动、装备、成绩、构建和测试全部通过才提交；推送冲突不会强推。只有 `deploy-pages` 成功后才向 Worker 确认批次；状态回写失败时从旧成功基线重试，同一回执重复提交是幂等的。运行期间新增事件不会被本批次确认。
 
@@ -113,7 +116,7 @@ npm run worker:check
 npm run worker:dev
 ```
 
-本地 Worker Secrets 放在 `workers/strava-webhook/.dev.vars`（已被 Git 忽略），只使用测试账号和测试 token，不使用生产 GitHub PAT。不要用本机直接运行同步脚本来修改云端游标。本机调试脚本仍兼容仓库外凭据文件；正式更新只读取 GitHub Secrets。历史 COROS 组数保留，新活动缺少组数时显示未知，自动链路不要求本机 COROS 连接器。
+本地 Worker Secrets 放在 `workers/strava-webhook/.dev.vars`（已被 Git 忽略），只使用测试账号和测试 token，不使用生产 GitHub PAT。不要用本机直接运行同步脚本来修改云端游标。正式更新只从 GitHub Secrets 取得 Strava OAuth 凭据；本机调试通过 `STRAVA_ACCESS_TOKEN` 环境变量提供短期令牌。历史 COROS 组数保留，新活动缺少组数时优先显示 Strava 卡路里，自动链路不要求本机 COROS 连接器。
 
 端到端验收：在已授权的 Strava 账号新增活动，确认 Worker 待处理事件出现、Actions 被触发、Pages 部署成功，再核对线上 `activities.json` 与 `/sync/status`。部署期间再新增活动，应触发下一批，且不重复计数。生产凭据尚未配置时只能完成本地和模拟验证。
 

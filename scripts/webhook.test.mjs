@@ -6,13 +6,13 @@ const minute = 60_000;
 const commit = 'a'.repeat(40);
 const event = {owner_id:1, subscription_id:2, object_id:901, object_type:'activity', aspect_type:'create', event_time:100};
 function coordinator() {
-  let value;
+  const values = new Map();
   let alarm;
   let current = Date.parse('2026-10-27T00:00:00Z');
   let lock = Promise.resolve();
   const ctx = {
     blockConcurrencyWhile:fn => { const result = lock.then(fn); lock = result.catch(() => {}); return result; },
-    storage:{get:async () => structuredClone(value), put:async (key, state) => { value = structuredClone(state); }, setAlarm:async at => {alarm = at;}, deleteAlarm:async () => {alarm = null;}},
+    storage:{get:async key => structuredClone(values.get(key)), put:async (key, state) => { values.set(key, structuredClone(state)); }, setAlarm:async at => {alarm = at;}, deleteAlarm:async () => {alarm = null;}},
   };
   const env = {WEBHOOK_PATH_SECRET:'secret-path', STRAVA_VERIFY_TOKEN:'verify', SYNC_TOKEN:'internal', STRAVA_ATHLETE_ID:'1', STRAVA_SUBSCRIPTION_ID:'2', GITHUB_REPOSITORY:'owner/repo', GITHUB_DISPATCH_TOKEN:'dispatch'};
   const object = new SyncCoordinator(ctx, env);
@@ -27,7 +27,7 @@ function coordinator() {
   const post = (body = event) => request('/webhook/secret-path', body, false);
   const start = (runId = '1:1', extra = {}) => request('/sync/start', {runId, mode:'sync', ...extra});
   const complete = (runId = '1:1', sha = commit) => request('/sync/complete', {runId, commit:sha, deployedAt:new Date(current).toISOString()});
-  return {object, ctx, env, calls, request, post, start, complete, advance:ms => {current += ms;}, alarm:() => alarm, state:() => structuredClone(value)};
+  return {object, ctx, env, calls, request, post, start, complete, advance:ms => {current += ms;}, alarm:() => alarm, state:() => structuredClone(values.get('state'))};
 }
 
 test('subscription challenge checks mode/token and management endpoints require separate authentication', async () => {
@@ -224,4 +224,68 @@ test('dispatch uses only request options the Workers runtime implements', async 
   assert.equal(init.method, 'POST');
   assert.ok(['follow', 'manual'].includes(init.redirect), 'redirect must be follow or manual');
   assert.equal(init.body, JSON.stringify({event_type:'strava-activity-created'}));
+});
+
+function stravaAuth(c) {
+  const credentials={clientId:'123',clientSecret:'client-secret',refreshToken:'seed-refresh'};
+  const request=c.request;
+  c.request=(path,body,authenticated=true)=>request(path,path==='/sync/strava-token'?{...credentials,...body}:body,authenticated);
+  const exchanges=[];
+  c.object.fetchImpl=async (url,options)=>{
+    if(url.endsWith('/oauth/token')) {
+      exchanges.push(options.body.get('refresh_token'));
+      return Response.json({access_token:'access-'+exchanges.length,refresh_token:'refresh-'+exchanges.length,
+        expires_at:Math.floor(Date.parse('2026-10-27T00:00:00Z')/1000)+3600*exchanges.length,scope:'read,activity:read_all'});
+    }
+    return Response.json({id:1});
+  };
+  return exchanges;
+}
+test('Strava 令牌只对有效同步租约开放，检查私密权限和账号',async()=>{
+  const c=coordinator();stravaAuth(c);
+  assert.equal((await c.request('/sync/strava-token',{runId:'1:1'})).status,409);
+  await c.start('1:1',{force:true,mode:'publish'});
+  assert.equal((await c.request('/sync/strava-token',{runId:'1:1'})).status,409);
+  await c.complete();await c.start('2:1',{force:true});
+  assert.equal((await c.request('/sync/strava-token',{runId:'1:1'})).status,409);
+  c.object.fetchImpl=async url=>url.endsWith('/oauth/token')?Response.json({access_token:'access',refresh_token:'refresh',
+    expires_at:Date.parse('2026-10-27T01:00:00Z')/1000,scope:'activity:read'}):Response.json({id:999});
+  assert.equal((await c.request('/sync/strava-token',{runId:'2:1'})).status,403);
+  c.advance(31*minute);
+  assert.equal((await c.request('/sync/strava-token',{runId:'2:1'})).status,409);
+});
+test('Strava 刷新令牌轮换在返回前持久化，重复调用和发布失败不回退',async()=>{
+  const c=coordinator(),exchanges=stravaAuth(c);
+  await c.start('1:1',{force:true});
+  const token=await (await c.request('/sync/strava-token',{runId:'1:1'})).json();
+  assert.deepEqual(Object.keys(token).sort(),['accessToken','expiresAt']);
+  assert.equal(token.accessToken,'access-1');
+  assert.equal((await c.ctx.storage.get('strava-token')).refreshToken,'refresh-1');
+  await c.request('/sync/strava-token',{runId:'1:1'});assert.equal(exchanges.length,1);
+  const status=JSON.stringify(await (await c.request('/sync/status')).json());
+  assert.doesNotMatch(status,/access-1|refresh-1|client-secret/);
+  await c.request('/sync/fail',{runId:'1:1'});c.advance(60*minute);
+  await c.start('2:1',{force:true});
+  await c.request('/sync/strava-token',{runId:'2:1'});
+  assert.deepEqual(exchanges,['seed-refresh','refresh-1']);
+  assert.equal(c.state().cursor,null);
+});
+test('Strava 刷新响应未提供 scope 时由活动接口验证读取权限',async()=>{
+  const c=coordinator();stravaAuth(c);
+  let athleteId=2;
+  c.object.fetchImpl=async url=>url.endsWith('/oauth/token')?Response.json({access_token:'access',refresh_token:'refresh',
+    expires_at:Date.parse('2026-10-27T01:00:00Z')/1000}):Response.json({id:athleteId});
+  await c.start('1:1',{force:true});
+  assert.equal((await c.request('/sync/strava-token',{runId:'1:1'})).status,403);
+  athleteId=1;
+  assert.equal((await c.request('/sync/strava-token',{runId:'1:1'})).status,200);
+});
+test('令牌持久化失败和 OAuth 失败不能返回令牌或推进同步状态',async()=>{
+  const c=coordinator();stravaAuth(c);await c.start('1:1',{force:true});
+  const put=c.ctx.storage.put;c.ctx.storage.put=async(key,value)=>{if(key==='strava-token')throw Error('storage failure');return put(key,value);};
+  await assert.rejects(c.request('/sync/strava-token',{runId:'1:1'}),/storage failure/);
+  assert.equal(c.state().cursor,null);
+  c.object.fetchImpl=async()=>new Response('private OAuth response',{status:401});
+  const response=await c.request('/sync/strava-token',{runId:'1:1'});
+  assert.equal(response.status,403);assert.doesNotMatch(await response.text(),/private OAuth/);
 });
