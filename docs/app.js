@@ -160,10 +160,10 @@ function renderJournal() {
   document.querySelector('.overview-range').textContent = rangeLabel;
   document.querySelector('.year-number').textContent = journal.daily.length;
   document.querySelector('.metrics').setAttribute('aria-label', rangeLabel + '运动概览');
-  document.title = siteTitle + '　' + rangeLabel;
+  document.title = siteTitle + ' · ' + rangeLabel;
   document.querySelector('.period').innerHTML = '<time datetime="' + period.start + '">' + pretty(period.start) + '</time> — <time datetime="' + period.end + '">' + pretty(period.end) + '</time>';
   document.getElementById('sport-filter').innerHTML = renderSportFilter(journal.sports, sport);
-  document.getElementById('sport-filter-status').textContent = sport ? '已筛选：' + sportLabel(sport) + '　' + activities.length + ' 次' : '';
+  document.getElementById('sport-filter-status').textContent = sport ? '已筛选：' + sportLabel(sport) + ' · ' + activities.length + ' 次' : '';
   const values = document.querySelectorAll('.metric-value');
   values[0].innerHTML = (distance === null ? '—' : formatDistance(distance)) + '<small>km</small>';
   values[1].innerHTML = formatTime(duration);
@@ -173,7 +173,7 @@ function renderJournal() {
   notes[0].textContent = missingDistance ? missingDistance + ' 次距离未提供' : '';
   notes[0].hidden = !missingDistance;
   notes[1].textContent = '时 : 分 : 秒';
-  notes[2].textContent = activeDays + ' 个活跃日' + (unavailableCount ? '　' + unavailableCount + ' 条详情不可读取' : '');
+  notes[2].textContent = activeDays + ' 个活跃日' + (unavailableCount ? ' · ' + unavailableCount + ' 条详情不可读取' : '');
   grid.innerHTML = journal.cells;
   document.querySelector('.heatmap').style.setProperty('--columns', journal.columns);
   document.querySelector('.month-labels').innerHTML = journal.monthLabels;

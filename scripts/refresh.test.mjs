@@ -115,7 +115,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   chooseTrend('[data-trend-mode]', {trendMode:'week'});
   chooseTrend('[data-period]', {period:'2026-10-05'});
   element('#trend-metric').events.get('change')({target:{value:'durationSeconds'}});
-  assert.match(trends.innerHTML, /周一至周日　时长/);
+  assert.match(trends.innerHTML, /周一至周日 · 时长/);
   assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/);
 
   latest = structuredClone(initial);
@@ -134,7 +134,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   t.mock.timers.setTime(Date.parse('2026-10-16T04:00:00Z'));
   await refresh();
   assert.equal(grid.writes, 4);
-  assert.match(trends.innerHTML, /周一至周日　时长/);
+  assert.match(trends.innerHTML, /周一至周日 · 时长/);
   assert.match(trends.innerHTML, /2026\.10\.05 — 2026\.10\.11/, '跨天刷新保留选中周期和指标');
   assert.equal(element('#selected-date').max, '2026-10-16');
   assert.match(element('#calendar-days').innerHTML, /data-date="2026-10-16" data-level="missing" data-state="pending"/, '月历跨天保留未同步状态');
@@ -287,7 +287,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
     year.value = 'recent';
     year.events.get('change')();
     chooseTrend('[data-period]', {period:'2026-10-05'});
-    assert.match(trends.innerHTML, /周一至周日　时长/);
+    assert.match(trends.innerHTML, /周一至周日 · 时长/);
     assert.match(trends.innerHTML, /<span>25\.00 km<\/span>/);
     // 合法但该范围内没有记录的类型应呈现零合计，不回退到全部运动。
     latest.activities.push({...latest.activities[0], date:'2025-01-01', sport:'Run', distanceKm:5, activityUrl:'https://intervals.icu/activities/i2'});

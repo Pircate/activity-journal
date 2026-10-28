@@ -75,6 +75,7 @@ export async function stravaAccessToken(env = process.env) {
       refreshToken:env.STRAVA_REFRESH_TOKEN,
     }, {env});
     if (typeof token.accessToken !== 'string' || !token.accessToken) throw new Error('Strava 令牌响应无效');
+    console.log('::add-mask::' + token.accessToken);
     return token.accessToken;
   }
   if (!env.STRAVA_ACCESS_TOKEN) throw new Error('本地同步请通过环境变量提供有效的 STRAVA_ACCESS_TOKEN');

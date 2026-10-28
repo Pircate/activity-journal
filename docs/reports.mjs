@@ -45,7 +45,7 @@ export function createReport(data, mode, selection, today = beijingDate()) {
     })
     : daily.map(day => bucket(String(Number(day.date.slice(8))), [day]));
   const title = mode === 'month' ? year + ' 年 ' + Number(selection.slice(5)) + ' 月运动月报' : year + ' 年运动年报';
-  const notes = ['仅统计可读取记录　力量训练不计距离　日期按北京时间'];
+  const notes = ['仅统计可读取记录 · 力量训练不计距离 · 日期按北京时间'];
   if (pendingDays) notes.push('未同步 ' + pendingDays + ' 天，不当作没有运动');
   if (unavailable) notes.push('详情不可读取 ' + unavailable + ' 条，未计入统计');
   if (summary.missingMetrics) notes.push('指标缺失 ' + summary.missingMetrics + ' 次：距离未提供 ' + summary.missingDistance + ' 次，负荷未提供 ' + summary.missingLoad + ' 次');
@@ -143,7 +143,7 @@ export function renderReportPanel(data, today = beijingDate()) {
     <div class="history-field"><label for="report-metric">图表指标</label><select id="report-metric">${Object.entries(reportMetrics).map(([key, spec]) => `<option value="${key}">${spec.label}</option>`).join('')}</select></div>
     <button type="submit" id="report-generate">生成分享图片</button></form>
     <p id="report-status" class="report-intro" role="status" aria-live="polite"></p>
-    <div id="report-result" hidden><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整　手机也可长按下方图片保存。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
+    <div id="report-result" hidden><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整 · 手机也可长按下方图片保存。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
     <noscript><p>启用 JavaScript 后可生成与下载图片。</p></noscript></div></section>`;
 }
 
@@ -197,7 +197,7 @@ export function initializeReports(initialData, name) {
       image.height = canvas.height;
       image.alt = reportSummary(report);
       document.getElementById('report-summary').textContent = image.alt;
-      document.getElementById('report-image-info').textContent = `1080 × ${canvas.height} 像素　手机也可长按下方图片保存。`;
+      document.getElementById('report-image-info').textContent = `1080 × ${canvas.height} 像素 · 手机也可长按下方图片保存。`;
       download.href = imageUrl;
       download.download = '运动' + (report.mode === 'month' ? '月报' : '年报') + '-' + report.selection + '.png';
       result.hidden = false;

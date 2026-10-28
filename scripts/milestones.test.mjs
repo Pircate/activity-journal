@@ -78,7 +78,7 @@ test('最近达成按日期排序，同日按较高里程碑和固定栏目顺�
     activity('2026-01-03', {distanceKm:4000}),
   ]));
   assert.equal(summary.latest.date, '2026-01-03');
-  assert.equal(summary.latest.text, '累计里程　5,000.00 km');
+  assert.equal(summary.latest.text, '累计里程 · 5,000.00 km');
   assert.equal(summary.reached, 2);
 });
 
@@ -98,7 +98,7 @@ test('空记录显示第一个目标而非虚假达成', () => {
   const html = renderMilestones(snapshot([], [{date:'2026-01-01'}]));
   assert.equal(summary.reached, 0);
   assert.match(html, /第一个里程碑/);
-  assert.match(html, /累计里程　5,000\.00 km/);
+  assert.match(html, /累计里程 · 5,000\.00 km/);
   assert.equal(summary.unavailableCount, 1);
   assert.doesNotMatch(html, /NaN|Infinity|undefined/);
 });

@@ -70,7 +70,7 @@ export function createMilestones(data) {
   const tracks = definitions.map(definition => track(definition, data.activities));
   const achievements = tracks.flatMap((item, trackIndex) => item.milestones.filter(milestone => milestone.reached)
     .map(milestone => ({track:item, trackIndex, value:milestone.value, date:milestone.date,
-      text:item.label + '　' + targetText(item.key, milestone.value)})))
+      text:item.label + ' · ' + targetText(item.key, milestone.value)})))
     .sort((a, b) => b.date.localeCompare(a.date) || b.value - a.value || a.trackIndex - b.trackIndex);
   const firstDate = data.activities.reduce((first, activity) => !first || activity.date < first ? activity.date : first, '') || data.period?.start || null;
   return {
@@ -107,12 +107,12 @@ export function renderMilestones(data) {
     : summary.tracks.find(item => item.next)
       ? (() => {
         const first = summary.tracks.find(item => item.next);
-        return `<span>第一个里程碑</span><strong>${esc(first.label + '　' + targetText(first.key, first.next.value))}</strong><p>${esc(first.remainingText)}</p>`;
+        return `<span>第一个里程碑</span><strong>${esc(first.label + ' · ' + targetText(first.key, first.next.value))}</strong><p>${esc(first.remainingText)}</p>`;
       })()
       : '<span>里程碑</span><strong>全部目标已达成</strong>';
-  return `<div class="ms-overview"><div class="ms-overview-copy"><div class="ms-kicker"><span>记录以来${summary.firstDate ? '　' + summary.firstDate.replaceAll('-', '.') + ' 起' : ''}</span><span>已达成 ${summary.reached} / ${summary.totalMilestones} 项</span></div>
+  return `<div class="ms-overview"><div class="ms-overview-copy"><div class="ms-kicker"><span>记录以来${summary.firstDate ? ' · ' + summary.firstDate.replaceAll('-', '.') + ' 起' : ''}</span><span>已达成 ${summary.reached} / ${summary.totalMilestones} 项</span></div>
     <p class="ms-distance"><strong>${formatDistance(summary.distanceKm)}</strong><small>km</small></p>
-    <p class="ms-meta">${summary.activityCount.toLocaleString('zh-CN')} 次运动　${summary.activeDays.toLocaleString('zh-CN')} 个活跃日　${formatTime(summary.durationSeconds)}</p></div>
+    <p class="ms-meta">${summary.activityCount.toLocaleString('zh-CN')} 次运动 · ${summary.activeDays.toLocaleString('zh-CN')} 个活跃日 · ${formatTime(summary.durationSeconds)}</p></div>
     <div class="ms-latest"${summary.latest ? '' : ' data-state="empty"'}>${latest}</div></div>
     <div class="ms-grid">${summary.tracks.map(renderTrack).join('')}</div>
     `;

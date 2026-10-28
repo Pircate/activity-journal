@@ -48,7 +48,7 @@ export function initializeHistory(initialData) {
     const start = (page - 1) * historyPageSize;
     results.innerHTML = records.length ? renderDayRecords(records.slice(start, start + historyPageSize), '历史运动记录') :
       '<p class="history-empty">' + (data.activities.length ? '没有符合条件的运动记录，请调整筛选条件或重置。' : '尚无可读取的历史运动记录。') + '</p>';
-    count.textContent = records.length ? `共 ${records.length} 条　显示第 ${start + 1}–${Math.min(start + historyPageSize, records.length)} 条` : '共 0 条';
+    count.textContent = records.length ? `共 ${records.length} 条 · 显示第 ${start + 1}–${Math.min(start + historyPageSize, records.length)} 条` : '共 0 条';
     document.getElementById('history-page').textContent = `第 ${page} / ${pages} 页`;
     previous.disabled = page === 1;
     next.disabled = page === pages;

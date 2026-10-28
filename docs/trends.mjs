@@ -69,7 +69,7 @@ function notes(period) {
   if (period.unavailable) result.push(dayStateLabels.unavailable + ' ' + period.unavailable + ' 条（' + dayStateNotes.unavailable + '），未计入统计');
   if (period.missingDistance) result.push(dayStateLabels.missing + '：' + period.missingDistance + ' 次未提供距离');
   if (period.missingLoad) result.push(dayStateLabels.missing + '：' + period.missingLoad + ' 次未提供负荷');
-  return result.length ? result.join('　') + '；合计仅含可读取指标。' : '';
+  return result.length ? result.join(' · ') + '；合计仅含可读取指标。' : '';
 }
 
 export function renderTrendContent(periods, {mode = 'month', metric = 'distanceKm', selected = periods.at(-1)?.start} = {}) {
@@ -86,9 +86,9 @@ export function renderTrendContent(periods, {mode = 'month', metric = 'distanceK
   const heading = mode === 'week' ? '本周' : '本月';
   const previousLabel = mode === 'week' ? '上周' : '上月';
   const comparedLabel = previousLabel + (active.ongoing ? '同期' : '');
-  return `<p class="trend-guide">${mode === 'week' ? '周一至周日' : '自然月'}　${metrics[metric].label}${metric === 'durationSeconds' ? '（小时）' : metrics[metric].unit ? '（' + metrics[metric].unit + '）' : ''}</p>
+  return `<p class="trend-guide">${mode === 'week' ? '周一至周日' : '自然月'} · ${metrics[metric].label}${metric === 'durationSeconds' ? '（小时）' : metrics[metric].unit ? '（' + metrics[metric].unit + '）' : ''}</p>
     <div class="trend-scroll" tabindex="0" role="region" aria-label="${mode === 'week' ? '每周' : '每月'}${metrics[metric].label}趋势，可横向滚动"><div class="trend-bars" style="--periods:${periods.length}">${bars}</div></div>
-    <div class="trend-selection" aria-live="polite"><div class="trend-period"><h3>${pretty(active.start)} — ${pretty(active.end)}</h3><span>${active.ongoing ? heading + '进行中　与' + comparedLabel + '比较' : '与' + previousLabel + '比较'}</span></div>
+    <div class="trend-selection" aria-live="polite"><div class="trend-period"><h3>${pretty(active.start)} — ${pretty(active.end)}</h3><span>${active.ongoing ? heading + '进行中 · 与' + comparedLabel + '比较' : '与' + previousLabel + '比较'}</span></div>
     <p class="trend-previous">${comparedLabel}：${pretty(active.previous.start)} — ${pretty(active.previous.end)}</p>
     <dl class="trend-stats">${Object.entries(metrics).map(([key, spec]) => `<div><dt>${spec.label}</dt><dd><span>${valueText(active, key)}</span><p>${comparedLabel} ${valueText(active.previous, key)}</p><p class="trend-change">${compareTrend(active, active.previous, key)}</p></dd></div>`).join('')}</dl>
     ${notes(active) ? '<p class="trend-note">所选周期：' + notes(active) + '</p>' : ''}${notes(active.previous) ? '<p class="trend-note">比较周期：' + notes(active.previous) + '</p>' : ''}</div>`;

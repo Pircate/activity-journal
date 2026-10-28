@@ -232,7 +232,7 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 /* 全历史个人最佳成绩 */
 .pb-section{padding:32px 0 0}
 .pb-group{--pb-color:#ff965d;--pb-rgb:255 138 76;position:relative;border:1px solid #3b3430;border-radius:14px;background:radial-gradient(ellipse at top left,rgb(var(--pb-rgb) / .11),transparent 65%),#1a1a1a;overflow:hidden}
-.pb-group[data-sport="骑行"]{--pb-color:#8bcaff;--pb-rgb:102 183 255;border-color:#303c46}
+.pb-group[data-sport="Ride"]{--pb-color:#8bcaff;--pb-rgb:102 183 255;border-color:#303c46}
 .pb-group::before{content:"";position:absolute;top:0;left:24px;width:56px;height:2px;background:var(--pb-color);box-shadow:0 0 18px rgb(var(--pb-rgb) / .35)}
 .pb-group+.pb-group{margin-top:16px}
 .pb-group-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border-bottom:1px solid #ffffff0e}
@@ -242,7 +242,7 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 .pb-group h3{margin:0;font-size:1rem;font-weight:650;line-height:1.4}
 .pb-count{flex-shrink:0;padding:3px 9px;border:1px solid rgb(var(--pb-rgb) / .18);border-radius:6px;background:rgb(var(--pb-rgb) / .06);color:var(--pb-color);font-size:.6875rem;font-variant-numeric:tabular-nums}
 .pb-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
-.pb-group[data-sport="骑行"] .pb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pb-group[data-sport="Ride"] .pb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .pb-card{position:relative;min-width:0;padding:22px}
 .pb-card:not(:last-child){border-inline-end:1px solid #ffffff0e}
 .pb-card h4{margin:0 0 12px;padding-right:24px;color:#c5c2c0;font-size:.8125rem;font-weight:500;overflow-wrap:anywhere}
@@ -262,9 +262,9 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 .pb-status:empty{display:none}
 .pb-empty{margin:0;padding:20px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 @media(max-width:900px){
-  .pb-group[data-sport="跑步"] .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .pb-group[data-sport="跑步"] .pb-card:nth-child(2n){border-inline-end:0}
-  .pb-group[data-sport="跑步"] .pb-card:nth-child(n+3){border-top:1px solid #ffffff0e}
+  .pb-group[data-sport="Run"] .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pb-group[data-sport="Run"] .pb-card:nth-child(2n){border-inline-end:0}
+  .pb-group[data-sport="Run"] .pb-card:nth-child(n+3){border-top:1px solid #ffffff0e}
 }
 @media(max-width:600px){
   .pb-section{padding-top:28px}
@@ -279,11 +279,11 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
   .pb-result{font-size:1.625rem}
   .pb-unit{font-size:.8125rem}
   .pb-arrow{top:10px;right:10px;width:22px;height:22px}
-  .pb-group[data-sport="骑行"] .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .pb-group[data-sport="骑行"] .pb-card{border-inline-end:0}
-  .pb-group[data-sport="骑行"] .pb-card[data-event="最远距离"]{grid-column:1/-1}
-  .pb-group[data-sport="骑行"] .pb-card[data-event="CP5"]:not(:last-child){border-inline-end:1px solid #ffffff0e}
-  .pb-group[data-sport="骑行"] .pb-card[data-event="最远距离"]~.pb-card{border-top:1px solid #ffffff0e}
+  .pb-group[data-sport="Ride"] .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pb-group[data-sport="Ride"] .pb-card{border-inline-end:0}
+  .pb-group[data-sport="Ride"] .pb-card[data-event="longestRide"]{grid-column:1/-1}
+  .pb-group[data-sport="Ride"] .pb-card[data-event="cp5"]:not(:last-child){border-inline-end:1px solid #ffffff0e}
+  .pb-group[data-sport="Ride"] .pb-card[data-event="longestRide"]~.pb-card{border-top:1px solid #ffffff0e}
 }
 @media print{.pb-group,.pb-empty{background:white;color:#111;border-color:#ccc}.pb-result,.pb-sport-mark,.pb-count{color:#111}.pb-sport-mark,.pb-count{background:none;border-color:#ccc}.pb-card{break-inside:avoid}.pb-arrow,.pb-group::before{display:none}}
 
