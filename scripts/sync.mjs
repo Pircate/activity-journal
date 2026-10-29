@@ -40,7 +40,7 @@ export async function recoverTransaction(directory) {
   try { entries = JSON.parse(await readFile(path, 'utf8')); }
   catch (error) { if (error.code === 'ENOENT') return; throw error; }
   for (const {name, previous} of entries) {
-    if (!['docs/activities.json','docs/personal-bests.json','docs/index.html','data/strength-sets.json','data/sync-state.json'].includes(name)) throw new Error('恢复日志路径无效');
+    if (!['docs/activities.json','docs/personal-bests.json','docs/index.html','data/profile.json','data/strength-sets.json','data/sync-state.json'].includes(name)) throw new Error('恢复日志路径无效');
     const target = resolve(directory, name);
     if (previous === null) await unlink(target).catch(error => {if (error.code !== 'ENOENT') throw error;});
     else { await writeFile(target + '.tmp', previous); await rename(target + '.tmp', target); }
@@ -108,19 +108,19 @@ export async function sync({directory = root, now = new Date(), corosInput, fetc
       const config = {...await readConfig(), STRAVA_ACCESS_TOKEN:await stravaAccessToken()};
       fetchActivities = options => fetchAllActivities({...options, config});
     }
-    let report;
+    let report, profile;
     const data = await fetchActivities({baseData:previous, since:state?.cursor, now, strengthSets,
       corosRecords:corosInput.records, full:window.full,
-      onReport:value => { report = value; }});
+      onReport:value => { report = value; }, onProfile:value => { profile = value; }});
     validateData(data);
     if (window.full && data.period.start < corosInput.startDate) throw new Error(`Strava 发现更早历史，请从 ${data.period.start} 重新完整查询 COROS`);
     const personalBests = await fetchBests({activities:data.activities, now});
     validatePersonalBests(personalBests);
-    const html = await render({data, personalBests});
+    const html = await render({data, personalBests, profile});
     const nextState = {cursor:new Date(window.before * 1000).toISOString(), lastSuccessfulSyncAt:finishTime().toISOString(),
       lastFullReconcileAt:window.full ? new Date(window.before * 1000).toISOString() : state.lastFullReconcileAt};
     syncWindow(nextState, new Date(nextState.lastSuccessfulSyncAt));
-    await commitFiles(directory, [['docs/activities.json',json(data)], ['docs/personal-bests.json',json(personalBests)],
+    await commitFiles(directory, [['docs/activities.json',json(data)], ['docs/personal-bests.json',json(personalBests)], ['data/profile.json',json(profile)],
       ['docs/index.html',html], ['data/strength-sets.json',json(data.activities.filter(a => a.sport === 'WeightTraining' && a.activityUrl && a.sets !== null).map(a => ({activityUrl:a.activityUrl,sets:a.sets})))], ['data/sync-state.json',json(nextState)]], renameImpl);
     return {...report, mode:window.full ? 'full' : 'incremental', records:data.activities.length,
       syncedAt:data.syncedAt, period:data.period, cursor:nextState.cursor};

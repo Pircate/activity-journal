@@ -7,6 +7,16 @@ export const stravaId = value => {
   return id;
 };
 
+export function normalizeStravaProfile(athlete) {
+  const id = stravaId(athlete?.id);
+  const fields = ['firstname', 'lastname', 'state', 'city'];
+  if (fields.some(key => athlete[key] != null && typeof athlete[key] !== 'string')) throw new Error('Strava 个人资料格式无效');
+  const name = [athlete.firstname, athlete.lastname].map(value => value?.trim()).filter(Boolean).join(' ');
+  if (!name) throw new Error('Strava 姓名未提供');
+  const location = [...new Set([athlete.state, athlete.city].map(value => value?.trim()).filter(Boolean))].join('，');
+  return {name, location, stravaUrl:'https://www.strava.com/athletes/' + id};
+}
+
 export function normalizeStravaActivity(record) {
   const id = stravaId(record?.id);
   const sport = record.sport_type;
@@ -72,6 +82,7 @@ export function createStravaClient({accessToken, fetchImpl = fetch, clock = Date
     async verifyAthlete(expectedId = '78720097') {
       const athlete = await get('/athlete');
       if (stravaId(athlete?.id) !== expectedId) throw new Error('Strava 授权账号不匹配');
+      return normalizeStravaProfile(athlete);
     },
     async activities({after, before}) {
       const rows = [], ids = new Set();

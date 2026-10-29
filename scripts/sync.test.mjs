@@ -11,6 +11,7 @@ const period = {start:'2020-01-01', end:'2026-10-24'};
 const snapshot = (activities = [], unavailableActivities = []) => ({period, syncedAt:'2026-10-24 17:00:00 +08:00', activities, unavailableActivities, gearLibrary:[]});
 const corosInput = {startDate:'1900-01-01',endDate:'2026-10-24',queriedAt:now.toISOString(),records:[]};
 const pb = {source:'Intervals.icu',syncedAt:now.toISOString(),records:[]};
+const profile = {name:'接口姓名',location:'接口位置',stravaUrl:'https://www.strava.com/athletes/78720097'};
 const interval = (extra = {}) => ({id:'i1', strava_id:'901', type:'Ride', start_date:'2026-10-23T16:30:00Z', moving_time:3601, distance:20070, total_elevation_gain:123.4, icu_training_load:40, ...extra});
 const stub = (id = '901', extra = {}) => ({id, source:'STRAVA', start_date_local:'2026-10-24T00:30:00', _note:'STRAVA activities are not available via the API', ...extra});
 const activity = (extra = {}) => normalizeActivities([interval(extra)], period)[0];
@@ -69,13 +70,15 @@ async function workspace(t) {
   await writeFile(join(path,'docs/personal-bests.json'),JSON.stringify(pb));
   await writeFile(join(path,'docs/index.html'),'previous html');
   await writeFile(join(path,'data/strength-sets.json'),'[]');
+  await writeFile(join(path,'data/profile.json'),JSON.stringify({...profile,name:'旧姓名'}));
   return path;
 }
-const syncOptions=directory=>({directory,now,corosInput, fetchActivities:async options=>{const merged=merge({...options,previous:options.baseData,window:syncWindow(null,options.now)});options.onReport(merged.report);return merged.data;},fetchBests:async()=>pb,render:async()=>'new html',finishTime:()=>now});
+const syncOptions=directory=>({directory,now,corosInput, fetchActivities:async options=>{const merged=merge({...options,previous:options.baseData,window:syncWindow(null,options.now)});options.onReport(merged.report);options.onProfile(profile);return merged.data;},fetchBests:async()=>pb,render:async options=>{assert.deepEqual(options.profile,profile);return 'new html';},finishTime:()=>now});
 
 test('整个同步成功后才推进游标，下一次执行为增量', async t => {
   const path=await workspace(t), options=syncOptions(path);
   const first=await sync(options); assert.equal(first.mode,'full');
+  assert.deepEqual(JSON.parse(await readFile(join(path,'data/profile.json'),'utf8')),profile);
   const state=JSON.parse(await readFile(join(path,'data/sync-state.json'),'utf8'));
   assert.equal(state.cursor,now.toISOString()); assert.equal(state.lastFullReconcileAt,now.toISOString());
   const second=await sync({...options,now:new Date(now.getTime()+60000),finishTime:()=>new Date(now.getTime()+120000)});
@@ -83,7 +86,7 @@ test('整个同步成功后才推进游标，下一次执行为增量', async t 
 });
 
 test('COROS、活动、装备、成绩、构建失败及替换中断均保留旧文件和游标', async t => {
-  const path=await workspace(t),options=syncOptions(path), files=['docs/activities.json','docs/personal-bests.json','docs/index.html','data/strength-sets.json'];
+  const path=await workspace(t),options=syncOptions(path), files=['docs/activities.json','docs/personal-bests.json','docs/index.html','data/profile.json','data/strength-sets.json'];
   const before=await Promise.all(files.map(f=>readFile(join(path,f),'utf8')));
   for(const change of [
     {corosInput:{...corosInput,records:null}},

@@ -1,6 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createStravaClient, normalizeStravaActivity} from './strava-data.mjs';
+import {createStravaClient, normalizeStravaActivity, normalizeStravaProfile} from './strava-data.mjs';
+
+test('用户资料仅保留展示字段，支持单名、空位置和重复地区', () => {
+  const athlete = {id:78720097, firstname:' 波咖茶 ', lastname:'', state:' 安徽 ', city:'合肥', weight:60, email:'private@example.test'};
+  assert.deepEqual(normalizeStravaProfile(athlete), {name:'波咖茶', location:'安徽，合肥', stravaUrl:'https://www.strava.com/athletes/78720097'});
+  assert.equal(normalizeStravaProfile({...athlete, firstname:'Alex', lastname:'Chen'}).name, 'Alex Chen');
+  assert.equal(normalizeStravaProfile({...athlete, firstname:null, lastname:'Chen'}).name, 'Chen');
+  assert.equal(normalizeStravaProfile({...athlete, state:null, city:undefined}).location, '');
+  assert.equal(normalizeStravaProfile({...athlete, state:'合肥'}).location, '合肥');
+  for (const extra of [{id:null}, {firstname:' ', lastname:null}, {city:123}, {lastname:[]}]) {
+    assert.throws(() => normalizeStravaProfile({...athlete, ...extra}));
+  }
+});
+
+test('账号校验复用 /athlete 响应返回资料，不额外请求', async () => {
+  const calls = [];
+  const client = createStravaClient({accessToken:'secret', fetchImpl:async url => {
+    calls.push(url);
+    return Response.json({id:78720097, firstname:'接口姓名', city:'接口城市'});
+  }});
+  assert.deepEqual(await client.verifyAthlete(), {name:'接口姓名', location:'接口城市', stravaUrl:'https://www.strava.com/athletes/78720097'});
+  assert.deepEqual(calls, ['https://www.strava.com/api/v3/athlete']);
+  await assert.rejects(createStravaClient({accessToken:'secret', fetchImpl:async () => Response.json({id:78720097})}).verifyAthlete(), /姓名/);
+});
 
 const row = extra => ({id:901,sport_type:'Ride',start_date:'2026-10-23T16:30:00Z',distance:12345.67,moving_time:3601,elapsed_time:7200,total_elevation_gain:0,...extra});
 test('Strava 原始精度、运动时间、北京时间和力量指标', () => {

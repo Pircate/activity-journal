@@ -6,6 +6,8 @@
 
 网站从 Strava 分页查询活动，读取日期、开始时间、运动类型、距离、运动时间、爬升、平均心率和卡路里；从 Intervals.icu 查询训练负荷、装备与全历史成绩曲线。历史快照保留已核对的 Strava 链接与详情，data/strength-sets.json 保留 COROS 组数，云端不要求本机连接器。缺少指标时显示未知，不伪造零值。
 
+每次数据同步复用 Strava `/athlete` 账号校验响应，将姓名（`firstname`、`lastname`）、位置（`state`、`city`）和由用户 ID 生成的个人主页链接写入 `data/profile.json`。此文件是生成快照，不再手动维护；只保存这三个展示字段。姓名缺失或资料请求失败时停止同步，位置为空时隐藏位置。页面标题、页头和个人资料区统一读取该快照；普通代码发布同时恢复成功版本的个人资料。Strava 修改资料后，在下次活动同步或手动增量同步时更新页面。
+
 scripts/fetch-site-data.mjs 以 Strava 活动为主数据，复用 scripts/update-data.mjs 的 Intervals.icu 查询和 scripts/activity-sync.mjs 的精确关联：保留 Strava 未返回的历史、已知负荷与组数，按真实平台 ID 及已有平台链接关联，冲突停止，不按日期或名称猜测。无法从 Strava 读取的历史列入修正报告，不自动删除。基础数据、装备、成绩、构建与测试任一失败不发布。
 
 ### 公开字段约定

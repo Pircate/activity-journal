@@ -9,7 +9,7 @@ import {createStravaClient, normalizeStravaActivity, stravaId} from './strava-da
 import {workerRequest} from './site-sync.mjs';
 
 export async function fetchAllActivities({config, fetchImpl = fetch, now = new Date(), baseData, since,
-  eventActivityIds = [], full = false, strengthSets = [], corosRecords = [], stravaClient, onReport = () => {}} = {}) {
+  eventActivityIds = [], full = false, strengthSets = [], corosRecords = [], stravaClient, onReport = () => {}, onProfile = () => {}} = {}) {
   if (!Number.isFinite(now.getTime())) throw new Error('同步时间无效');
   if (since != null && (typeof since !== 'string' || !/Z$/.test(since) || !Number.isFinite(Date.parse(since)) || Date.parse(since) > now.getTime())) throw new Error('增量起点无效');
   if (!Array.isArray(eventActivityIds)) throw new Error('事件活动 ID 无效');
@@ -20,7 +20,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   validateData(previous);
   config ??= await readConfig();
   const client = stravaClient ?? createStravaClient({accessToken:config.STRAVA_ACCESS_TOKEN, fetchImpl});
-  await client.verifyAthlete(config.STRAVA_ATHLETE_ID ?? '78720097');
+  const profile = await client.verifyAthlete(config.STRAVA_ATHLETE_ID ?? '78720097');
   const isFull = full || previous.sourcePolicyVersion !== 2 || !since || !baseData;
   let start = isFull ? '1900-01-01' : shiftDate(beijingDate(new Date(since)), -2);
   const before = Math.floor(now.getTime() / 1000);
@@ -62,6 +62,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   merged.data.gearLibrary = intervals.gearLibrary;
   validateData(merged.data);
   await onReport(merged.report);
+  await onProfile(profile);
   return merged.data;
 }
 
@@ -89,7 +90,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const strengthSets = JSON.parse(await readFile(new URL('../data/strength-sets.json', import.meta.url), 'utf8'));
     const eventActivityIds = values.events ? JSON.parse(await readFile(values.events, 'utf8')) : [];
     const config = {...await readConfig(), STRAVA_ACCESS_TOKEN:await stravaAccessToken()};
+    let profile;
     const data = await fetchAllActivities({config, baseData, strengthSets, eventActivityIds, since:values.since, full:values.full,
+      onProfile:value => { profile = value; },
       onReport:async report => {
         const path = values.report ?? 'output/sync/history-correction.json';
         await mkdir(dirname(path), {recursive:true});
@@ -99,6 +102,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const temporary = new URL('../docs/activities.json.tmp', import.meta.url);
     try { await writeFile(temporary, JSON.stringify(data, null, 2) + '\n'); await rename(temporary, target); }
     finally { await unlink(temporary).catch(error => {if (error.code !== 'ENOENT') throw error;}); }
+    await writeFile(new URL('../data/profile.json', import.meta.url), JSON.stringify(profile, null, 2) + '\n');
     console.log(JSON.stringify({records:data.activities.length, syncedAt:data.syncedAt, sourcePolicyVersion:data.sourcePolicyVersion}));
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

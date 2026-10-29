@@ -12,6 +12,7 @@ const commit = 'a'.repeat(40);
 const claim = {runId:'1:1', mode:'sync', startedAt:'2026-10-27T00:00:00Z', cursor:'2026-10-26T00:00:00Z', publishedCommit:commit, events:[{activityId:'901'}]};
 const activities = JSON.stringify({period:{start:'2020-01-01',end:'2026-10-27'},syncedAt:'2026-10-27 12:00:00 +08:00',activities:[],unavailableActivities:[],gearLibrary:[]});
 const personalBests = JSON.stringify({source:'Intervals.icu',syncedAt:'2026-10-27T04:00:00.000Z',records:[]});
+const profile = JSON.stringify({name:'成功版本姓名', location:'成功版本位置', stravaUrl:'https://www.strava.com/athletes/78720097'});
 const env = {SYNC_WORKER_URL:'https://worker.test', SYNC_TOKEN:'test-token'};
 
 async function workspace(t) {
@@ -48,20 +49,33 @@ test('activities, personal bests and build failures stop before subsequent work'
 
 test('code-only publication restores the successful snapshot rather than a failed snapshot on main', async t => {
   const directory = await workspace(t);
+  await mkdir(join(directory, 'data'));
   const original = process.cwd();
   process.chdir(directory);
   try {
     await writeFile('docs/activities.json', 'unpublished data');
     await writeFile('docs/personal-bests.json', 'unpublished PB');
+    await writeFile('data/profile.json', 'unpublished profile');
     const calls = [];
     await updateSnapshot({...claim, mode:'publish'}, {directory, runImpl:(command, args) => {
       calls.push(args);
-      return args[1]?.endsWith('personal-bests.json') ? personalBests : activities;
+      return args[1]?.endsWith('personal-bests.json') ? personalBests : args[1]?.endsWith('profile.json') ? profile : activities;
     }});
     assert.equal(await readFile('docs/activities.json', 'utf8'), activities);
     assert.equal(await readFile('docs/personal-bests.json', 'utf8'), personalBests);
-    assert.deepEqual(calls.map(args => args[0]), ['show', 'show', 'scripts/build.mjs']);
+    assert.equal(await readFile('data/profile.json', 'utf8'), profile);
+    assert.deepEqual(calls.map(args => args[0]), ['show', 'show', 'show', 'scripts/build.mjs']);
   } finally { process.chdir(original); }
+});
+
+test('云端提交包含个人资料快照，即使只有资料发生变化', () => {
+  const calls=[];
+  commitSnapshot(claim, (command, args) => {
+    calls.push(args);
+    return args[0] === 'status' ? ' M data/profile.json' : commit;
+  });
+  assert.ok(calls.find(args => args[0] === 'add').includes('data/profile.json'));
+  assert.ok(calls.some(args => args[0] === 'push'));
 });
 
 test('a corrupt published version is rejected without executing git', async t => {
@@ -100,7 +114,9 @@ test('real git push conflicts are rejected without overwriting remote changes', 
   git(local, ['config','user.name','Test']);
   git(local, ['config','user.email','test@example.test']);
   await mkdir(join(local, 'docs'));
+  await mkdir(join(local, 'data'));
   for (const name of ['activities.json','personal-bests.json','index.html']) await writeFile(join(local,'docs',name), 'published');
+  await writeFile(join(local,'data/profile.json'), profile);
   git(local, ['add','.']);
   git(local, ['commit','-m','initial']);
   git(local, ['remote','add','origin',origin]);
@@ -118,6 +134,7 @@ test('real git push conflicts are rejected without overwriting remote changes', 
   assert.throws(() => commitSnapshot(claim, (command,args) => {calls.push(args); return git(local,args);}));
   assert.equal(git(directory, ['--git-dir',origin,'rev-parse','main']).trim(), remoteBefore);
   assert.equal(git(directory, ['--git-dir',origin,'show','main:docs/activities.json']), 'published');
+  assert.ok(calls.some(args => args[0] === 'push'));
   assert.ok(calls.every(args => !args.includes('--force') && !args.includes('rebase')));
 });
 

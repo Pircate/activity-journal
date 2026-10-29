@@ -5,12 +5,13 @@ import {normalizeStravaActivity} from './strava-data.mjs';
 import {readConfig} from './update-data.mjs';
 
 const now=new Date('2026-10-27T01:00:00Z'),since='2026-10-25T16:30:00Z';
+const profile={name:'接口姓名', location:'接口位置', stravaUrl:'https://www.strava.com/athletes/78720097'};
 const record=(id,date,extra={})=>({id,sport_type:'Ride',start_date:date+'T00:00:00Z',moving_time:3600,distance:20000,...extra});
 const baseline=(rows=[],extra={})=>({sourcePolicyVersion:2,period:{start:'2020-01-01',end:'2026-10-26'},syncedAt:'2026-10-26 00:30:00 +08:00',
   activities:rows.map(normalizeStravaActivity),unavailableActivities:[],gearLibrary:[],...extra});
 function api(rows=[],intervals=[],details={}) {
   const calls=[];
-  const stravaClient={verifyAthlete:async id=>{assert.equal(id,'78720097');},activities:async window=>{calls.push(window);return rows;},activity:async id=>{calls.push(id);return details[id]??null;}};
+  const stravaClient={verifyAthlete:async id=>{assert.equal(id,'78720097');return profile;},activities:async window=>{calls.push(window);return rows;},activity:async id=>{calls.push(id);return details[id]??null;}};
   const fetchImpl=async input=>{
     const url=new URL(input);calls.push(url);
     return Response.json(url.pathname.endsWith('/athlete/0')?{id:'i123'}:url.pathname.endsWith('/gear')?[]:intervals);
@@ -18,6 +19,15 @@ function api(rows=[],intervals=[],details={}) {
   return {calls,stravaClient,fetchImpl};
 }
 const sync=options=>fetchAllActivities({config:{INTERVALS_ICU_API_KEY:'test'},now,...options});
+
+test('同步成功时交付接口资料，失败时不更新资料',async()=>{
+  const profiles=[];
+  const options={...api(),baseData:baseline(),since,onProfile:value=>profiles.push(value)};
+  await sync(options);
+  assert.deepEqual(profiles,[profile]);
+  await assert.rejects(sync({...options,fetchImpl:async()=>new Response(null,{status:503})}),/HTTP 503/);
+  assert.deepEqual(profiles,[profile]);
+});
 
 test('增量由 Strava 覆盖主数据，Intervals 仅补负荷，未返回历史保留',async()=>{
   const baseData=baseline([record('1','2020-01-01'),record('2','2026-10-24'),record('3','2026-10-25')]);
