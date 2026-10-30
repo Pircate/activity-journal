@@ -1,6 +1,6 @@
 {
   "source": "Intervals.icu",
-  "syncedAt": "2026-10-29T12:38:24.990Z",
+  "syncedAt": "2026-10-30T13:55:06.754Z",
   "records": [
     {
       "sport": "Run",
@@ -55,6 +55,647 @@
       "event": "cp20",
       "value": 233,
       "date": "2026-10-02",
+      "activityUrl": "https://intervals.icu/activities/i192532318",
+      "stravaUrl": "https://www.strava.com/activities/20416696791"
+    }
+  ],
+  "history": [
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 2272,
+      "date": "2020-07-13",
+      "startTime": "18:43:15",
+      "activityUrl": "https://intervals.icu/activities/20658115892",
+      "stravaUrl": "https://www.strava.com/activities/20658115892"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 2108,
+      "date": "2020-09-07",
+      "startTime": "18:51:31",
+      "activityUrl": "https://intervals.icu/activities/20658121533",
+      "stravaUrl": "https://www.strava.com/activities/20658121533"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1924,
+      "date": "2020-09-11",
+      "startTime": "22:02:24",
+      "activityUrl": "https://intervals.icu/activities/20658121899",
+      "stravaUrl": "https://www.strava.com/activities/20658121899"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1874,
+      "date": "2020-09-19",
+      "startTime": "17:22:54",
+      "activityUrl": "https://intervals.icu/activities/20658122643",
+      "stravaUrl": "https://www.strava.com/activities/20658122643"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1822,
+      "date": "2020-10-12",
+      "startTime": "18:28:06",
+      "activityUrl": "https://intervals.icu/activities/20658138940",
+      "stravaUrl": "https://www.strava.com/activities/20658138940"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 3908,
+      "date": "2020-10-14",
+      "startTime": "18:19:15",
+      "activityUrl": "https://intervals.icu/activities/20658139133",
+      "stravaUrl": "https://www.strava.com/activities/20658139133"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1711,
+      "date": "2020-10-17",
+      "startTime": "18:15:21",
+      "activityUrl": "https://intervals.icu/activities/20658139481",
+      "stravaUrl": "https://www.strava.com/activities/20658139481"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1673,
+      "date": "2020-11-02",
+      "startTime": "18:35:02",
+      "activityUrl": "https://intervals.icu/activities/20658143600",
+      "stravaUrl": "https://www.strava.com/activities/20658143600"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1647,
+      "date": "2020-11-06",
+      "startTime": "17:15:54",
+      "activityUrl": "https://intervals.icu/activities/20658144147",
+      "stravaUrl": "https://www.strava.com/activities/20658144147"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 3872,
+      "date": "2020-11-08",
+      "startTime": "16:32:59",
+      "activityUrl": "https://intervals.icu/activities/20658144237",
+      "stravaUrl": "https://www.strava.com/activities/20658144237"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1588,
+      "date": "2020-11-11",
+      "startTime": "18:41:10",
+      "activityUrl": "https://intervals.icu/activities/20658144487",
+      "stravaUrl": "https://www.strava.com/activities/20658144487"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 3502,
+      "date": "2020-11-11",
+      "startTime": "18:41:10",
+      "activityUrl": "https://intervals.icu/activities/20658144487",
+      "stravaUrl": "https://www.strava.com/activities/20658144487"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1586,
+      "date": "2020-11-14",
+      "startTime": "10:00:19",
+      "activityUrl": "https://intervals.icu/activities/20658144939",
+      "stravaUrl": "https://www.strava.com/activities/20658144939"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 3211,
+      "date": "2020-11-14",
+      "startTime": "10:00:19",
+      "activityUrl": "https://intervals.icu/activities/20658144939",
+      "stravaUrl": "https://www.strava.com/activities/20658144939"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1504,
+      "date": "2020-11-28",
+      "startTime": "14:13:25",
+      "activityUrl": "https://intervals.icu/activities/20658146978",
+      "stravaUrl": "https://www.strava.com/activities/20658146978"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1485,
+      "date": "2020-12-22",
+      "startTime": "08:12:16",
+      "activityUrl": "https://intervals.icu/activities/20658153745",
+      "stravaUrl": "https://www.strava.com/activities/20658153745"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1385,
+      "date": "2021-01-23",
+      "startTime": "10:03:48",
+      "activityUrl": "https://intervals.icu/activities/20658163884",
+      "stravaUrl": "https://www.strava.com/activities/20658163884"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 3205,
+      "date": "2021-02-21",
+      "startTime": "13:55:38",
+      "activityUrl": "https://intervals.icu/activities/20658172824",
+      "stravaUrl": "https://www.strava.com/activities/20658172824"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2917,
+      "date": "2021-03-07",
+      "startTime": "17:05:03",
+      "activityUrl": "https://intervals.icu/activities/20658173731",
+      "stravaUrl": "https://www.strava.com/activities/20658173731"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1374,
+      "date": "2021-03-13",
+      "startTime": "15:28:07",
+      "activityUrl": "https://intervals.icu/activities/20658174548",
+      "stravaUrl": "https://www.strava.com/activities/20658174548"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2845,
+      "date": "2021-03-20",
+      "startTime": "20:29:46",
+      "activityUrl": "https://intervals.icu/activities/20658175811",
+      "stravaUrl": "https://www.strava.com/activities/20658175811"
+    },
+    {
+      "sport": "Run",
+      "event": "halfMarathon",
+      "value": 6670,
+      "date": "2021-03-28",
+      "startTime": "15:01:11",
+      "activityUrl": "https://intervals.icu/activities/20658177741",
+      "stravaUrl": "https://www.strava.com/activities/20658177741"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1345,
+      "date": "2021-04-24",
+      "startTime": "08:27:16",
+      "activityUrl": "https://intervals.icu/activities/20658182704",
+      "stravaUrl": "https://www.strava.com/activities/20658182704"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2729,
+      "date": "2021-04-24",
+      "startTime": "08:27:16",
+      "activityUrl": "https://intervals.icu/activities/20658182704",
+      "stravaUrl": "https://www.strava.com/activities/20658182704"
+    },
+    {
+      "sport": "Run",
+      "event": "halfMarathon",
+      "value": 6494,
+      "date": "2021-05-02",
+      "startTime": "09:18:57",
+      "activityUrl": "https://intervals.icu/activities/20658184123",
+      "stravaUrl": "https://www.strava.com/activities/20658184123"
+    },
+    {
+      "sport": "Ride",
+      "event": "longestRide",
+      "value": 2.4314,
+      "date": "2021-08-29",
+      "startTime": "05:36:58",
+      "activityUrl": "https://intervals.icu/activities/i17228228",
+      "stravaUrl": "https://www.strava.com/activities/5868832008"
+    },
+    {
+      "sport": "Ride",
+      "event": "longestRide",
+      "value": 38.0094,
+      "date": "2021-08-29",
+      "startTime": "17:04:54",
+      "activityUrl": "https://intervals.icu/activities/i17228229",
+      "stravaUrl": "https://www.strava.com/activities/5871947632"
+    },
+    {
+      "sport": "Ride",
+      "event": "longestRide",
+      "value": 46.062,
+      "date": "2021-09-05",
+      "startTime": "14:17:28",
+      "activityUrl": "https://intervals.icu/activities/i17228241",
+      "stravaUrl": "https://www.strava.com/activities/5908281181"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1304,
+      "date": "2021-09-12",
+      "startTime": "06:29:45",
+      "activityUrl": "https://intervals.icu/activities/i17228251",
+      "stravaUrl": "https://www.strava.com/activities/5945042302"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2678,
+      "date": "2021-09-12",
+      "startTime": "06:29:45",
+      "activityUrl": "https://intervals.icu/activities/i17228251",
+      "stravaUrl": "https://www.strava.com/activities/5945042302"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1186,
+      "date": "2021-09-18",
+      "startTime": "19:41:42",
+      "activityUrl": "https://intervals.icu/activities/i17228262",
+      "stravaUrl": "https://www.strava.com/activities/5979271054"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2535,
+      "date": "2021-09-25",
+      "startTime": "08:14:48",
+      "activityUrl": "https://intervals.icu/activities/i17228276",
+      "stravaUrl": "https://www.strava.com/activities/6013908054"
+    },
+    {
+      "sport": "Run",
+      "event": "halfMarathon",
+      "value": 6240,
+      "date": "2021-10-11",
+      "startTime": "19:07:17",
+      "activityUrl": "https://intervals.icu/activities/i17228300",
+      "stravaUrl": "https://www.strava.com/activities/6097208996"
+    },
+    {
+      "sport": "Run",
+      "event": "halfMarathon",
+      "value": 6114,
+      "date": "2021-11-08",
+      "startTime": "19:32:45",
+      "activityUrl": "https://intervals.icu/activities/i17228338",
+      "stravaUrl": "https://www.strava.com/activities/6229070229"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2518,
+      "date": "2021-11-15",
+      "startTime": "19:28:27",
+      "activityUrl": "https://intervals.icu/activities/i17228367",
+      "stravaUrl": "https://www.strava.com/activities/6260914855"
+    },
+    {
+      "sport": "Run",
+      "event": "halfMarathon",
+      "value": 5444,
+      "date": "2021-11-15",
+      "startTime": "19:28:27",
+      "activityUrl": "https://intervals.icu/activities/i17228367",
+      "stravaUrl": "https://www.strava.com/activities/6260914855"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1152,
+      "date": "2021-12-11",
+      "startTime": "14:11:04",
+      "activityUrl": "https://intervals.icu/activities/i17228428",
+      "stravaUrl": "https://www.strava.com/activities/6369138583"
+    },
+    {
+      "sport": "Run",
+      "event": "marathon",
+      "value": 11904,
+      "date": "2021-12-11",
+      "startTime": "14:11:04",
+      "activityUrl": "https://intervals.icu/activities/i17228428",
+      "stravaUrl": "https://www.strava.com/activities/6369138583"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2340,
+      "date": "2022-01-03",
+      "startTime": "14:42:17",
+      "activityUrl": "https://intervals.icu/activities/i17228464",
+      "stravaUrl": "https://www.strava.com/activities/6464617237"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2333,
+      "date": "2022-02-26",
+      "startTime": "06:46:41",
+      "activityUrl": "https://intervals.icu/activities/i17228586",
+      "stravaUrl": "https://www.strava.com/activities/6738093628"
+    },
+    {
+      "sport": "Run",
+      "event": "halfMarathon",
+      "value": 5148,
+      "date": "2022-02-26",
+      "startTime": "06:46:41",
+      "activityUrl": "https://intervals.icu/activities/i17228586",
+      "stravaUrl": "https://www.strava.com/activities/6738093628"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1151,
+      "date": "2022-05-18",
+      "startTime": "18:04:36",
+      "activityUrl": "https://intervals.icu/activities/i17228863",
+      "stravaUrl": "https://www.strava.com/activities/7162383261"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1093,
+      "date": "2022-05-22",
+      "startTime": "18:32:12",
+      "activityUrl": "https://intervals.icu/activities/i17228868",
+      "stravaUrl": "https://www.strava.com/activities/7183760607"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2306,
+      "date": "2022-07-21",
+      "startTime": "20:06:57",
+      "activityUrl": "https://intervals.icu/activities/i17228993",
+      "stravaUrl": "https://www.strava.com/activities/7504586097"
+    },
+    {
+      "sport": "Ride",
+      "event": "longestRide",
+      "value": 51.2904,
+      "date": "2022-09-02",
+      "startTime": "15:09:38",
+      "activityUrl": "https://intervals.icu/activities/i17229086",
+      "stravaUrl": "https://www.strava.com/activities/7740965598"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2283,
+      "date": "2022-10-27",
+      "startTime": "18:10:02",
+      "activityUrl": "https://intervals.icu/activities/i17229384",
+      "stravaUrl": "https://www.strava.com/activities/8026642371"
+    },
+    {
+      "sport": "Run",
+      "event": "halfMarathon",
+      "value": 5069,
+      "date": "2022-10-27",
+      "startTime": "18:10:02",
+      "activityUrl": "https://intervals.icu/activities/i17229384",
+      "stravaUrl": "https://www.strava.com/activities/8026642371"
+    },
+    {
+      "sport": "Run",
+      "event": "run5k",
+      "value": 1092,
+      "date": "2022-11-06",
+      "startTime": "06:57:18",
+      "activityUrl": "https://intervals.icu/activities/i17229425",
+      "stravaUrl": "https://www.strava.com/activities/8074592205"
+    },
+    {
+      "sport": "Run",
+      "event": "run10k",
+      "value": 2253,
+      "date": "2022-11-06",
+      "startTime": "06:57:18",
+      "activityUrl": "https://intervals.icu/activities/i17229425",
+      "stravaUrl": "https://www.strava.com/activities/8074592205"
+    },
+    {
+      "sport": "Ride",
+      "event": "longestRide",
+      "value": 63.0327,
+      "date": "2022-12-02",
+      "startTime": "14:12:52",
+      "activityUrl": null,
+      "stravaUrl": "https://www.strava.com/activities/8196744641"
+    },
+    {
+      "sport": "Run",
+      "event": "marathon",
+      "value": 11737,
+      "date": "2023-03-19",
+      "startTime": "07:40:42",
+      "activityUrl": "https://intervals.icu/activities/i17229714",
+      "stravaUrl": "https://www.strava.com/activities/8738421977"
+    },
+    {
+      "sport": "Ride",
+      "event": "longestRide",
+      "value": 164.185,
+      "date": "2023-04-26",
+      "startTime": "07:25:59",
+      "activityUrl": "https://intervals.icu/activities/8969808360",
+      "stravaUrl": "https://www.strava.com/activities/8969808360"
+    },
+    {
+      "sport": "Run",
+      "event": "marathon",
+      "value": 10629,
+      "date": "2023-11-19",
+      "startTime": "07:30:38",
+      "activityUrl": "https://intervals.icu/activities/i27581543",
+      "stravaUrl": "https://www.strava.com/activities/10242864989"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp5",
+      "value": 194,
+      "date": "2024-04-17",
+      "startTime": "20:56:53",
+      "activityUrl": "https://intervals.icu/activities/11202543887",
+      "stravaUrl": "https://www.strava.com/activities/11202543887"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 179,
+      "date": "2024-04-17",
+      "startTime": "20:56:53",
+      "activityUrl": "https://intervals.icu/activities/11202543887",
+      "stravaUrl": "https://www.strava.com/activities/11202543887"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp5",
+      "value": 217,
+      "date": "2024-04-18",
+      "startTime": "20:16:50",
+      "activityUrl": "https://intervals.icu/activities/11209462713",
+      "stravaUrl": "https://www.strava.com/activities/11209462713"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 182,
+      "date": "2024-04-21",
+      "startTime": "07:00:46",
+      "activityUrl": "https://intervals.icu/activities/11227780811",
+      "stravaUrl": "https://www.strava.com/activities/11227780811"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp5",
+      "value": 232,
+      "date": "2024-04-25",
+      "startTime": "21:15:54",
+      "activityUrl": "https://intervals.icu/activities/11261419019",
+      "stravaUrl": "https://www.strava.com/activities/11261419019"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp5",
+      "value": 280,
+      "date": "2024-05-29",
+      "startTime": "19:53:25",
+      "activityUrl": "https://intervals.icu/activities/11524665363",
+      "stravaUrl": "https://www.strava.com/activities/11524665363"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 186,
+      "date": "2024-05-29",
+      "startTime": "19:53:25",
+      "activityUrl": "https://intervals.icu/activities/11524665363",
+      "stravaUrl": "https://www.strava.com/activities/11524665363"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 195,
+      "date": "2025-05-11",
+      "startTime": "07:40:10",
+      "activityUrl": "https://intervals.icu/activities/i77934321",
+      "stravaUrl": "https://www.strava.com/activities/14441762148"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 197,
+      "date": "2025-05-19",
+      "startTime": "05:56:25",
+      "activityUrl": "https://intervals.icu/activities/i79113403",
+      "stravaUrl": "https://www.strava.com/activities/14524259160"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 198,
+      "date": "2025-05-24",
+      "startTime": "06:00:58",
+      "activityUrl": "https://intervals.icu/activities/i79868766",
+      "stravaUrl": "https://www.strava.com/activities/14575053232"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 206,
+      "date": "2025-08-27",
+      "startTime": "19:44:47",
+      "activityUrl": "https://intervals.icu/activities/i94501508",
+      "stravaUrl": "https://www.strava.com/activities/15604353015"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 211,
+      "date": "2025-09-20",
+      "startTime": "06:34:59",
+      "activityUrl": "https://intervals.icu/activities/i98116509",
+      "stravaUrl": "https://www.strava.com/activities/15870328966"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 212,
+      "date": "2025-10-25",
+      "startTime": "08:01:27",
+      "activityUrl": "https://intervals.icu/activities/i103635446",
+      "stravaUrl": "https://www.strava.com/activities/16247018333"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 216,
+      "date": "2026-02-05",
+      "startTime": "19:46:48",
+      "activityUrl": "https://intervals.icu/activities/i122974915",
+      "stravaUrl": "https://www.strava.com/activities/17294802793"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 217,
+      "date": "2026-03-20",
+      "startTime": "14:01:16",
+      "activityUrl": "https://intervals.icu/activities/i133426487",
+      "stravaUrl": "https://www.strava.com/activities/17788155805"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 229,
+      "date": "2026-04-01",
+      "startTime": "20:17:53",
+      "activityUrl": "https://intervals.icu/activities/i136442860",
+      "stravaUrl": "https://www.strava.com/activities/17937395949"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp5",
+      "value": 288,
+      "date": "2026-05-10",
+      "startTime": "06:07:19",
+      "activityUrl": "https://intervals.icu/activities/i146848137",
+      "stravaUrl": "https://www.strava.com/activities/18445078306"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp20",
+      "value": 233,
+      "date": "2026-10-02",
+      "startTime": "13:15:10",
       "activityUrl": "https://intervals.icu/activities/i192532318",
       "stravaUrl": "https://www.strava.com/activities/20416696791"
     }

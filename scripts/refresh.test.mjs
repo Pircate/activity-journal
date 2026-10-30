@@ -14,6 +14,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   const requests = [];
   const initialBests = {source:'Intervals.icu', syncedAt:'2026-10-15T04:00:00.000Z', records:[{sport:'Run', event:'run5k', value:1500, date:'2026-10-09', activityUrl:'https://intervals.icu/activities/i123'}]};
   let latestBests = structuredClone(initialBests);
+  initialBests.history = initialBests.records.map(r => ({...r, startTime:'08:00:00'}));
+  latestBests = structuredClone(initialBests);
   let failBests = false;
   const elements = new Map();
   const documentEvents = new Map();
@@ -144,6 +146,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.equal(status.textContent, '', '正常读取后不显示额外同步说明');
 
   latestBests.records[0].value = 1440;
+  latestBests.history[0].value = 1440;
   latestBests.syncedAt = '2026-10-16T04:00:00.000Z';
   respond = async () => { throw new Error('offline'); };
   t.mock.timers.setTime(Date.parse('2026-10-17T04:00:00Z'));

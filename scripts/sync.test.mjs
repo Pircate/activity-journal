@@ -10,7 +10,7 @@ const now = new Date('2026-10-24T10:00:00.000Z');
 const period = {start:'2020-01-01', end:'2026-10-24'};
 const snapshot = (activities = [], unavailableActivities = []) => ({period, syncedAt:'2026-10-24 17:00:00 +08:00', activities, unavailableActivities, gearLibrary:[]});
 const corosInput = {startDate:'1900-01-01',endDate:'2026-10-24',queriedAt:now.toISOString(),records:[]};
-const pb = {source:'Intervals.icu',syncedAt:now.toISOString(),records:[]};
+const pb = {source:'Intervals.icu',syncedAt:now.toISOString(),records:[],history:[]};
 const profile = {name:'接口姓名',location:'接口位置',stravaUrl:'https://www.strava.com/athletes/78720097'};
 const interval = (extra = {}) => ({id:'i1', strava_id:'901', type:'Ride', start_date:'2026-10-23T16:30:00Z', moving_time:3601, distance:20070, total_elevation_gain:123.4, icu_training_load:40, ...extra});
 const stub = (id = '901', extra = {}) => ({id, source:'STRAVA', start_date_local:'2026-10-24T00:30:00', _note:'STRAVA activities are not available via the API', ...extra});
@@ -94,6 +94,12 @@ test('COROS、活动、装备、成绩、构建失败及替换中断均保留旧
     {fetchActivities:async()=>({activities:[{}]})},
     {fetchActivities:async()=>({...snapshot(),gearLibrary:[{}]})},
     {fetchBests:async()=>{throw Error('成绩失败');}},
+    {fetchBests:async()=>({source:'Intervals.icu',syncedAt:now.toISOString(),records:[]})},
+    {fetchBests:async options=>fetchPersonalBests({...options,config:{INTERVALS_ICU_API_KEY:'test'},fetchImpl:async url=>{
+      if(url.endsWith('/athlete/0'))return response({id:'i123',timezone:'Asia/Shanghai'});
+      if(url.includes('pace-curves'))return response({distances:[5000,10000,21097.5,42195],curves:[]});
+      throw Error('功率曲线网络失败');
+    }})},
     {render:async()=>{throw Error('构建失败');}},
     {renameImpl:async (from,to)=>{if(to.endsWith('index.html'))throw Error('替换中断');await rename(from,to);}},
   ]) {

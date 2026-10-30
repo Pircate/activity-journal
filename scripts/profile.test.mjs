@@ -5,7 +5,7 @@ import {normalizeStravaProfile} from './strava-data.mjs';
 
 const data = {period:{start:'2026-01-01',end:'2026-10-29'}, syncedAt:'2026-10-29 12:00:00 +08:00',
   activities:[], unavailableActivities:[], gearLibrary:[]};
-const personalBests = {source:'Intervals.icu', syncedAt:'2026-10-29T04:00:00.000Z', records:[]};
+const personalBests = {source:'Intervals.icu', syncedAt:'2026-10-29T04:00:00.000Z', records:[], history:[]};
 
 test('接口资料用于姓名、页头、标题、位置和个人主页，文本安全转义', async () => {
   const profile = normalizeStravaProfile({id:42, firstname:'新姓名<script>', state:'新省', city:'新城市&'});
