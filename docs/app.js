@@ -1,6 +1,6 @@
 // 跟随 app.js 自身的 ?v= 版本号加载依赖，避免改动后浏览器仍用缓存的旧模块。
 const version = new URL(import.meta.url).searchParams.get('v');
-const {createJournal, beijingDate, formatTime, formatDistance, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetricState, describeDay, dayStateLabels} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
+const {createJournal, createRecentSection, beijingDate, formatTime, formatDistance, validateData, syncTimestamp, renderGearLibrary, renderDayRecords, renderYearOptions, renderSportFilter, availableYears, dayMetricState, describeDay, dayStateLabels} = await import('./journal.mjs' + (version ? '?v=' + version : ''));
 const {sportLabel} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
 const {initializeHistory} = await import('./history.mjs' + (version ? '?v=' + version : ''));
 const {renderCalendar, moveCalendarDate} = await import('./calendar.mjs' + (version ? '?v=' + version : ''));
@@ -34,6 +34,7 @@ document.querySelector('.gear-library').addEventListener('click', event => {
 let selectedDate;
 let metric = 'distanceKm';
 let sport = '';
+let recentRange = 'rolling';
 const calendarGrid = document.getElementById('calendar-days');
 const calendarPrevious = document.getElementById('calendar-previous');
 const calendarNext = document.getElementById('calendar-next');
@@ -131,6 +132,12 @@ yearSelect.addEventListener('change', () => {
   selectedDate = undefined;
   renderJournal();
 });
+document.querySelector('.recent-summary').addEventListener('click', event => {
+  const button = event.target.closest('[data-recent-range]');
+  if (!button || button.dataset.recentRange === recentRange) return;
+  recentRange = button.dataset.recentRange;
+  updateRecentSection(createRecentSection(data, beijingDate(), recentRange), recentRange);
+});
 document.getElementById('sport-filter').addEventListener('click', event => {
   const chip = event.target.closest('[data-sport]');
   if (!chip) return;
@@ -138,6 +145,15 @@ document.getElementById('sport-filter').addEventListener('click', event => {
   // 切换类型只影响年度范围；最近一周、历史查询和装备库各自独立。
   renderJournal();
 });
+function updateRecentSection(section, focusRange) {
+  const summary = document.querySelector('.recent-summary');
+  summary.innerHTML = section.summary;
+  summary.setAttribute('aria-label', section.title + '运动摘要');
+  document.getElementById('recent-records-title').textContent = section.title;
+  document.getElementById('recent-records-status').textContent = section.status;
+  document.querySelector('.records-grid').innerHTML = section.cards;
+  if (focusRange) summary.querySelector('[data-recent-range="' + focusRange + '"]')?.focus({preventScroll:true});
+}
 function renderJournal() {
   const focusedCalendarDate = document.activeElement?.matches('.calendar-day[data-date]') ? document.activeElement.dataset.date : null;
   const focusedDate = document.activeElement?.matches('.day-cell[data-date]') ? document.activeElement.dataset.date : null;
@@ -147,14 +163,19 @@ function renderJournal() {
   if (sport && !data.activities.some(activity => activity.sport === sport)) sport = '';
   yearSelect.innerHTML = renderYearOptions(data, today);
   yearSelect.value = range;
-  const journal = createJournal(data, today, range, sport);
+  const journal = createJournal(data, today, range, sport, recentRange);
   const snapshot = JSON.stringify(data);
   const updateRecent = snapshot !== renderedData || today !== renderedDate;
   if (updateRecent) updateTrends(data, today);
   if (updateRecent) updateMilestones(data);
   if (renderedData !== undefined && updateRecent) updateReports(data, today);
-  if (updateRecent) document.querySelector('.recent-summary').innerHTML = journal.recentSummary;
-  const {period, distance, duration, activities, recent, activeDays, missingDistance, unavailableCount} = journal;
+  if (updateRecent) updateRecentSection({
+    summary:journal.recentSummary,
+    title:journal.recentTitle,
+    status:journal.recentStatus,
+    cards:journal.cards,
+  });
+  const {period, distance, duration, activities, activeDays, missingDistance, unavailableCount} = journal;
   const pretty = date => date.replaceAll('-', '.');
   const rangeLabel = range === 'recent' ? '最近一年' : range + ' 年';
   document.querySelector('.overview-range').textContent = rangeLabel;
@@ -177,14 +198,12 @@ function renderJournal() {
   grid.innerHTML = journal.cells;
   document.querySelector('.heatmap').style.setProperty('--columns', journal.columns);
   document.querySelector('.month-labels').innerHTML = journal.monthLabels;
-  if (updateRecent) document.querySelector('.records-grid').innerHTML = journal.cards;
   // 装备独立于年度统计，内容未变化时保留节点、展开状态和焦点。
   const gear = renderGearLibrary(data.gearLibrary);
   if (gear !== renderedGear) {
     document.querySelector('.gear-library').innerHTML = gear;
     renderedGear = gear;
   }
-  if (updateRecent) document.querySelector('.records-section .section-head p').textContent = recent.length ? recent.length + ' 次运动' : '最近一周还没有运动记录';
   dateInput.min = period.start;
   dateInput.max = period.end;
   daily = journal.daily;

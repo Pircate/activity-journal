@@ -32,6 +32,7 @@ test('力量训练距离不适用，其他运动的缺失和零值在所有统�
   }
   const data = snapshot([strength]);
   assert.doesNotMatch(createJournal(data, '2026-10-01').recentSummary, /距离未提供/);
+  assert.doesNotMatch(createJournal(data, '2026-10-01').recentSummary, /爬升未提供/);
   const trend = createTrends(data, '2026', 'month', period.end).at(-1);
   assert.notEqual(compareTrend(trend, trend.previous, 'distanceKm'), '数据不完整，暂不比较');
 });

@@ -1,5 +1,5 @@
 const version = new URL(import.meta.url).searchParams.get('v');
-const {sportLabel, hasMissingMetric, summarizeActivities} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
+const {sportLabel, distanceApplies, hasMissingMetric, summarizeActivities} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
 export {hasMissingMetric};
 export const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // 只统一展示，不改变快照精度；距离固定两位、速度固定一位、负荷最多一位。
@@ -361,21 +361,57 @@ export function renderSportFilter(sports, selected = '') {
   return chip('', total, '全部运动') + items.map(item => chip(item.sport, item.count, sportLabel(item.sport))).join('');
 }
 
-function renderRecentSummary(recent, data, endDate) {
-  const start = shiftDate(endDate, -6);
+export const recentRangeLabels = {rolling:'最近 7 天', week:'本周'};
+export function recentDateRange(endDate, mode = 'rolling') {
+  if (!Object.hasOwn(recentRangeLabels, mode)) throw new Error('近期统计范围无效');
+  const weekday = new Date(endDate + 'T00:00:00Z').getUTCDay();
+  const daysSinceMonday = (weekday + 6) % 7;
+  const start = mode === 'week' ? shiftDate(endDate, -daysSinceMonday) : shiftDate(endDate, -6);
+  const end = mode === 'week' ? shiftDate(endDate, 6 - daysSinceMonday) : endDate;
+  return {start, end, mode};
+}
+
+function summarizeElevation(records) {
+  const applicable = records.filter(distanceApplies);
+  const available = applicable.filter(activity => activity.elevationGain != null);
+  return {
+    elevationGain:applicable.length && !available.length ? null : available.reduce((sum, activity) => sum + activity.elevationGain, 0),
+    missingElevation:applicable.length - available.length,
+  };
+}
+
+function renderRecentSummary(recent, data, period) {
   const {distanceKm:distance, durationSeconds:duration, missingDistance:missing, missingLoad, trainingLoad:load} = summarizeActivities(recent);
-  const unavailable = data.unavailableActivities.filter(activity => activity.date >= start && activity.date <= endDate).length;
+  const {elevationGain:elevation, missingElevation} = summarizeElevation(recent);
+  const unavailable = data.unavailableActivities.filter(activity => activity.date >= period.start && activity.date <= period.end).length;
   const notes = [];
   if (missing) notes.push(missing + ' 次运动' + dayStateLabels.missing + '（距离未提供）');
+  if (missingElevation) notes.push(missingElevation + ' 次运动' + dayStateLabels.missing + '（爬升未提供' + (missingElevation < recent.length ? '，累计爬升仅含已提供值' : '') + '）');
   if (missingLoad) notes.push(missingLoad + ' 次运动' + dayStateLabels.missing + '（负荷未提供' + (missingLoad < recent.length ? '，累计负荷仅含已提供值' : '') + '）');
   if (unavailable) notes.push('另有 ' + unavailable + ' 条' + dayStateLabels.unavailable + '，未计入统计');
   const distanceText = distance === null ? '—' : formatDistance(distance);
+  const elevationText = elevation === null ? '—' : formatLoad(elevation);
   const loadText = load === null ? '—' : formatLoad(load);
-  return `<div class="summary-context"><span class="summary-label">最近 7 天</span><span class="summary-period"><time datetime="${start}">${start.replaceAll('-', '.')}</time> — <time datetime="${endDate}">${endDate.replaceAll('-', '.')}</time></span></div>
-    <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>km</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div><div><dt>累计负荷</dt><dd>${loadText}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}`;
+  const switchButton = mode => `<button type="button" data-recent-range="${mode}" aria-pressed="${period.mode === mode}">${recentRangeLabels[mode]}</button>`;
+  return `<div class="summary-toolbar"><div class="summary-switch metric-switch" role="group" aria-label="切换近期统计范围">${switchButton('rolling')}${switchButton('week')}</div></div>
+    <div class="summary-card"><div class="summary-context"><span class="summary-title">${recentRangeLabels[period.mode]}</span><span class="summary-period"><time datetime="${period.start}">${period.start.replaceAll('-', '.')}</time> — <time datetime="${period.end}">${period.end.replaceAll('-', '.')}</time></span></div>
+    <dl class="summary-stats"><div><dt>运动次数</dt><dd>${recent.length}<small>次</small></dd></div><div><dt>累计距离</dt><dd>${distanceText}<small>km</small></dd></div><div><dt>累计爬升</dt><dd>${elevationText}<small>m</small></dd></div><div><dt>运动时长</dt><dd>${formatTime(duration)}</dd></div><div><dt>累计负荷</dt><dd>${loadText}</dd></div></dl>${notes.length ? '<p class="summary-note">' + notes.join(' · ') + '</p>' : ''}</div>`;
 }
 
-export function createJournal(data, endDate = data.period.end, range = 'recent', sport = '') {
+export function createRecentSection(data, endDate = data.period.end, mode = 'rolling') {
+  const period = recentDateRange(endDate, mode);
+  const activities = data.activities.filter(activity => activity.date >= period.start && activity.date <= period.end).slice().sort(compareActivityDates);
+  const title = mode === 'week' ? '本周' : '最近一周';
+  return {
+    activities,
+    title,
+    status:activities.length ? activities.length + ' 次运动' : title + '还没有运动记录',
+    summary:renderRecentSummary(activities, data, period),
+    cards:activities.length ? activities.map(recordCard).join('') : '<p class="records-empty">' + title + '还没有运动记录。</p>',
+  };
+}
+
+export function createJournal(data, endDate = data.period.end, range = 'recent', sport = '', recentMode = 'rolling') {
   if (range !== 'recent' && !availableYears(data, endDate).includes(String(range))) throw new Error('所选年份不在已同步范围内');
   const period = range === 'recent' ? {start:shiftDate(endDate, -364), end:endDate} : {start:range + '-01-01', end:range + '-12-31'};
   const rangeActivities = data.activities.filter(a => a.date >= period.start && a.date <= period.end);
@@ -385,7 +421,8 @@ export function createJournal(data, endDate = data.period.end, range = 'recent',
   const unavailableActivities = sport ? [] : unavailableInRange;
   const unavailableCount = unavailableActivities.length;
   const unavailableExcluded = sport ? unavailableInRange.length : 0;
-  const recent = data.activities.filter(a => a.date >= shiftDate(endDate, -6) && a.date <= endDate).slice().sort(compareActivityDates);
+  const recentSection = createRecentSection(data, endDate, recentMode);
+  const recent = recentSection.activities;
   const daily = [];
   for (let date = period.start; date <= period.end; date = shiftDate(date, 1)) {
     const records = activities.filter(a => a.date === date);
@@ -411,7 +448,6 @@ export function createJournal(data, endDate = data.period.end, range = 'recent',
   const months = [];
   padded.forEach((d,i) => {if(d.date.endsWith('-01') && d.date >= period.start && d.date <= period.end) months.push({column:Math.floor(i/7)+1, label:Number(d.date.slice(5,7))+'月'});});
   const monthLabels = months.map((m,i) => '<span style="grid-column:' + m.column + '/' + (months[i+1]?.column ?? columns+1) + '">' + m.label + '</span>').join('');
-  const cards = recent.length ? recent.map(recordCard).join('') : '<p class="records-empty">最近一周还没有运动记录。</p>';
   const initialDate = daily.findLast(d => d.count > 0)?.date ?? daily.findLast(d => !d.pending)?.date ?? period.end;
-  return {activities, recent, recentSummary:renderRecentSummary(recent, data, endDate), unavailableCount, unavailableExcluded, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, missingMetrics, pendingDays:daily.filter(d => d.pending).length, sports, columns, cells, monthLabels, cards, initialDate};
+  return {activities, recent, recentSummary:recentSection.summary, recentTitle:recentSection.title, recentStatus:recentSection.status, unavailableCount, unavailableExcluded, period, syncedAt:data.syncedAt, daily, distance, duration, activeDays, missingDistance, missingLoad, missingMetrics, pendingDays:daily.filter(d => d.pending).length, sports, columns, cells, monthLabels, cards:recentSection.cards, initialDate};
 }

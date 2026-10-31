@@ -89,6 +89,9 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
 
   assert.equal(element('.metric-value1').innerHTML, '1:00:00');
   assert.equal(element('.metric-note1').textContent, '时 : 分 : 秒');
+  assert.equal(element('#recent-records-title').textContent, '最近一周');
+  assert.match(element('.recent-summary').innerHTML, /累计爬升/);
+  assert.doesNotMatch(element('.recent-summary').innerHTML, /undefined/);
   assert.equal(grid.writes, 1, '首次 JSON 与内嵌快照相同时不重绘');
   assert.equal(trends.writes, 1);
   assert.equal(intervals[0].delay, 5 * 60000);
@@ -105,6 +108,21 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   assert.equal(document.activeElement, focused);
   assert.equal(bests.writes, 1, 'PB 内容相同时保留节点和焦点');
   assert.equal(status.textContent, '');
+
+  const chooseRecentRange = recentRange => element('.recent-summary').events.get('click')({
+    target:{closest:selector => selector === '[data-recent-range]' ? {dataset:{recentRange}} : null},
+  });
+  chooseRecentRange('week');
+  assert.equal(element('#recent-records-title').textContent, '本周');
+  assert.equal(element('#recent-records-status').textContent, '本周还没有运动记录');
+  assert.doesNotMatch(element('.records-grid').innerHTML, /record-card/);
+  assert.match(element('.recent-summary').innerHTML, /<span class="summary-title">本周<\/span>/);
+  assert.match(element('.recent-summary').innerHTML, /data-recent-range="week" aria-pressed="true">本周<\/button>/);
+  chooseRecentRange('rolling');
+  assert.equal(element('#recent-records-title').textContent, '最近一周');
+  assert.match(element('.records-grid').innerHTML, /record-card/);
+  assert.match(element('.recent-summary').innerHTML, /<span class="summary-title">最近 7 天<\/span>/);
+  assert.match(element('.recent-summary').innerHTML, /data-recent-range="rolling" aria-pressed="true">最近 7 天<\/button>/);
 
   latest.syncedAt = '2026-10-15 12:01:00 +08:00';
   await refresh();
