@@ -8,7 +8,7 @@ import {fetchPersonalBests} from './update-personal-bests.mjs';
 
 const now = new Date('2026-10-24T10:00:00.000Z');
 const period = {start:'2020-01-01', end:'2026-10-24'};
-const snapshot = (activities = [], unavailableActivities = []) => ({period, syncedAt:'2026-10-24 17:00:00 +08:00', activities, unavailableActivities, gearLibrary:[]});
+const snapshot = (activities = [], unavailableActivities = []) => ({period, syncedAt:'2026-10-24 17:00:00 +08:00', activities, unavailableActivities, gearLibrary:{active:[],retired:[]}});
 const corosInput = {startDate:'1900-01-01',endDate:'2026-10-24',queriedAt:now.toISOString(),records:[]};
 const pb = {source:'Intervals.icu',syncedAt:now.toISOString(),records:[],history:[]};
 const profile = {name:'接口姓名',location:'接口位置',stravaUrl:'https://www.strava.com/athletes/78720097'};
@@ -50,7 +50,7 @@ test('Intervals.icu 查询窗口、字段、装备及满页拆分', async () => 
   const data=await fetchIntervalsData({config:{INTERVALS_ICU_API_KEY:'test'},now,oldest:'2026-10-17',fetchImpl:async url=>{
     calls.push(new URL(url)); return response(url.endsWith('/athlete/0')?{id:'i123'}:url.endsWith('/gear')?[]:[interval()]);
   }});
-  assert.equal(data.records.length,1); assert.deepEqual(data.gearLibrary,[]);
+  assert.equal(data.records.length,1); assert.deepEqual(data.gearLibrary,{active:[],retired:[]});
   assert.equal(calls[1].searchParams.get('oldest'),'2026-10-17'); assert.match(calls[1].searchParams.get('fields'),/external_id/);
   let ranges=0;
   const split=await fetchIntervalsData({config:{INTERVALS_ICU_API_KEY:'test'},now,oldest:'2026-10-17',fetchImpl:async url=>{
@@ -92,7 +92,7 @@ test('COROS、活动、装备、成绩、构建失败及替换中断均保留旧
     {corosInput:{...corosInput,records:null}},
     {fetchActivities:async()=>{throw Error('活动或装备失败');}},
     {fetchActivities:async()=>({activities:[{}]})},
-    {fetchActivities:async()=>({...snapshot(),gearLibrary:[{}]})},
+    {fetchActivities:async()=>({...snapshot(),gearLibrary:{active:[{}],retired:[]}})},
     {fetchBests:async()=>{throw Error('成绩失败');}},
     {fetchBests:async()=>({source:'Intervals.icu',syncedAt:now.toISOString(),records:[]})},
     {fetchBests:async options=>fetchPersonalBests({...options,config:{INTERVALS_ICU_API_KEY:'test'},fetchImpl:async url=>{

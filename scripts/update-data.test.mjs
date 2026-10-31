@@ -21,7 +21,7 @@ test('北京时间边界、米到公里、零负荷、缺失值及同日多次�
 
 test('Strava 链接精确区分同日运动，无关联时不跳转并拒绝非平台链接', () => {
   const activities = normalizeActivities([{...record, strava_id:'901'}, {...record, id:123, strava_id:'902'}], period);
-  const data = {period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]};
+  const data = {period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:{active:[],retired:[]}};
   validateData(data);
   const cards = createJournal(data).cards;
   for (const id of ['901', '902']) assert.ok(cards.includes(`href="https://www.strava.com/activities/${id}" target="_blank" rel="noopener noreferrer"`));
@@ -46,7 +46,7 @@ test('全年日期保留当天全部记录及各自链接，空日期和不可�
     {...record, id:'i2', start_date:'2026-06-01T10:00:00Z', strava_id:'902', distance:null, icu_training_load:null},
     {...record, id:'i3'},
   ], period);
-  const data = {period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[{date:'2026-06-02'}], gearLibrary:[]};
+  const data = {period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[{date:'2026-06-02'}], gearLibrary:{active:[],retired:[]}};
   const journal = createJournal(data);
   const day = journal.daily.find(day => day.date === '2026-06-01');
   assert.equal(day.count, 2);
@@ -92,7 +92,7 @@ test('自然年覆盖闰日与年界，未来和未同步日期标记未知，�
     {...record, id:'i2', start_date:'2024-02-28T16:00:00Z'},
     {...record, id:'i3', start_date:'2024-12-31T15:59:59Z'},
     {...record, id:'i4', start_date:'2024-12-31T16:00:00Z'}], historyPeriod);
-  const data = {period:historyPeriod, activities, syncedAt:'2026-10-15 12:00:00 +08:00', unavailableActivities:[], gearLibrary:[]};
+  const data = {period:historyPeriod, activities, syncedAt:'2026-10-15 12:00:00 +08:00', unavailableActivities:[], gearLibrary:{active:[],retired:[]}};
   const leap = createJournal(data, period.end, '2024');
   assert.deepEqual(leap.period, {start:'2024-01-01', end:'2024-12-31'});
   assert.equal(leap.daily.length, 366);
@@ -113,7 +113,7 @@ test('自然年覆盖闰日与年界，未来和未同步日期标记未知，�
 
 test('首屏摘要固定最近七天，保留多次活动及缺失距离，不显示部分日期未同步提示', () => {
   const activity = {date:'2026-10-09', sport:'Ride', distanceKm:0.1, durationSeconds:1801, trainingLoad:0};
-  const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:[],
+  const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:{active:[],retired:[]},
     activities:[activity, {...activity, distanceKm:0.2}, {...activity, date:'2026-10-15', distanceKm:null}, {...activity, date:'2026-10-08', distanceKm:999}, {...activity, date:'2026-10-16', distanceKm:999}],
     unavailableActivities:[{date:'2026-10-15'}, {date:'2026-10-08'}]};
   const summary = createJournal(data).recentSummary;
@@ -138,7 +138,7 @@ test('首屏摘要固定最近七天，保留多次活动及缺失距离，不�
 
 test('七天累计负荷合计所有运动、排除范围外记录，并区分零、部分缺失和全部缺失', () => {
   const activity = {date:'2026-10-15', sport:'Ride', distanceKm:10, durationSeconds:1800, trainingLoad:25.25};
-  const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:[], unavailableActivities:[],
+  const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:{active:[],retired:[]}, unavailableActivities:[],
     activities:[activity, {...activity, sport:'Run', trainingLoad:10.15}, {...activity, date:'2026-10-08', trainingLoad:999}, {...activity, date:'2026-10-16', trainingLoad:999}]};
   const summary = createJournal(data).recentSummary;
   assert.match(summary, /<dt>累计负荷<\/dt><dd>35\.4<\/dd>/);
@@ -154,7 +154,7 @@ test('七天累计负荷合计所有运动、排除范围外记录，并区分�
 
 test('近期摘要支持最近七天和本周切换，并累计爬升、区分缺失值', () => {
   const activity = (date, elevationGain) => ({date, sport:'Ride', distanceKm:10, durationSeconds:1800, trainingLoad:20, elevationGain});
-  const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:[], unavailableActivities:[],
+  const data = {period:{start:'2024-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00', gearLibrary:{active:[],retired:[]}, unavailableActivities:[],
     activities:[activity('2026-10-08', 100), activity('2026-10-09', 10), activity('2026-10-10', 20),
       activity('2026-10-11', 30), activity('2026-10-11', null), activity('2026-10-12', 40), activity('2026-10-15', 50)]};
   const rolling = createJournal(data, '2026-10-15', 'recent', '', 'rolling');

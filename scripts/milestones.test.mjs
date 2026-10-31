@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createMilestones, renderMilestones, renderMilestonePanel, initializeMilestones} from '../docs/milestones.mjs';
 
 const activity = (date, overrides = {}) => ({date, sport:'Ride', distanceKm:10, durationSeconds:3600, trainingLoad:30, ...overrides});
-const snapshot = (activities, unavailableActivities = []) => ({period:{start:'2021-01-01', end:'2026-10-16'}, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities, gearLibrary:[]});
+const snapshot = (activities, unavailableActivities = []) => ({period:{start:'2021-01-01', end:'2026-10-16'}, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities, gearLibrary:{active:[],retired:[]}});
 const track = (summary, key) => summary.tracks.find(item => item.key === key);
 
 test('进度表示累计值占下一目标的比例，达成上一目标后不归零', () => {

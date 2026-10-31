@@ -195,18 +195,18 @@ export const isDate = value => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$
 const isDistance = value => value === null || typeof value === 'number' && Number.isFinite(value) && value >= 0;
 
 function validateGearLibrary(library) {
-  // null 只表示尚未完成首次装备同步；成功查询的空列表用 [] 表示。
+  // null 只表示尚未完成首次装备同步；成功查询的空装备库用空分组表示。
   if (library === null) return;
-  if (!Array.isArray(library)) throw new Error('装备库格式无效');
+  if (!library || Object.keys(library).sort().join(',') !== 'active,retired' || !Array.isArray(library.active) || !Array.isArray(library.retired)) throw new Error('装备库格式无效');
   const groups = new Map();
-  for (const [bikeIndex, bike] of library.entries()) {
+  for (const [bikeIndex, bike] of library.active.entries()) {
     if (!bike || Object.keys(bike).sort().join(',') !== 'components,distanceKm,name,type' || bike.type !== 'Bike' ||
         typeof bike.name !== 'string' || !bike.name.trim() || !isDistance(bike.distanceKm) || !Array.isArray(bike.components)) throw new Error('自行车信息无效');
     for (const part of bike.components) {
       if (!part || Object.keys(part).filter(key => !['sharedBy','sharedGroup'].includes(key)).sort().join(',') !== 'distanceKm,name,replacement,type' ||
           typeof part.name !== 'string' || !part.name.trim() || typeof part.type !== 'string' || !part.type || !isDistance(part.distanceKm)) throw new Error('配件信息无效');
       if (Object.hasOwn(part, 'sharedBy') && (!Array.isArray(part.sharedBy) || part.sharedBy.length < 2 ||
-          !part.sharedBy.includes(bike.name) || part.sharedBy.some(name => typeof name !== 'string' || !name.trim() || !library.some(owner => owner.name === name)))) throw new Error('配件共享关系无效');
+          !part.sharedBy.includes(bike.name) || part.sharedBy.some(name => typeof name !== 'string' || !name.trim() || !library.active.some(owner => owner.name === name)))) throw new Error('配件共享关系无效');
       if (Object.hasOwn(part, 'sharedBy') !== Object.hasOwn(part, 'sharedGroup') || Object.hasOwn(part, 'sharedGroup') &&
           (!Number.isSafeInteger(part.sharedGroup) || part.sharedGroup < 1)) throw new Error('配件共享分组无效');
       if (part.sharedGroup) {
@@ -231,6 +231,10 @@ function validateGearLibrary(library) {
         entries.some(entry => JSON.stringify([...entry.part.sharedBy].sort()) !== owners || values(entry.part) !== values(entries[0].part))) {
       throw new Error('共享配件的归属或使用信息不一致');
     }
+  }
+  for (const bike of library.retired) {
+    if (!bike || Object.keys(bike).sort().join(',') !== 'distanceKm,name,retiredAt,type' || bike.type !== 'Bike' ||
+        typeof bike.name !== 'string' || !bike.name.trim() || !isDistance(bike.distanceKm) || !isDate(bike.retiredAt)) throw new Error('退役装备信息无效');
   }
 }
 
@@ -285,7 +289,7 @@ export function summarizeGear(library) {
   if (library === null) return null;
   const parts = [];
   const shared = new Map();
-  library.forEach((bike, bikeIndex) => bike.components.forEach((part, partIndex) => {
+  library.active.forEach((bike, bikeIndex) => bike.components.forEach((part, partIndex) => {
     if (part.replacement === null) return;
     let entry = part.sharedGroup ? shared.get(part.sharedGroup) : null;
     if (!entry) {
@@ -297,6 +301,13 @@ export function summarizeGear(library) {
   }));
   parts.sort((a, b) => componentPriority(a.part) - componentPriority(b.part));
   return {parts, shared:shared.size, counts:Object.fromEntries(['due','soon','unknown','normal'].map(state => [state, parts.filter(entry => entry.state === state).length]))};
+}
+
+function renderRetiredGear(bikes) {
+  if (!bikes.length) return '';
+  const total = bikes.every(bike => bike.distanceKm !== null) ? bikes.reduce((sum, bike) => sum + bike.distanceKm, 0) : null;
+  return `<details class="gear-bike retired-gear"><summary class="gear-bike-heading"><div><span class="gear-type">${bikes.length} 辆自行车</span><h3>退役装备</h3></div><p><span>累计使用</span><strong>${total === null ? '部分未提供' : gearDistance(total)}</strong></p><svg class="gear-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+    <ul class="retired-gear-list">${bikes.map(bike => `<li><div><h4>${escapeHtml(bike.name)}</h4><p>退役于 <time datetime="${bike.retiredAt}">${bike.retiredAt.replaceAll('-','.')}</time></p></div><strong>${gearDistance(bike.distanceKm)}</strong></li>`).join('')}</ul></details>`;
 }
 
 function renderGearMaintenance({parts, shared, counts}) {
@@ -319,9 +330,9 @@ function renderGearMaintenance({parts, shared, counts}) {
 export function renderGearLibrary(library) {
   const maintenance = summarizeGear(library);
   if (library === null) return '<p class="gear-empty">装备尚未同步。完成 Intervals.icu 装备同步后，将在这里显示自行车和配件使用情况。</p>';
-  if (!library.length) return '<p class="gear-empty">还没有在用的自行车。在 Intervals.icu 添加自行车并关联配件后，会随每日同步显示。</p>';
-  return renderGearMaintenance(maintenance) + library.map((bike, bikeIndex) => `<details class="gear-bike"><summary class="gear-bike-heading"><div><span class="gear-type">自行车 · ${bike.components.length} 件配件</span><h3>${escapeHtml(bike.name)}</h3><span class="gear-alerts">${gearAlerts(bike.components)}</span></div><p><span>累计使用</span><strong>${gearDistance(bike.distanceKm)}</strong></p><svg class="gear-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-    ${bike.components.length ? '<div class="gear-parts">' + bike.components.map((part, index) => ({part, index})).sort((a,b) => componentPriority(a.part) - componentPriority(b.part)).map(({part, index}) => componentCard(part,bike.name,`gear-part-${bikeIndex}-${index}`)).join('') + '</div>' : '<p class="gear-note">尚未关联在用配件。</p>'}</details>`).join('');
+  const active = library.active.length ? renderGearMaintenance(maintenance) + library.active.map((bike, bikeIndex) => `<details class="gear-bike"><summary class="gear-bike-heading"><div><span class="gear-type">自行车 · ${bike.components.length} 件配件</span><h3>${escapeHtml(bike.name)}</h3><span class="gear-alerts">${gearAlerts(bike.components)}</span></div><p><span>累计使用</span><strong>${gearDistance(bike.distanceKm)}</strong></p><svg class="gear-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+    ${bike.components.length ? '<div class="gear-parts">' + bike.components.map((part, index) => ({part, index})).sort((a,b) => componentPriority(a.part) - componentPriority(b.part)).map(({part, index}) => componentCard(part,bike.name,`gear-part-${bikeIndex}-${index}`)).join('') + '</div>' : '<p class="gear-note">尚未关联在用配件。</p>'}</details>`).join('') : '<p class="gear-empty">还没有在用的自行车。在 Intervals.icu 添加自行车并关联配件后，会随每日同步显示。</p>';
+  return active + renderRetiredGear(library.retired);
 }
 
 export function validateData(data) {

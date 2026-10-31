@@ -5,7 +5,7 @@ import {createTrends} from '../docs/trends.mjs';
 
 const activity = (date, sport, distanceKm = 10, trainingLoad = 30) => ({date, sport, distanceKm, durationSeconds:3600, trainingLoad});
 const snapshot = activities => ({period:{start:'2021-01-01', end:'2026-10-16'}, syncedAt:'2026-10-16 12:00:00 +08:00',
-  activities, unavailableActivities:[{date:'2026-10-12'}], gearLibrary:[]});
+  activities, unavailableActivities:[{date:'2026-10-12'}], gearLibrary:{active:[],retired:[]}});
 const records = [
   activity('2026-10-12', 'Ride', 20), activity('2026-10-12', 'Run', 5), activity('2026-10-11', 'Run', 8),
   activity('2026-10-09', 'Ride', 30), activity('2026-10-09', 'Run', 3), activity('2025-09-01', 'Run', 1),

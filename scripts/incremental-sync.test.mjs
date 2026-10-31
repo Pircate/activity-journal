@@ -8,7 +8,7 @@ const now=new Date('2026-10-27T01:00:00Z'),since='2026-10-25T16:30:00Z';
 const profile={name:'接口姓名', location:'接口位置', stravaUrl:'https://www.strava.com/athletes/78720097'};
 const record=(id,date,extra={})=>({id,sport_type:'Ride',start_date:date+'T00:00:00Z',moving_time:3600,distance:20000,...extra});
 const baseline=(rows=[],extra={})=>({sourcePolicyVersion:2,period:{start:'2020-01-01',end:'2026-10-26'},syncedAt:'2026-10-26 00:30:00 +08:00',
-  activities:rows.map(normalizeStravaActivity),unavailableActivities:[],gearLibrary:[],...extra});
+  activities:rows.map(normalizeStravaActivity),unavailableActivities:[],gearLibrary:{active:[],retired:[]},...extra});
 function api(rows=[],intervals=[],details={}) {
   const calls=[];
   const stravaClient={verifyAthlete:async id=>{assert.equal(id,'78720097');return profile;},activities:async window=>{calls.push(window);return rows;},activity:async id=>{calls.push(id);return details[id]??null;}};

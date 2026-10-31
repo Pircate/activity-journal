@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {createReport, reportSummary, renderReportPanel, initializeReports, drawReport} from '../docs/reports.mjs';
 
 const activity = (date, values = {}) => ({date, sport:'Run', distanceKm:5.25, durationSeconds:1800, trainingLoad:20, activityUrl:'https://intervals.icu/activities/i1', ...values});
-const fixture = (activities = [], values = {}) => ({period:{start:'2023-01-01', end:'2026-10-16'}, syncedAt:'2026-10-16 16:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[], ...values});
+const fixture = (activities = [], values = {}) => ({period:{start:'2023-01-01', end:'2026-10-16'}, syncedAt:'2026-10-16 16:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:{active:[],retired:[]}, ...values});
 const today = '2026-10-16';
 
 test('自然月包含首尾与同日多次活动，闰月不跨到相邻月份', () => {

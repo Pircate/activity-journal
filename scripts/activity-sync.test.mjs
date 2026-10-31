@@ -5,7 +5,7 @@ import {normalizeStravaActivity} from './strava-data.mjs';
 const now=new Date('2026-10-27T10:00:00Z');
 const record=extra=>({id:'901',sport_type:'Ride',start_date:'2026-10-24T00:00:00Z',distance:12345,moving_time:3600,...extra});
 const old=extra=>({...normalizeStravaActivity(record()),activityUrl:'https://intervals.icu/activities/i1',...extra});
-const snapshot=activities=>({period:{start:'2020-01-01',end:'2026-10-27'},syncedAt:'2026-10-27 12:00:00 +08:00',activities,unavailableActivities:[],gearLibrary:[]});
+const snapshot=activities=>({period:{start:'2020-01-01',end:'2026-10-27'},syncedAt:'2026-10-27 12:00:00 +08:00',activities,unavailableActivities:[],gearLibrary:{active:[],retired:[]}});
 const merge=options=>mergeActivities({previous:snapshot([]),stravaRecords:[record()],intervalsRecords:[{id:'i1',strava_id:'901',icu_training_load:40}],window:{oldest:'1900-01-01',end:'2026-10-27',before:now.getTime()/1000},now,...options});
 test('主数据来自 Strava，负荷和组数各自精确关联，零值覆盖历史',()=>{
   const stravaRecords=[record({sport_type:'WeightTraining',average_heartrate:140,calories:123.45})];

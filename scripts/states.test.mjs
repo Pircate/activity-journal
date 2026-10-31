@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createJournal, dayMetricState, describeDay, hasMissingMetric, dayStateLabels, dayStateNotes, renderHeatmapStates} from '../docs/journal.mjs';
 
 const snapshot = (activities, unavailableActivities = [], period = {start:'2021-01-01', end:'2026-10-16'}) =>
-  ({period, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities, gearLibrary:[]});
+  ({period, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities, gearLibrary:{active:[],retired:[]}});
 const activity = (date, overrides = {}) => ({date, sport:'Ride', distanceKm:10, durationSeconds:3600, trainingLoad:30, ...overrides});
 // 未同步需要“日期晚于已同步范围”，因此把已同步末日期设为 10 月 15 日。
 const syncedThrough14 = (activities, unavailableActivities = []) => snapshot(activities, unavailableActivities, {start:'2021-01-01', end:'2026-10-15'});

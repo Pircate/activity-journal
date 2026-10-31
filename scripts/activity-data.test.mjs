@@ -11,7 +11,7 @@ import {validatePersonalBests, renderPersonalBests} from '../docs/personal-bests
 import {unavailableId} from './sync.mjs';
 
 const period = {start:'2026-01-01', end:'2026-10-27'};
-const snapshot = activities => ({period, syncedAt:'2026-10-27 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]});
+const snapshot = activities => ({period, syncedAt:'2026-10-27 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:{active:[],retired:[]}});
 const raw = {id:'i1', type:'Ride', start_date:'2026-10-01T00:00:00Z', moving_time:300, distance:1004, icu_training_load:0};
 
 test('力量训练距离不适用，其他运动的缺失和零值在所有统计中保持一致', () => {

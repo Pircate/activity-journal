@@ -5,7 +5,7 @@ import {normalizeActivities} from './update-data.mjs';
 
 const period = {start:'2021-01-01', end:'2026-10-16'};
 const activity = (sport, distanceKm, duration, extra = {}) => ({date:'2026-10-15', sport, distanceKm, durationSeconds:duration, trainingLoad:30, ...extra});
-const snapshot = activities => ({period, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]});
+const snapshot = activities => ({period, syncedAt:'2026-10-16 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:{active:[],retired:[]}});
 const cards = activities => createJournal(snapshot(activities), '2026-10-16').cards;
 
 test('每种支持的运动使用独立图标，近期卡片与列表保持一致，未知类型安全显示', () => {

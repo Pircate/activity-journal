@@ -5,7 +5,7 @@ import {createJournal, renderDayRecords, validateData} from '../docs/journal.mjs
 
 const period = {start:'2026-01-01', end:'2026-10-15'};
 const raw = {id:'i1', type:'WeightTraining', start_date:'2026-10-15T04:00:00Z', moving_time:699, distance:null, icu_training_load:6, average_heartrate:137};
-const snapshot = activities => ({period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]});
+const snapshot = activities => ({period, syncedAt:'2026-10-15 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:{active:[],retired:[]}});
 
 test('力量训练提取平均心率，缺失组数保留未知；其他运动不公开心率', () => {
   const records = normalizeActivities([raw, {...raw, id:'i2', type:'Ride', distance:20000}], period);

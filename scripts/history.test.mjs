@@ -18,7 +18,7 @@ test('开始时间按北京时间保留，近期、历史、日历与趋势详�
   assert.deepEqual(ids(normalized), descending);
   assert.deepEqual(normalized.map(a => a.startTime), ['00:00:00', '18:00:00', '09:00:00', '00:00:00']);
   const activities = normalized.slice().reverse();
-  const data = {period, syncedAt:'2026-10-13 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:[]};
+  const data = {period, syncedAt:'2026-10-13 12:00:00 +08:00', activities, unavailableActivities:[], gearLibrary:{active:[],retired:[]}};
   validateData(data);
   assert.deepEqual(ids(filterActivities(activities)), descending);
   assert.deepEqual(ids(filterActivities(activities, {sort:'date-asc'})), descending.slice().reverse());

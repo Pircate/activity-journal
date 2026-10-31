@@ -7,7 +7,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   const initial = {
     period:{start:'2025-01-01', end:'2026-10-15'}, syncedAt:'2026-10-15 12:00:00 +08:00',
     activities:[{date:'2026-10-09', sport:'Ride', distanceKm:20, durationSeconds:3600, trainingLoad:30, activityUrl:'https://intervals.icu/activities/i1'}],
-    unavailableActivities:[], gearLibrary:[{name:'公路车', type:'Bike', distanceKm:100, components:[]}, {name:'通勤车', type:'Bike', distanceKm:200, components:[]}],
+    unavailableActivities:[], gearLibrary:{active:[{name:'公路车', type:'Bike', distanceKm:100, components:[]}, {name:'通勤车', type:'Bike', distanceKm:200, components:[]}], retired:[]},
   };
   let latest = structuredClone(initial);
   let respond = async () => ({ok:true, json:async () => structuredClone(latest)});
@@ -246,7 +246,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
 
   await t.test('装备内容变化时正常更新装备区域', async () => {
     const gearWrites = gear.writes;
-    latest.gearLibrary[0].distanceKm = 123;
+    latest.gearLibrary.active[0].distanceKm = 123;
     respond = async () => ({ok:true, json:async () => structuredClone(latest)});
     await refresh();
     assert.equal(gear.writes, gearWrites + 1);

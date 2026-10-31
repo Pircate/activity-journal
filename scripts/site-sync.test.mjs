@@ -10,7 +10,7 @@ import {manageSubscription} from './strava-subscription.mjs';
 
 const commit = 'a'.repeat(40);
 const claim = {runId:'1:1', mode:'sync', startedAt:'2026-10-27T00:00:00Z', cursor:'2026-10-26T00:00:00Z', publishedCommit:commit, events:[{activityId:'901'}]};
-const activities = JSON.stringify({period:{start:'2020-01-01',end:'2026-10-27'},syncedAt:'2026-10-27 12:00:00 +08:00',activities:[],unavailableActivities:[],gearLibrary:[]});
+const activities = JSON.stringify({period:{start:'2020-01-01',end:'2026-10-27'},syncedAt:'2026-10-27 12:00:00 +08:00',activities:[],unavailableActivities:[],gearLibrary:{active:[],retired:[]}});
 const personalBests = JSON.stringify({source:'Intervals.icu',syncedAt:'2026-10-27T04:00:00.000Z',records:[],history:[]});
 const profile = JSON.stringify({name:'成功版本姓名', location:'成功版本位置', stravaUrl:'https://www.strava.com/athletes/78720097'});
 const env = {SYNC_WORKER_URL:'https://worker.test', SYNC_TOKEN:'test-token'};

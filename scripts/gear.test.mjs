@@ -14,22 +14,47 @@ test('按车解析嵌套和共享配件，去重并隐藏退役装备', () => {
     part('轮组','Wheelset',{component_ids:['前胎','后胎']}), part('前胎','Tyre'), part('后胎','Tyre'),
     part('旧飞轮','Cassette',{retired:'2026-01-01'}), part('未装车配件','Chain')];
   const library = normalizeGear(gears);
-  assert.deepEqual(library.map(b => b.name), ['公路车','通勤车']);
-  assert.deepEqual(library[0].components.map(p => p.name), ['链条','轮组','前胎','后胎']);
-  assert.deepEqual(library[1].components, [library[0].components[0]]);
-  assert.equal(library[0].distanceKm, 24000);
-  assert.equal(library[0].components[0].distanceKm, 12000);
-  assert.equal(library[0].components[0].replacement.distanceKm, 1200);
-  assert.deepEqual(library[0].components[0].sharedBy, ['公路车','通勤车']);
-  assert.equal(library[0].components[1].sharedBy, undefined);
+  assert.deepEqual(library.active.map(b => b.name), ['公路车','通勤车']);
+  assert.deepEqual(library.active[0].components.map(p => p.name), ['链条','轮组','前胎','后胎']);
+  assert.deepEqual(library.active[1].components, [library.active[0].components[0]]);
+  assert.equal(library.active[0].distanceKm, 24000);
+  assert.equal(library.active[0].components[0].distanceKm, 12000);
+  assert.equal(library.active[0].components[0].replacement.distanceKm, 1200);
+  assert.deepEqual(library.active[0].components[0].sharedBy, ['公路车','通勤车']);
+  assert.equal(library.active[0].components[1].sharedBy, undefined);
+  assert.deepEqual(library.retired, [{name:'旧车', type:'Bike', distanceKm:24000, retiredAt:'2026-01-01'}]);
   validateData(snapshot(library));
+});
+
+test('退役自行车按退役日期倒序展示，默认折叠且不进入维护摘要', () => {
+  const library = normalizeGear([
+    bike('旧车 B',['退役配件'],{retired:'2026-10-15'}),
+    bike('旧车 A',[],{retired:'2026-10-15'}),
+    bike('最新旧车',[],{retired:'2026-10-31'}),
+    part('退役配件','Chain',{reminders:[reminder()]}),
+  ]);
+  assert.deepEqual(library.active, []);
+  assert.deepEqual(library.retired.map(bike => bike.name), ['最新旧车','旧车 A','旧车 B']);
+  validateData(snapshot(library));
+  const html = renderGearLibrary(library);
+  assert.match(html, /<details class="gear-bike retired-gear">/);
+  assert.doesNotMatch(html, /<details class="gear-bike retired-gear" open>/);
+  assert.match(html, /3 辆自行车/);
+  assert.match(html, /累计使用<\/span><strong>72,000\.00 km<\/strong>/);
+  assert.match(html, /退役于 <time datetime="2026-10-31">2026\.10\.31<\/time>/);
+  assert.match(html, /退役于 <time datetime="2026-10-15">2026\.10\.15<\/time>/);
+  assert.doesNotMatch(html, /maintenance-counts|退役配件/);
+  assert.throws(() => normalizeGear([bike('旧车',[],{retired:'2026-02-30'})]), /退役装备日期无效/);
+  const invalid = structuredClone(library);
+  invalid.retired[0].id = 'private';
+  assert.throws(() => validateData(snapshot(invalid)), /退役装备信息无效/);
 });
 
 test('只读专用更换提醒，前后胎独立记录，转换北京时间并保留零里程', () => {
   const library = normalizeGear([bike('车',['前胎 A','后胎 B']),
     part('前胎 A','Tyre',{reminders:[reminder(999999,{name:'补胎液'}),reminder(0)]}),
     part('后胎 B','Tyre',{reminders:[reminder(4200000,{last_reset:'2025-01-01T01:00:00+09:00',distance:123})]})]);
-  const [front,rear] = library[0].components;
+  const [front,rear] = library.active[0].components;
   assert.deepEqual(front.replacement, {status:'available',date:'2026-10-15',distanceKm:0});
   assert.deepEqual(rear.replacement, {status:'available',date:'2025-01-01',distanceKm:4200});
   const html = renderGearLibrary(library);
@@ -44,7 +69,7 @@ test('缺失、重名和不完整提醒保留未知，不冒用购买日期或�
   const library = normalizeGear([bike('车',['无提醒','重名','缺字段','未知位置']),
     part('无提醒','Chain',{purchased:'2020-01-01'}), part('重名','Cassette',{reminders:[reminder(),reminder()]}),
     part('缺字段','Tyre',{reminders:[{name:'更换'}]}), part('未知位置','Tyre',{distance:null})]);
-  const parts = library[0].components;
+  const parts = library.active[0].components;
   assert.deepEqual(parts.map(p => p.replacement.status), ['missing-reminder','duplicate-reminder','available','missing-reminder']);
   assert.ok(parts.every(p => p.replacement.date === null && p.replacement.distanceKm === null));
   validateData(snapshot(library));
@@ -60,7 +85,7 @@ test('历史更换日期只作用于补录时的提醒，后续重置与更换�
   const initial = reminder(3064059,{id:123,starting_distance:0,starting_time:0,starting_activities:0});
   const entry = {date:'2025-10-07',reminderId:123,resetAt:initial.last_reset,baseline:[0,0,0]};
   const notes = '原有私人备注\n运动装备库更换记录：'+JSON.stringify(entry);
-  const read = (r, note = notes) => normalizeGear([bike('车',['链条']),part('链条','Chain',{notes:note,reminders:[r]})])[0].components[0].replacement;
+  const read = (r, note = notes) => normalizeGear([bike('车',['链条']),part('链条','Chain',{notes:note,reminders:[r]})]).active[0].components[0].replacement;
   assert.equal(read(initial).date,'2025-10-07');
   assert.equal(read({...initial,last_reset:'2026-10-15T00:30:00+08:00'}).date,'2025-10-07');
   assert.equal(read({...initial,last_reset:'2026-10-15T16:00:00Z'}).date,'2026-10-16');
@@ -100,8 +125,8 @@ test('折叠提醒区分未知和已达建议里程，展开优先显示需更�
     part('轮组','Wheelset'), part('链条','Chain',{name:'同名链条',reminders:[reminder(4000000)]}),
     part('飞轮','Cassette',{reminders:[reminder(10000000)]}), part('外胎','Tyre'),
     part('另一链条','Chain',{name:'同名链条',reminders:[reminder(4000000)]})]);
-  assert.equal(library[0].components[1].sharedBy, undefined);
-  assert.equal(library[1].components[0].sharedBy, undefined);
+  assert.equal(library.active[0].components[1].sharedBy, undefined);
+  assert.equal(library.active[1].components[0].sharedBy, undefined);
   const html = renderGearLibrary(library);
   const heading = html.match(/<summary[^>]*>([\s\S]*?)<\/summary>/)[1];
   for (const label of ['1 项已达建议更换里程','1 项接近建议更换里程','1 项信息待完善']) assert.ok(heading.includes(label));
@@ -112,7 +137,7 @@ test('折叠提醒区分未知和已达建议里程，展开优先显示需更�
   assert.doesNotMatch(renderGearLibrary(library), /共享配件/);
   for (const sharedBy of [[], ['甲'], ['甲','不存在'], '甲']) {
     const invalid = structuredClone(library);
-    invalid[0].components[0].sharedBy = sharedBy;
+    invalid.active[0].components[0].sharedBy = sharedBy;
     assert.throws(() => validateData(snapshot(invalid)), /共享关系无效/);
   }
 });
@@ -127,18 +152,18 @@ test('普通配件显示总里程；页面转义装备名称，且公开数据�
   assert.doesNotMatch(html,/<script>|<img|role="progressbar"/);
   assert.doesNotMatch(JSON.stringify(library),/internal-part|secret-athlete|私密备注|athlete_id|component_ids/);
   validateData(snapshot(library));
-  assert.throws(() => validateData(snapshot([{...library[0],id:'leak'}])));
-  assert.throws(() => validateData(snapshot([{...library[0],components:[{...library[0].components[0],notes:'leak'}]}])));
+  assert.throws(() => validateData(snapshot({...library,active:[{...library.active[0],id:'leak'}]})));
+  assert.throws(() => validateData(snapshot({...library,active:[{...library.active[0],components:[{...library.active[0].components[0],notes:'leak'}]}]})));
 });
 
-test('装备使用总里程与年度范围无关，首次未同步与真实空列表明确区分', () => {
+test('装备使用总里程与年度范围无关，首次未同步与成功空装备库明确区分', () => {
   const data = snapshot(normalizeGear([bike('车',['链条']),part('链条','Chain',{reminders:[reminder(6500000)]})]));
   assert.notEqual(createJournal(data).period.end,createJournal(data,'2027-10-15').period.end);
   assert.match(renderGearLibrary(data.gearLibrary),/24,000\.00 km/);
   assert.match(renderGearLibrary(data.gearLibrary),/6,500\.00 km/);
-  for (const value of [null,[]]) validateData(snapshot(value));
+  for (const value of [null,{active:[],retired:[]}]) validateData(snapshot(value));
   assert.match(renderGearLibrary(null),/装备尚未同步/);
-  assert.match(renderGearLibrary([]),/还没有在用的自行车/);
+  assert.match(renderGearLibrary({active:[],retired:[]}),/还没有在用的自行车/);
   const {gearLibrary,...oldData} = data;
   assert.throws(() => validateData(oldData));
 });
@@ -153,16 +178,16 @@ test('拒绝无效装备列表、重复标识、循环、缺失引用及无效�
     assert.throws(() => normalizeGear(records));
   }
   const data = snapshot(normalizeGear([bike('车',['链条']),part('链条','Chain',{reminders:[reminder()]})]));
-  data.gearLibrary[0].components[0].replacement.date = '2026-02-30';
+  data.gearLibrary.active[0].components[0].replacement.date = '2026-02-30';
   assert.throws(() => validateData(data));
 });
 
 test('维护摘要合并真实共享实例，同名同里程的不同共享配件仍分别计数', () => {
   const library = normalizeGear([bike('甲',['共享一','共享二','独立一']),bike('乙',['共享一','共享二','独立二']),
     ...['共享一','共享二','独立一','独立二'].map(id => part(id,'Chain',{name:'同名链条',reminders:[reminder(4900000)]}))]);
-  assert.equal(library[0].components[0].sharedGroup, library[1].components[0].sharedGroup);
-  assert.notEqual(library[0].components[0].sharedGroup, library[0].components[1].sharedGroup);
-  assert.equal(library[0].components[2].sharedGroup, undefined);
+  assert.equal(library.active[0].components[0].sharedGroup, library.active[1].components[0].sharedGroup);
+  assert.notEqual(library.active[0].components[0].sharedGroup, library.active[0].components[1].sharedGroup);
+  assert.equal(library.active[0].components[2].sharedGroup, undefined);
   const summary = summarizeGear(library);
   assert.equal(summary.parts.length, 4);
   assert.equal(summary.shared, 2);
@@ -212,14 +237,14 @@ test('共享分组缺失、复用或归属及数值不一致时拒绝整个快�
   const library = normalizeGear([bike('甲',['共享','共享二']),bike('乙',['共享','共享二']),
     part('共享','Chain',{reminders:[reminder(4900000)]}),part('共享二','Chain',{reminders:[reminder()]})]);
   const changes = [
-    value => delete value[0].components[0].sharedGroup,
-    value => delete value[0].components[0].sharedBy,
-    value => value[0].components[0].sharedGroup = 0,
-    value => value[0].components[0].sharedGroup = 1.5,
-    value => value[0].components[0].sharedGroup = 99,
-    value => value[1].components[0].replacement.distanceKm = 1,
-    value => value[0].components[0].sharedBy.push('甲'),
-    value => value[0].components[1].sharedGroup = value[0].components[0].sharedGroup,
+    value => delete value.active[0].components[0].sharedGroup,
+    value => delete value.active[0].components[0].sharedBy,
+    value => value.active[0].components[0].sharedGroup = 0,
+    value => value.active[0].components[0].sharedGroup = 1.5,
+    value => value.active[0].components[0].sharedGroup = 99,
+    value => value.active[1].components[0].replacement.distanceKm = 1,
+    value => value.active[0].components[0].sharedBy.push('甲'),
+    value => value.active[0].components[1].sharedGroup = value.active[0].components[0].sharedGroup,
   ];
   for (const mutate of changes) {
     const invalid = structuredClone(library);
@@ -231,7 +256,7 @@ test('共享分组缺失、复用或归属及数值不一致时拒绝整个快�
 test('维护摘要区分首次未同步、没有车辆、没有重点配件及全部正常', () => {
   assert.equal(summarizeGear(null), null);
   assert.doesNotMatch(renderGearLibrary(null), /maintenance-counts/);
-  assert.doesNotMatch(renderGearLibrary([]), /maintenance-counts/);
+  assert.doesNotMatch(renderGearLibrary({active:[],retired:[]}), /maintenance-counts/);
   const noTracked = normalizeGear([bike('车',['轮组']),part('轮组','Wheelset')]);
   assert.equal(summarizeGear(noTracked).parts.length, 0);
   assert.match(renderGearLibrary(noTracked), /尚未关联链条、飞轮、外胎或牙盘/);

@@ -16,7 +16,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   let ids;
   try { ids = [...new Set(eventActivityIds.map(stravaId))]; } catch { throw new Error('事件活动 ID 无效'); }
   const end = beijingDate(now);
-  const previous = baseData ?? {period:{start:'1900-01-01', end}, syncedAt:end + ' 00:00:00 +08:00', activities:[], unavailableActivities:[], gearLibrary:[]};
+  const previous = baseData ?? {period:{start:'1900-01-01', end}, syncedAt:end + ' 00:00:00 +08:00', activities:[], unavailableActivities:[], gearLibrary:{active:[],retired:[]}};
   validateData(previous);
   config ??= await readConfig();
   const client = stravaClient ?? createStravaClient({accessToken:config.STRAVA_ACCESS_TOKEN, fetchImpl});

@@ -107,7 +107,8 @@ export function normalizeGear(records) {
     return {status:'available', date, distanceKm:distanceKm(reminder.distance_used)};
   };
   const owners = new Map();
-  const library = records.filter(gear => gear.type === 'Bike' && !gear.component && !gear.retired).map(bike => {
+  const bikes = records.filter(gear => gear.type === 'Bike' && !gear.component);
+  const active = bikes.filter(bike => !bike.retired).map(bike => {
     const components = [];
     const visited = new Set();
     const visit = (id, ancestors) => {
@@ -140,7 +141,11 @@ export function normalizeGear(records) {
       }
     }
   }
-  return library;
+  const retired = bikes.filter(bike => bike.retired).map(bike => {
+    if (!isDate(bike.retired)) throw new Error('退役装备日期无效');
+    return {name:bike.name, type:'Bike', distanceKm:distanceKm(bike.distance), retiredAt:bike.retired};
+  }).sort((a, b) => b.retiredAt.localeCompare(a.retiredAt) || a.name.localeCompare(b.name, 'zh-CN'));
+  return {active, retired};
 }
 
 export async function readConfig(configPath = join(homedir(), '.config/interval-icu/config.json')) {

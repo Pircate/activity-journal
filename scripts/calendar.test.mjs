@@ -4,7 +4,7 @@ import {createJournal, dayMetricState} from '../docs/journal.mjs';
 import {moveCalendarDate, renderCalendar} from '../docs/calendar.mjs';
 
 const activity = (date, distanceKm = 20, trainingLoad = 50) => ({date, sport:'Ride', distanceKm, durationSeconds:3600, trainingLoad});
-const journal = (activities = [], range = '2026', end = '2026-10-16', unavailableActivities = []) => createJournal({period:{start:'2021-01-01', end}, activities, unavailableActivities, gearLibrary:[], syncedAt:'2026-10-16 12:00:00 +08:00'}, '2026-10-16', range);
+const journal = (activities = [], range = '2026', end = '2026-10-16', unavailableActivities = []) => createJournal({period:{start:'2021-01-01', end}, activities, unavailableActivities, gearLibrary:{active:[],retired:[]}, syncedAt:'2026-10-16 12:00:00 +08:00'}, '2026-10-16', range);
 
 test('月历按周一到周日对齐，当月只出现一次每个日期，闰日不遗漏', () => {
   const data = journal([], '2024');
