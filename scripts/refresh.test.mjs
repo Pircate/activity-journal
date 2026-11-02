@@ -114,7 +114,8 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   });
   chooseRecentRange('week');
   assert.equal(element('#recent-records-title').textContent, '本周');
-  assert.equal(element('#recent-records-status').textContent, '本周还没有运动记录');
+  assert.equal(element('#recent-records-status').textContent, '0 次运动');
+  assert.match(element('.records-grid').innerHTML, /本周暂无运动记录/);
   assert.doesNotMatch(element('.records-grid').innerHTML, /record-card/);
   assert.match(element('.recent-summary').innerHTML, /<span class="summary-title">本周<\/span>/);
   assert.match(element('.recent-summary').innerHTML, /data-recent-range="week" aria-pressed="true">本周<\/button>/);

@@ -416,9 +416,18 @@ export function createRecentSection(data, endDate = data.period.end, mode = 'rol
   return {
     activities,
     title,
-    status:activities.length ? activities.length + ' 次运动' : title + '还没有运动记录',
+    status:activities.length + ' 次运动',
     summary:renderRecentSummary(activities, data, period),
-    cards:activities.length ? activities.map(recordCard).join('') : '<p class="records-empty">' + title + '还没有运动记录。</p>',
+    cards:activities.length ? activities.map(recordCard).join('') : `<div class="records-empty">
+    <div class="records-empty-copy"><h3>下一次出发，从这里开始</h3><p>${title}暂无运动记录</p></div>
+    <svg class="records-empty-route" aria-hidden="true" focusable="false" viewBox="0 0 180 100" fill="none">
+      <circle cx="142" cy="28" r="25" fill="var(--empty-glow)"/>
+      <circle cx="142" cy="28" r="16" stroke="var(--empty-line)" stroke-width=".5"/>
+      <path d="M20 76H64C90 76 96 53 74 53H65C43 53 46 28 70 28H142" stroke="var(--empty-line)" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 6"/>
+      <circle cx="20" cy="76" r="4" fill="var(--panel)" stroke="var(--empty-line)" stroke-width="1.5"/>
+      <path d="m137 23 14 5-14 5 3-5-3-5Z" fill="var(--empty-accent)"/>
+    </svg>
+  </div>`,
   };
 }
 
