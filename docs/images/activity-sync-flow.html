@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一次活动更新如何上线</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper: #131313;
+      --panel: #1c1c1c;
+      --ink: #f5f5f5;
+      --muted: #b5b5b5;
+      --soft: #8a8a8a;
+      --line: #353535;
+      --accent: #fc4c02;
+      --accent-soft: #ff8a4c;
+      --font-sans: 'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Songti SC', 'SimSun', serif;
+      --font-mono: 'Cascadia Mono', Consolas, ui-monospace, monospace;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 48px 32px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+    }
+
+    .frame { width: 100%; max-width: 1200px; margin: 0 auto; min-width: 0; }
+    .eyebrow {
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin-bottom: 24px;
+      color: var(--ink);
+      font-family: var(--font-serif);
+      font-size: clamp(1.75rem, 2.4vw + 1rem, 2.25rem);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .diagram-container { width: 100%; overflow-x: auto; }
+    svg { display: block; width: 100%; min-width: 960px; }
+
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Flowchart / Activity sync</p>
+    <h1>一次活动更新如何上线</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="activity-sync-flow-title activity-sync-flow-desc">
+        <title id="activity-sync-flow-title">一次活动更新如何上线</title>
+        <desc id="activity-sync-flow-desc">流程图展示 Strava 新活动从事件合并、GitHub Actions 同步、构建测试到部署 Pages、回执并推进游标的完整上线过程。</desc>
+        <defs>
+          <marker id="activity-sync-flow-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#b5b5b5"/>
+          </marker>
+          <marker id="activity-sync-flow-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#fc4c02"/>
+          </marker>
+        </defs>
+
+        <rect width="960" height="600" fill="#131313"/>
+
+        <!-- Connectors are painted before nodes so they never cross the card fills. -->
+        <line x1="280" y1="120" x2="376" y2="120" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-sync-flow-arrow)"/>
+        <line x1="592" y1="120" x2="688" y2="120" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-sync-flow-arrow)"/>
+        <line x1="792" y1="152" x2="792" y2="232" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-sync-flow-arrow)"/>
+        <line x1="688" y1="268" x2="592" y2="268" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-sync-flow-arrow)"/>
+        <line x1="376" y1="268" x2="280" y2="268" stroke="#fc4c02" stroke-width="1.4" marker-end="url(#activity-sync-flow-arrow-accent)"/>
+        <line x1="172" y1="304" x2="172" y2="392" stroke="#fc4c02" stroke-width="1.4" marker-end="url(#activity-sync-flow-arrow-accent)"/>
+        <line x1="280" y1="428" x2="384" y2="428" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-sync-flow-arrow)"/>
+        <line x1="584" y1="428" x2="688" y2="428" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-sync-flow-arrow)"/>
+
+        <!-- Pending events return to the dispatch and claim step. -->
+        <path d="M 484 488 L 484 512 Q 484 520 476 520 L 56 520 Q 48 520 48 512 L 48 64 Q 48 56 56 56 L 400 56 Q 408 56 408 64 L 408 88"
+              fill="none" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-sync-flow-arrow)"/>
+
+        <!-- Branch and annotation labels use opaque masks on the dark paper. -->
+        <rect x="56" y="324" width="108" height="16" rx="2" fill="#131313"/>
+        <text x="110" y="336" fill="#b5b5b5" font-size="12" font-weight="500" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">是，有新事件</text>
+
+        <rect x="300" y="406" width="64" height="16" rx="2" fill="#131313"/>
+        <text x="332" y="418" fill="#b5b5b5" font-size="12" font-weight="500" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">回执成功</text>
+
+        <rect x="620" y="406" width="32" height="16" rx="2" fill="#131313"/>
+        <text x="636" y="418" fill="#b5b5b5" font-size="12" font-weight="500" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">否</text>
+
+        <text x="484" y="180" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">派发失败或未领取：5 / 15 / 60 分钟退避</text>
+
+        <line x1="792" y1="304" x2="792" y2="328" stroke="#b5b5b5" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="792" y="348" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">任一步失败：保留事件与成功基线</text>
+        <text x="792" y="364" fill="#8a8a8a" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">等待新事件或手动运行</text>
+
+        <!-- Start -->
+        <rect x="64" y="88" width="216" height="64" rx="20" fill="#131313"/>
+        <rect x="64" y="88" width="216" height="64" rx="20" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="172" y="117" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">新增活动入队</text>
+        <text x="172" y="137" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">WORKER / MERGE 120S</text>
+
+        <!-- Dispatch and claim -->
+        <rect x="376" y="88" width="216" height="64" rx="6" fill="#131313"/>
+        <rect x="376" y="88" width="216" height="64" rx="6" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <rect x="384" y="96" width="52" height="12" rx="2" fill="none" stroke="#5b5b5b" stroke-width="0.8"/>
+        <text x="410" y="105" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">DISPATCH</text>
+        <text x="484" y="123" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">派发并领取批次</text>
+        <text x="484" y="140" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">LEASE 30 MIN</text>
+
+        <!-- Sync -->
+        <rect x="688" y="88" width="208" height="64" rx="6" fill="#131313"/>
+        <rect x="688" y="88" width="208" height="64" rx="6" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <rect x="696" y="96" width="38" height="12" rx="2" fill="none" stroke="#5b5b5b" stroke-width="0.8"/>
+        <text x="715" y="105" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">SYNC</text>
+        <text x="792" y="123" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">同步、关联与合并</text>
+        <text x="792" y="140" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">ACTIVITIES / GEAR / PB</text>
+
+        <!-- Verify -->
+        <rect x="688" y="232" width="208" height="72" rx="6" fill="#131313"/>
+        <rect x="688" y="232" width="208" height="72" rx="6" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <rect x="696" y="240" width="48" height="12" rx="2" fill="none" stroke="#5b5b5b" stroke-width="0.8"/>
+        <text x="720" y="249" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">VERIFY</text>
+        <text x="792" y="268" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">构建与测试</text>
+        <text x="792" y="288" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">BUILD + TEST + WORKER</text>
+
+        <!-- Commit -->
+        <rect x="376" y="232" width="216" height="72" rx="6" fill="#131313"/>
+        <rect x="376" y="232" width="216" height="72" rx="6" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <rect x="384" y="240" width="48" height="12" rx="2" fill="none" stroke="#5b5b5b" stroke-width="0.8"/>
+        <text x="408" y="249" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">COMMIT</text>
+        <text x="484" y="268" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">提交数据快照</text>
+        <text x="484" y="288" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">GIT PUSH</text>
+
+        <!-- Deploy is the only focal node. -->
+        <rect x="64" y="232" width="216" height="72" rx="6" fill="#131313"/>
+        <rect x="64" y="232" width="216" height="72" rx="6" fill="#2c170d" stroke="#fc4c02" stroke-width="1.2"/>
+        <rect x="72" y="240" width="48" height="12" rx="2" fill="none" stroke="#a33a10" stroke-width="0.8"/>
+        <text x="96" y="249" fill="#ff8a4c" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">DEPLOY</text>
+        <text x="172" y="268" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">部署 GitHub Pages</text>
+        <text x="172" y="288" fill="#ff8a4c" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">PUBLIC SNAPSHOT</text>
+
+        <!-- Receipt and cursor -->
+        <rect x="64" y="392" width="216" height="72" rx="6" fill="#131313"/>
+        <rect x="64" y="392" width="216" height="72" rx="6" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <rect x="72" y="400" width="32" height="12" rx="2" fill="none" stroke="#5b5b5b" stroke-width="0.8"/>
+        <text x="88" y="409" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">ACK</text>
+        <text x="172" y="428" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">回执并推进游标</text>
+        <text x="172" y="448" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">PUBLISHED COMMIT</text>
+
+        <!-- Decision -->
+        <polygon points="484,368 584,428 484,488 384,428" fill="#131313"/>
+        <polygon points="484,368 584,428 484,488 384,428" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1.2"/>
+        <text x="484" y="424" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">还有</text>
+        <text x="484" y="440" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">新事件？</text>
+
+        <!-- End -->
+        <rect x="688" y="392" width="208" height="72" rx="20" fill="#131313"/>
+        <rect x="688" y="392" width="208" height="72" rx="20" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="792" y="428" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">等待下一次活动</text>
+        <text x="792" y="448" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.06em">IDLE</text>
+
+        <!-- Horizontal legend strip -->
+        <line x1="40" y1="536" x2="920" y2="536" stroke="#353535" stroke-width="0.8"/>
+        <text x="40" y="560" fill="#8a8a8a" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" letter-spacing="0.16em">LEGEND</text>
+
+        <rect x="160" y="550" width="24" height="12" rx="6" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="192" y="560" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">输入 / 结束</text>
+
+        <rect x="320" y="550" width="24" height="12" rx="2" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <text x="352" y="560" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">处理步骤</text>
+
+        <polygon points="492,548 504,556 492,564 480,556" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="516" y="560" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">判断</text>
+
+        <line x1="640" y1="556" x2="676" y2="556" stroke="#fc4c02" stroke-width="1.4" marker-end="url(#activity-sync-flow-arrow-accent)"/>
+        <text x="688" y="560" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">重点发布</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>

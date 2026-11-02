@@ -62,39 +62,7 @@
 
 系统分为数据来源、云端同步和静态展示三部分。Worker 负责事件与同步状态，Actions 负责取数、校验和发布，浏览器负责展示与交互。
 
-```mermaid
-flowchart TD
-  subgraph Sources[数据来源]
-    Strava[Strava]
-    Intervals[Intervals.icu]
-    Sets[已保存的 COROS 组数]
-  end
-
-  subgraph Cloud[云端同步]
-    Worker[Cloudflare Worker]
-    State[(Durable Object)]
-    Actions[GitHub Actions]
-    Merge[活动关联与历史合并]
-    Snapshot[公开 JSON 快照]
-    Build[HTML 构建与测试]
-  end
-
-  subgraph Site[静态展示]
-    Pages[GitHub Pages]
-    Browser[浏览器]
-  end
-
-  Strava -.->|新增活动事件| Worker
-  Worker <-->|事件队列、租约、游标与令牌| State
-  Worker -.->|派发同步任务| Actions
-  Strava -->|活动主数据| Merge
-  Intervals -->|负荷、装备与成绩曲线| Merge
-  Sets -->|力量训练组数| Merge
-  Actions -->|执行同步脚本| Merge
-  Merge --> Snapshot --> Build -->|发布 docs 目录| Pages
-  Pages -->|HTML、模块与 JSON| Browser
-  Actions -.->|部署成功回执| Worker
-```
+![整体架构：Strava、Intervals.icu 与 COROS 组数进入云端同步流水线，经 Worker、Durable Object 和 GitHub Actions 处理，发布到 GitHub Pages 后由浏览器展示](docs/images/activity-architecture.png)
 
 ### 职责划分
 
@@ -119,34 +87,7 @@ flowchart TD
 
 ### 一次活动更新如何上线
 
-```mermaid
-flowchart TD
-  Event[Strava 新增活动] --> Queue[验证、去重并保存事件]
-  Queue --> Batch[等待两分钟合并批次]
-  Batch --> Dispatch[触发 GitHub Actions]
-  Dispatch --> Claim[领取事件批次与同步租约]
-  Claim --> Baseline
-
-  subgraph Pipeline[生成与发布]
-    Baseline[读取成功快照与游标] --> Fetch[查询活动与装备]
-    Fetch --> Merge[精确关联并合并历史]
-    Merge --> Best[更新个人最佳成绩]
-    Best --> Check[构建、测试与 Worker 打包检查]
-    Check --> Push[提交快照并普通推送]
-    Push --> Deploy[部署 GitHub Pages]
-    Deploy --> Receipt[向 Worker 回报部署成功]
-  end
-
-  Receipt --> Advance[确认本批事件并推进数据游标]
-  Advance --> Pending{还有新事件？}
-  Pending -->|是| Batch
-  Pending -->|否| Idle[等待下一次活动]
-
-  Dispatch -.->|派发失败或未领取| Retry[5、15、60 分钟退避重试]
-  Pipeline -.->|任一步失败| Retain[保留事件，取消自动重试]
-  Retry --> Dispatch
-  Retain --> Wait[等待新事件或手动运行]
-```
+![活动同步与发布流程图：Strava 新活动经 Worker 合并批次，由 GitHub Actions 同步、构建并发布，部署成功后回执并推进游标](docs/images/activity-sync-flow.png)
 
 工作流失败后仍保留事件，但不再自动重试，等待新事件或手动运行恢复。GitHub 派发失败或未被领取仍会退避重试。Actions 串行执行且不取消正在运行的任务；单次运行限时 25 分钟，同步租约为 30 分钟，任务失联后由租约到期触发恢复。运行期间到达的新事件留给下一批，不会被本批回执误确认。
 
@@ -174,18 +115,7 @@ flowchart TD
 
 构建脚本将个人资料、活动和成绩快照写入 HTML，页面打开后即可展示首屏。原生 ES modules 接管交互，再检查同源 JSON 的更新。
 
-```mermaid
-flowchart TD
-  Open[打开网站] --> Initial[用 HTML 内嵌快照展示首屏]
-  Initial --> Init[初始化日历、查询、趋势与报表]
-  Init --> Refresh[请求同源活动与成绩 JSON]
-  Trigger[返回页面或页面可见时每五分钟] --> Refresh
-  Refresh --> Valid{请求与数据校验通过？}
-  Valid -->|否| Keep[保留当前内容并显示刷新提示]
-  Valid -->|是| Changed{快照或北京时间日期变化？}
-  Changed -->|否| Preserve[保留现有节点、筛选与焦点]
-  Changed -->|是| Update[更新相关区域并保留有效交互状态]
-```
+![前端刷新流程图：页面先用内嵌快照展示首屏，初始化交互后请求同源 JSON，校验通过且快照或北京时间日期变化时更新区域，否则保留当前内容与交互状态](docs/images/activity-frontend-refresh.png)
 
 请求使用 `no-cache` 进行缓存再验证；活动快照比当前版本更旧时不覆盖页面。脚本与样式使用内容哈希版本号，依赖模块沿用同一版本，避免代码更新后继续加载旧缓存。活动数据和成绩分别刷新，失败时各自保留已显示内容。
 
@@ -254,7 +184,7 @@ flowchart TD
 │   ├── app.js                    # 浏览器入口
 │   ├── *.mjs                     # 计算与展示模块
 │   ├── style.css                 # 页面样式
-│   ├── images/                   # README 截图
+│   ├── images/                   # README 图片与流程图源文件
 │   ├── SITE-SYNC.md              # 数据与合并规则
 │   └── WEBHOOK.md                # 部署、Secrets 与恢复操作
 ├── scripts/                      # 同步、构建、通知与测试

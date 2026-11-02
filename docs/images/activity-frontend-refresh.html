@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>静态首屏与渐进刷新</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --paper: #131313;
+      --panel: #1c1c1c;
+      --ink: #f5f5f5;
+      --muted: #b5b5b5;
+      --soft: #8a8a8a;
+      --line: #353535;
+      --accent: #fc4c02;
+      --accent-soft: #ff8a4c;
+      --font-sans: 'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --font-serif: 'Iowan Old Style', 'Palatino Linotype', 'Songti SC', 'SimSun', serif;
+      --font-mono: 'Cascadia Mono', Consolas, ui-monospace, monospace;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 48px 32px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-sans);
+    }
+
+    .frame { width: 100%; max-width: 1200px; margin: 0 auto; min-width: 0; }
+    .eyebrow {
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin-bottom: 24px;
+      color: var(--ink);
+      font-family: var(--font-serif);
+      font-size: clamp(1.75rem, 2.4vw + 1rem, 2.25rem);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .diagram-container { width: 100%; overflow-x: auto; }
+    svg { display: block; width: 100%; min-width: 960px; }
+
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">Flowchart / Frontend refresh</p>
+    <h1>静态首屏与渐进刷新</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 960 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="activity-frontend-refresh-title activity-frontend-refresh-desc">
+        <title id="activity-frontend-refresh-title">静态首屏与渐进刷新</title>
+        <desc id="activity-frontend-refresh-desc">流程图展示页面先用内嵌快照渲染首屏，再初始化交互并请求同源 JSON，根据校验和快照变化决定更新区域或保留当前内容。</desc>
+        <defs>
+          <marker id="activity-frontend-refresh-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#b5b5b5"/>
+          </marker>
+          <marker id="activity-frontend-refresh-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#fc4c02"/>
+          </marker>
+        </defs>
+
+        <rect width="960" height="600" fill="#131313"/>
+
+        <!-- Connectors are painted before nodes. -->
+        <line x1="280" y1="120" x2="376" y2="120" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-frontend-refresh-arrow)"/>
+        <line x1="592" y1="120" x2="688" y2="120" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-frontend-refresh-arrow)"/>
+
+        <!-- Resume or five-minute trigger returns to the refresh request. -->
+        <path d="M 64 268 H 56 Q 48 268 48 260 V 80 Q 48 72 56 72 H 784 Q 792 72 792 80 V 88"
+              fill="none" stroke="#b5b5b5" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#activity-frontend-refresh-arrow)"/>
+
+        <line x1="792" y1="152" x2="792" y2="212" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-frontend-refresh-arrow)"/>
+        <line x1="692" y1="272" x2="468" y2="272" stroke="#b5b5b5" stroke-width="1.2" marker-end="url(#activity-frontend-refresh-arrow)"/>
+        <line x1="792" y1="332" x2="792" y2="392" stroke="#b5b5b5" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#activity-frontend-refresh-arrow)"/>
+        <line x1="368" y1="332" x2="368" y2="392" stroke="#b5b5b5" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#activity-frontend-refresh-arrow)"/>
+
+        <!-- A changed snapshot takes the highlighted update path. -->
+        <path d="M 268 272 H 260 Q 252 272 252 280 V 352 Q 252 360 244 360 H 180 Q 172 360 172 368 V 392"
+              fill="none" stroke="#fc4c02" stroke-width="1.4" marker-end="url(#activity-frontend-refresh-arrow-accent)"/>
+
+        <!-- Trigger and decision labels. -->
+        <rect x="426" y="50" width="112" height="16" rx="2" fill="#131313"/>
+        <text x="482" y="62" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">RESUME / 5 MIN</text>
+
+        <rect x="564" y="250" width="32" height="16" rx="2" fill="#131313"/>
+        <text x="580" y="262" fill="#b5b5b5" font-size="12" font-weight="500" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">是</text>
+
+        <rect x="800" y="352" width="32" height="16" rx="2" fill="#131313"/>
+        <text x="816" y="364" fill="#b5b5b5" font-size="12" font-weight="500" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">否</text>
+
+        <rect x="260" y="332" width="68" height="16" rx="2" fill="#131313"/>
+        <text x="294" y="344" fill="#fc4c02" font-size="12" font-weight="500" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">有变化</text>
+
+        <rect x="376" y="344" width="56" height="16" rx="2" fill="#131313"/>
+        <text x="404" y="356" fill="#b5b5b5" font-size="12" font-weight="500" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">无变化</text>
+
+        <!-- Start: embedded snapshot paints immediately. -->
+        <rect x="64" y="88" width="216" height="64" rx="20" fill="#131313"/>
+        <rect x="64" y="88" width="216" height="64" rx="20" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="172" y="117" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">打开网站，先展示快照</text>
+        <text x="172" y="137" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle">EMBEDDED HTML SNAPSHOT</text>
+
+        <!-- Initialize modules -->
+        <rect x="376" y="88" width="216" height="64" rx="6" fill="#131313"/>
+        <rect x="376" y="88" width="216" height="64" rx="6" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <rect x="384" y="96" width="32" height="12" rx="2" fill="none" stroke="#5b5b5b" stroke-width="0.8"/>
+        <text x="400" y="105" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">INIT</text>
+        <text x="484" y="123" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">初始化日历、查询与报表</text>
+        <text x="484" y="140" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle">CALENDAR / HISTORY / REPORTS</text>
+
+        <!-- Refresh -->
+        <rect x="688" y="88" width="208" height="64" rx="6" fill="#131313"/>
+        <rect x="688" y="88" width="208" height="64" rx="6" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <rect x="696" y="96" width="56" height="12" rx="2" fill="none" stroke="#5b5b5b" stroke-width="0.8"/>
+        <text x="724" y="105" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">REFRESH</text>
+        <text x="792" y="123" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">请求同源 JSON</text>
+        <text x="792" y="140" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle">NO-CACHE / SAME ORIGIN</text>
+
+        <!-- Trigger -->
+        <rect x="64" y="232" width="176" height="72" rx="6" fill="#131313"/>
+        <rect x="64" y="232" width="176" height="72" rx="6" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <rect x="72" y="240" width="56" height="12" rx="2" fill="none" stroke="#5b5b5b" stroke-width="0.8"/>
+        <text x="100" y="249" fill="#b5b5b5" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">TRIGGER</text>
+        <text x="152" y="276" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">返回页面或每五分钟</text>
+        <text x="152" y="294" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle">VISIBILITY / INTERVAL</text>
+
+        <!-- Validation decision -->
+        <polygon points="792,212 892,272 792,332 692,272" fill="#131313"/>
+        <polygon points="792,212 892,272 792,332 692,272" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1.2"/>
+        <text x="792" y="268" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">请求与数据</text>
+        <text x="792" y="284" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">校验通过？</text>
+
+        <!-- Change decision -->
+        <polygon points="368,212 468,272 368,332 268,272" fill="#131313"/>
+        <polygon points="368,212 468,272 368,332 268,272" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1.2"/>
+        <text x="368" y="268" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">快照或日期</text>
+        <text x="368" y="284" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">发生变化？</text>
+
+        <!-- Update is the only focal node. -->
+        <rect x="64" y="392" width="216" height="72" rx="6" fill="#131313"/>
+        <rect x="64" y="392" width="216" height="72" rx="6" fill="#2c170d" stroke="#fc4c02" stroke-width="1.2"/>
+        <rect x="72" y="400" width="48" height="12" rx="2" fill="none" stroke="#a33a10" stroke-width="0.8"/>
+        <text x="96" y="409" fill="#ff8a4c" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle" letter-spacing="0.08em">UPDATE</text>
+        <text x="172" y="436" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">更新相关区域</text>
+        <text x="172" y="454" fill="#ff8a4c" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle">KEEP FILTER / DATE / FOCUS</text>
+
+        <!-- Preserve when nothing changed -->
+        <rect x="376" y="392" width="216" height="72" rx="20" fill="#131313"/>
+        <rect x="376" y="392" width="216" height="72" rx="20" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="484" y="428" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">保留现有内容</text>
+        <text x="484" y="448" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle">NO VIEW REBUILD</text>
+
+        <!-- Preserve and notify when refresh fails -->
+        <rect x="688" y="392" width="208" height="72" rx="20" fill="#131313"/>
+        <rect x="688" y="392" width="208" height="72" rx="20" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="792" y="428" fill="#f5f5f5" font-size="12" font-weight="600" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif" text-anchor="middle">保留内容并提示刷新失败</text>
+        <text x="792" y="448" fill="#b5b5b5" font-size="9" font-family="'Cascadia Mono', Consolas, monospace" text-anchor="middle">KEEP CURRENT</text>
+
+        <!-- Horizontal legend strip -->
+        <line x1="40" y1="536" x2="920" y2="536" stroke="#353535" stroke-width="0.8"/>
+        <text x="40" y="560" fill="#8a8a8a" font-size="8" font-family="'Cascadia Mono', Consolas, monospace" letter-spacing="0.16em">LEGEND</text>
+
+        <rect x="160" y="550" width="24" height="12" rx="6" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="192" y="560" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">开始 / 结束</text>
+
+        <rect x="320" y="550" width="24" height="12" rx="2" fill="#1c1c1c" stroke="#6e6e6e" stroke-width="1"/>
+        <text x="352" y="560" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">处理步骤</text>
+
+        <polygon points="492,548 504,556 492,564 480,556" fill="#1c1c1c" stroke="#8a8a8a" stroke-width="1"/>
+        <text x="516" y="560" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">判断</text>
+
+        <rect x="640" y="550" width="24" height="12" rx="2" fill="#2c170d" stroke="#fc4c02" stroke-width="1"/>
+        <text x="672" y="560" fill="#b5b5b5" font-size="12" font-family="'Segoe UI Variable', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif">重点更新</text>
+      </svg>
+    </div>
+  </main>
+</body>
+</html>
