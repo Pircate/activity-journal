@@ -38,7 +38,7 @@ scripts/fetch-site-data.mjs 以 Strava 活动为主数据，复用 scripts/updat
 
 .github/workflows/site.yml 串行执行同步、成绩、构建、测试和普通 push，冲突不强推。Actions 将 Strava OAuth 凭据交给持有当前同步租约的 Worker；Worker 持久保存轮换后的刷新令牌，只向 Actions 返回短期访问令牌。令牌不写入快照、报告或日志。Pages 从 Actions 的 docs artifact 发布。仅 deploy-pages 成功后向 Worker 回报 UTC 成功时间、同步开始时间游标和发布数据版本；只确认已领取事件，运行期间的新事件留到下一批。失败继续使用旧成功基线重试，旧 data/sync-state.json 不作为云端游标。
 
-历史修正报告上传为 Actions artifact，列出 Strava 返回与更新数量、汇总前后变化，以及因缺少 Strava 关联或 Strava 未返回而保留的旧记录。报告不包含原始平台响应或凭据。
+历史修正报告上传为 Actions artifact，列出 Strava 返回与更新数量、汇总前后变化，以及因缺少 Strava 关联或 Strava 未返回而保留的旧记录。报告不包含原始平台响应或凭据。事件指向的 Strava 活动返回 404 时跳过该失效事件，继续按活动列表同步，避免单个事件永久阻塞后续更新。
 
 普通网站代码 push 使用成功数据快照构建，不推进数据游标。手动 workflow_dispatch 支持增量及 full=true 全量恢复。工作流失败后不自动重试，但保留待处理事件；新事件或手动运行可恢复。不得用本机独立脚本替代云端发布回执。
 

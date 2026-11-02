@@ -89,7 +89,7 @@ node --input-type=module -e 'import {workerRequest} from "./scripts/site-sync.mj
 - `publishedCommit`：成功同步数据的 Git 版本。代码发布复用该快照，避免发布失败同步留在 main 上的数据；补充文件改动后需触发全量同步才能完整生效。
 - `pending`、`active`、`attempts`、`nextAt`、`lastError`：待处理数量、当前 Actions 运行、派发重试次数、下次派发时间（Unix 毫秒）及简要错误；具体原因查看 Actions 失败步骤。派发失败时 `lastError` 形如 `GitHub dispatch failed: Dispatch refused (HTTP 401)`，可区分 token 失效（401）、缺少 Contents 写权限（403）和网络/超时；`pending` 有值却长时间没有新 Actions 运行，就是派发环节出了问题。
 
-首次事件后两分钟派发。活动级、API、构建、测试、推送或部署失败后取消自动重试，保留事件并等待新事件或手动 Actions 恢复；重复投递不会重新触发。GitHub 派发失败或派发未被领取时仍按 5、15、60 分钟退避，避免事件直接滞留。Actions 取消或无法回报时，30 分钟租约到期后保留批次并重新派发。工作流总时限为 25 分钟。
+首次事件后两分钟派发。活动级、API、构建、测试、推送或部署失败后取消自动重试，保留事件并等待新事件或手动 Actions 恢复；重复投递不会重新触发。事件指定的 Strava 活动持续返回 404 时视为已失效，跳过该事件并继续查询活动列表，不让单个旧事件阻塞整批。GitHub 派发失败或派发未被领取时仍按 5、15、60 分钟退避，避免事件直接滞留。Actions 取消或无法回报时，30 分钟租约到期后保留批次并重新派发。工作流总时限为 25 分钟。
 
 ```sh
 # 手动增量恢复，包含尚未确认的全部事件

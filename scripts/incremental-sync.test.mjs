@@ -79,9 +79,13 @@ test('无法读取历史列入报告，未关联不猜测，同日记录不合�
   assert.match(report.uncorrected[1].reason,/缺少 Strava/);
   assert.equal(report.before.count,2);assert.equal(report.after.count,3);
 });
-test('事件缺失、未来日期、重复和鉴权或装备失败保持输入不变',async()=>{
+test('不可读取的事件活动被跳过，不阻塞其他活动发布',async()=>{
+  const baseData=baseline([record('1','2020-01-01')]);
+  const data=await sync({...api([record('2','2026-10-27')]),baseData,since,eventActivityIds:['9']});
+  assert.deepEqual(data.activities.map(a=>a.stravaUrl.split('/').at(-1)),['2','1']);
+});
+test('未来日期、重复和鉴权或装备失败保持输入不变',async()=>{
   const baseData=baseline([record('1','2020-01-01')]),before=JSON.stringify(baseData);
-  await assert.rejects(sync({...api(),baseData,since,eventActivityIds:['9']}),/尚无法读取/);
   await assert.rejects(sync({...api([],[],{'9':record('9','2026-10-28')}),baseData,since,eventActivityIds:['9']}),/可发布日期/);
   await assert.rejects(sync({...api([record('1','2026-10-25'),record('1','2026-10-25')]),baseData,since}),/重复/);
   await assert.rejects(sync({...api(),baseData,since,fetchImpl:async()=>new Response(null,{status:503})}),/HTTP 503/);

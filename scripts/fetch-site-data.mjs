@@ -25,15 +25,20 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   let start = isFull ? '1900-01-01' : shiftDate(beijingDate(new Date(since)), -2);
   const before = Math.floor(now.getTime() / 1000);
   const details = new Map();
+  let unavailableEvents = 0;
   for (const id of ids) {
     const record = await client.activity(id);
-    if (!record) throw new Error('Strava 尚无法读取事件活动，稍后重试，未更新数据');
+    if (!record) {
+      unavailableEvents++;
+      continue;
+    }
     if (stravaId(record.id) !== id) throw new Error('Strava 事件活动关联冲突');
     const normalized = normalizeStravaActivity(record);
     if (normalized.date > end || Date.parse(record.start_date) >= before * 1000) throw new Error('事件活动尚未进入可发布日期范围');
     if (normalized.date < start) start = normalized.date;
     details.set(id, record);
   }
+  if (unavailableEvents) console.warn(`Strava 事件活动不可读取，已跳过 ${unavailableEvents} 个`);
   const after = start === '1900-01-01' ? null : Math.floor(Date.parse(start + 'T00:00:00+08:00') / 1000) - 1;
   const stravaRecords = await client.activities({after, before});
   const records = new Map();
