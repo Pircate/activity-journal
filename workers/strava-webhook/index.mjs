@@ -41,6 +41,14 @@ export class SyncCoordinator {
     state.nextAt = state.attempts < retryDelays.length ? this.now() + retryDelays[state.attempts++] : null;
   }
 
+  awaitNewEvent(state, reason) {
+    state.active = null;
+    state.dispatchUntil = null;
+    state.lastError = reason;
+    state.nextAt = null;
+    state.attempts = 0;
+  }
+
   async stravaToken(state, credentials) {
     if (!state.active || state.active.runId !== credentials.runId || state.active.mode !== 'sync' ||
         this.now() >= Date.parse(state.active.startedAt) + leaseDuration) return json({error:'Stale sync lease'}, 409);
@@ -160,7 +168,7 @@ export class SyncCoordinator {
           if (at < this.now() - 90 * 86400_000 && !state.pending.some(event => event.key === key)) delete state.seen[key];
         }
       } else if (url.pathname === '/sync/fail') {
-        this.retry(state, 'Workflow failed; inspect GitHub Actions run ' + body.runId);
+        this.awaitNewEvent(state, 'Workflow failed; inspect GitHub Actions run ' + body.runId);
       } else return json({error:'Not found'}, 404);
       await this.save(state);
       return json({ok:true});

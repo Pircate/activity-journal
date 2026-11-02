@@ -112,23 +112,22 @@ test('failure, stale receipts and invalid deployment receipts never advance stat
   assert.equal((await c.complete()).status, 409);
 });
 
-test('workflow failures back off 5/15/60 minutes then retain events for manual recovery or new events', async () => {
+test('workflow failures cancel automatic retries without rejecting new events', async () => {
   const c = coordinator();
   await c.post();
-  for (const [index, delay] of [5, 15, 60, null].entries()) {
-    await c.start(`${index + 1}:1`);
-    await c.request('/sync/fail', {runId:`${index + 1}:1`});
-    if (delay === null) assert.equal(c.alarm(), null);
-    else {
-      assert.equal(c.alarm() - Date.parse('2026-10-27T00:00:00Z'), delay * minute);
-    }
-  }
+  await c.start();
+  await c.request('/sync/fail', {runId:'1:1'});
+  assert.equal(c.alarm(), null);
   assert.equal(c.state().pending.length, 1);
-  await c.post();
-  assert.equal(c.alarm(), null, 'duplicates must not reset exhausted retries');
-  await c.post({...event, object_id:902});
-  assert.ok(c.alarm());
   assert.equal(c.state().attempts, 0);
+  assert.match(c.state().lastError, /Workflow failed/);
+  await c.post();
+  assert.equal(c.alarm(), null, 'duplicate events must not trigger another run');
+  c.advance(minute);
+  await c.post({...event, object_id:902});
+  assert.equal(c.alarm() - Date.parse('2026-10-27T00:00:00Z'), 3 * minute);
+  assert.equal(c.state().attempts, 0);
+  assert.deepEqual((await (await c.start('2:1')).json()).events.map(e => e.activityId), ['901', '902']);
 });
 
 test('dispatch error, unclaimed dispatch and expired lease retain pending events', async () => {
