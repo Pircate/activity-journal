@@ -255,6 +255,14 @@ const componentState = part => !part.replacement ? 'untracked' : part.replacemen
   : part.replacement.distanceKm >= replacementTargets[part.type] ? 'due'
   : part.replacement.distanceKm >= replacementTargets[part.type] * .8 ? 'soon' : part.replacement.date === null ? 'unknown' : 'normal';
 const componentPriority = part => ({due:0, soon:1, unknown:2, normal:3, untracked:4})[componentState(part)];
+const componentTypeOrder = {'牙盘':0, '飞轮':1, '链条':2, '前胎':3, '后胎':4};
+
+function compareComponentUsage(a, b) {
+  const distanceA = a.replacement === null ? a.distanceKm : a.replacement.distanceKm;
+  const distanceB = b.replacement === null ? b.distanceKm : b.replacement.distanceKm;
+  return Math.round((distanceB ?? -1) * 100) - Math.round((distanceA ?? -1) * 100)
+    || (componentTypeOrder[gearType(a)] ?? 5) - (componentTypeOrder[gearType(b)] ?? 5);
+}
 
 function gearAlerts(components) {
   return [['due', '已达建议更换里程'], ['soon', '接近建议更换里程'], ['unknown', '信息待完善']].map(([state, label]) => {
@@ -266,22 +274,22 @@ function gearAlerts(components) {
 function componentCard(part, bikeName, id) {
   const type = gearType(part);
   const positionNote = part.type === 'Tyre' && type === '外胎' ? '<p class="gear-note">未标记前后位置</p>' : '';
-  const heading = `<div class="gear-part-heading"><span class="gear-type">${escapeHtml(type)}</span><h4>${escapeHtml(part.name)}</h4></div>${part.sharedBy ? '<p class="gear-shared">共享配件 · ' + part.sharedBy.map(escapeHtml).join(' / ') + '</p>' : ''}`;
+  const heading = `<div class="gear-part-heading"><span class="gear-type">${escapeHtml(type)}</span>${part.sharedBy ? '<span class="gear-shared" tabindex="0" aria-describedby="' + id + '-shared">共享配件<span class="gear-shared-owners" id="' + id + '-shared" role="tooltip">共享车辆：' + part.sharedBy.map(escapeHtml).join(' / ') + '</span></span>' : ''}<h4>${escapeHtml(part.name)}</h4></div>`;
   const total = `<p class="gear-note">累计里程 ${gearDistance(part.distanceKm)}</p>`;
   if (part.replacement === null) return `<article class="gear-part" id="${id}" tabindex="-1">${heading}${total}</article>`;
   const {status, date, distanceKm} = part.replacement;
   const target = replacementTargets[part.type];
   const warning = status === 'missing-reminder' ? '未设置更换提醒' : status === 'duplicate-reminder' ? '“更换”提醒重名，请保留一个' : null;
   const state = componentState(part);
-  const label = warning ?? (distanceKm === null ? '更换后里程未提供' : state === 'due' ? '已达建议更换里程' : state === 'soon' ? '接近建议更换里程' : date === null ? '最近更换日期未记录' : '使用中');
-  const remaining = distanceKm === null ? '建议更换里程 ' + formatDistance(target) + ' km'
-    : distanceKm > target ? '已超出建议里程 ' + gearDistance(distanceKm - target) : '距建议里程 ' + gearDistance(target - distanceKm);
+  const notice = warning ?? (distanceKm === null ? '更换后里程未提供' : null);
+  const remaining = distanceKm === null ? '' : distanceKm > target ? '已超出建议里程 ' + gearDistance(distanceKm - target)
+    : distanceKm === target ? '已达建议更换里程' : '距建议里程 ' + gearDistance(target - distanceKm);
   const progress = distanceKm === null ? '' : `<div class="gear-progress" role="progressbar" aria-label="${escapeHtml(bikeName + ' · ' + type + ' · ' + part.name + '更换里程')}" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(distanceKm,target)}" aria-valuetext="已使用 ${gearDistance(distanceKm)}，建议更换里程 ${formatDistance(target)} km，${remaining}"><span style="width:${Math.min(distanceKm / target * 100,100)}%"></span></div>`;
   return `<article class="gear-part gear-part-tracked" id="${id}" tabindex="-1" data-state="${state}">${heading}
     <p class="gear-replaced">最近更换 ${date === null ? '<span>未记录</span>' : '<time datetime="' + date + '">' + date.replaceAll('-','.') + '</time>'}</p>
     <p class="gear-used"><strong>${gearDistance(distanceKm)}</strong><span> / ${formatDistance(target)} km</span></p>
-    ${progress}<div class="gear-progress-caption"><span>${remaining}</span>${distanceKm === null ? '' : '<span>' + Math.floor(distanceKm / target * 100) + '%</span>'}</div>
-    <p class="gear-state">${label}</p>${positionNote}${total}</article>`;
+    ${progress}${distanceKm === null ? '' : '<div class="gear-progress-caption"><span>' + remaining + '</span><span>' + Math.floor(distanceKm / target * 100) + '%</span></div>'}
+    ${notice ? '<p class="gear-state">' + notice + '</p>' : ''}${positionNote}</article>`;
 }
 
 export function summarizeGear(library) {
@@ -331,7 +339,7 @@ export function renderGearLibrary(library) {
   const maintenance = summarizeGear(library);
   if (library === null) return '<p class="gear-empty">装备尚未同步。完成 Intervals.icu 装备同步后，将在这里显示自行车和配件使用情况。</p>';
   const active = library.active.length ? renderGearMaintenance(maintenance) + library.active.map((bike, bikeIndex) => `<details class="gear-bike"><summary class="gear-bike-heading"><div><span class="gear-type">自行车 · ${bike.components.length} 件配件</span><h3>${escapeHtml(bike.name)}</h3><span class="gear-alerts">${gearAlerts(bike.components)}</span></div><p><span>累计使用</span><strong>${gearDistance(bike.distanceKm)}</strong></p><svg class="gear-toggle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
-    ${bike.components.length ? '<div class="gear-parts">' + bike.components.map((part, index) => ({part, index})).sort((a,b) => componentPriority(a.part) - componentPriority(b.part)).map(({part, index}) => componentCard(part,bike.name,`gear-part-${bikeIndex}-${index}`)).join('') + '</div>' : '<p class="gear-note">尚未关联在用配件。</p>'}</details>`).join('') : '<p class="gear-empty">还没有在用的自行车。在 Intervals.icu 添加自行车并关联配件后，会随每日同步显示。</p>';
+    ${bike.components.length ? '<div class="gear-parts">' + bike.components.map((part, index) => ({part, index})).sort((a,b) => compareComponentUsage(a.part, b.part)).map(({part, index}) => componentCard(part,bike.name,`gear-part-${bikeIndex}-${index}`)).join('') + '</div>' : '<p class="gear-note">尚未关联在用配件。</p>'}</details>`).join('') : '<p class="gear-empty">还没有在用的自行车。在 Intervals.icu 添加自行车并关联配件后，会随每日同步显示。</p>';
   return active + renderRetiredGear(library.retired);
 }
 

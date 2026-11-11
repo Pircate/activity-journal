@@ -120,20 +120,26 @@ test('进度准确区分 80%、达到和超过建议里程，超出时填充及�
   }
 });
 
-test('折叠提醒区分未知和已达建议里程，展开优先显示需更换配件；同名配件不推断共享', () => {
-  const library = normalizeGear([bike('甲',['轮组','链条','飞轮','外胎']), bike('乙',['另一链条']),
-    part('轮组','Wheelset'), part('链条','Chain',{name:'同名链条',reminders:[reminder(4000000)]}),
+test('折叠提醒区分未知和已达建议里程，展开按使用里程及配件类型排序；同名配件不推断共享', () => {
+  const library = normalizeGear([bike('甲',['轮组','链条','飞轮','外胎','后胎','前胎','备用飞轮','牙盘']), bike('乙',['另一链条']),
+    part('轮组','Wheelset'), part('链条','Chain',{name:'同名链条',reminders:[reminder(4000004)]}),
     part('飞轮','Cassette',{reminders:[reminder(10000000)]}), part('外胎','Tyre'),
-    part('另一链条','Chain',{name:'同名链条',reminders:[reminder(4000000)]})]);
+    part('另一链条','Chain',{name:'同名链条',reminders:[reminder(4000000)]}),
+    part('后胎','Tyre',{reminders:[reminder(4000003)]}),
+    part('前胎','Tyre',{reminders:[reminder(4000002)]}),
+    part('备用飞轮','Cassette',{reminders:[reminder(4000001)]}),
+    part('牙盘','Chainrings',{distance:20000000,reminders:[reminder(4000000)]})]);
   assert.equal(library.active[0].components[1].sharedBy, undefined);
   assert.equal(library.active[1].components[0].sharedBy, undefined);
   const html = renderGearLibrary(library);
   const heading = html.match(/<summary[^>]*>([\s\S]*?)<\/summary>/)[1];
-  for (const label of ['1 项已达建议更换里程','1 项接近建议更换里程','1 项信息待完善']) assert.ok(heading.includes(label));
+  for (const label of ['1 项已达建议更换里程','3 项接近建议更换里程','1 项信息待完善']) assert.ok(heading.includes(label));
   assert.ok(html.indexOf('<h4>飞轮</h4>') < html.indexOf('<h4>同名链条</h4>'));
-  assert.ok(html.indexOf('<h4>外胎</h4>') < html.indexOf('<h4>轮组</h4>'));
+  const cards = html.slice(html.indexOf('<details'), html.indexOf('</details>'));
+  assert.deepEqual([...cards.matchAll(/<h4>(.*?)<\/h4>/g)].map(match => match[1]), ['轮组','飞轮','牙盘','备用飞轮','同名链条','前胎','后胎','外胎']);
   const shared = normalizeGear([bike('<甲>',['共享']),bike('乙',['共享']),part('共享','Chain',{reminders:[reminder()]})]);
-  assert.match(renderGearLibrary(shared), /共享配件 · &lt;甲&gt; \/ 乙/);
+  assert.match(renderGearLibrary(shared), /aria-describedby="gear-part-0-0-shared"/);
+  assert.match(renderGearLibrary(shared), /role="tooltip">共享车辆：&lt;甲&gt; \/ 乙/);
   assert.doesNotMatch(renderGearLibrary(library), /共享配件/);
   for (const sharedBy of [[], ['甲'], ['甲','不存在'], '甲']) {
     const invalid = structuredClone(library);
@@ -149,6 +155,9 @@ test('普通配件显示总里程；页面转义装备名称，且公开数据�
   assert.match(html,/&lt;script&gt;/);
   assert.match(html,/&lt;img/);
   assert.match(html,/累计里程 12,000\.00 km/);
+  const tracked = renderGearLibrary(normalizeGear([bike('车',['链条']),part('链条','Chain',{reminders:[reminder(1000000)]})]));
+  assert.match(tracked, /<strong>1,000\.00 km<\/strong>/);
+  assert.doesNotMatch(tracked, /累计里程|使用中|class="gear-state"/);
   assert.doesNotMatch(html,/<script>|<img|role="progressbar"/);
   assert.doesNotMatch(JSON.stringify(library),/internal-part|secret-athlete|私密备注|athlete_id|component_ids/);
   validateData(snapshot(library));
@@ -230,7 +239,7 @@ test('维护定位链接使用排序前索引，精确指向共享配件的每�
   assert.match(html, /id="gear-part-1-0" tabindex="-1" data-state="soon"/);
   const targets = [...html.matchAll(/data-gear-target="([^"]+)"/g)].map(match => match[1]);
   for (const target of targets) assert.equal((html.match(new RegExp('id="' + target + '"', 'g')) ?? []).length, 1);
-  assert.ok(html.indexOf('id="gear-part-0-1"') < html.indexOf('id="gear-part-0-0"'), '优先展示需关注配件，仍保持链接对应原配件');
+  assert.ok(html.indexOf('id="gear-part-0-1"') < html.indexOf('id="gear-part-0-0"'), '优先展示使用里程较高的配件，仍保持链接对应原配件');
 });
 
 test('共享分组缺失、复用或归属及数值不一致时拒绝整个快照', () => {
