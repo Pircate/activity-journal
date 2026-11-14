@@ -4,8 +4,19 @@
     "start": "2020-01-01",
     "end": "2026-11-14"
   },
-  "syncedAt": "2026-11-14 15:54:58 +08:00",
+  "syncedAt": "2026-11-14 16:34:35 +08:00",
   "activities": [
+    {
+      "date": "2026-11-14",
+      "startTime": "15:54:54",
+      "sport": "VirtualRide",
+      "distanceKm": 9.2768,
+      "durationSeconds": 2239,
+      "elevationGain": 325,
+      "trainingLoad": 43,
+      "stravaUrl": "https://www.strava.com/activities/20980345824",
+      "activityUrl": "https://intervals.icu/activities/i209804766"
+    },
     {
       "date": "2026-11-14",
       "startTime": "15:29:09",
@@ -22073,16 +22084,16 @@
       {
         "name": "CYCPLUS R200",
         "type": "Bike",
-        "distanceKm": 5049.461,
+        "distanceKm": 5058.738,
         "components": [
           {
             "name": "青野链条",
             "type": "Chain",
-            "distanceKm": 5076.124,
+            "distanceKm": 5085.401,
             "replacement": {
               "status": "available",
               "date": "2025-10-12",
-              "distanceKm": 5076.124
+              "distanceKm": 5085.401
             },
             "sharedBy": [
               "CYCPLUS R200",
@@ -22093,11 +22104,11 @@
           {
             "name": "青野牙盘",
             "type": "Chainrings",
-            "distanceKm": 5076.122,
+            "distanceKm": 5085.399,
             "replacement": {
               "status": "available",
               "date": "2025-10-12",
-              "distanceKm": 5076.122
+              "distanceKm": 5085.399
             },
             "sharedBy": [
               "CYCPLUS R200",
@@ -22108,11 +22119,11 @@
           {
             "name": "R200 飞轮",
             "type": "Cassette",
-            "distanceKm": 5049.46,
+            "distanceKm": 5058.737,
             "replacement": {
               "status": "available",
               "date": "2025-09-29",
-              "distanceKm": 5049.46
+              "distanceKm": 5058.737
             }
           }
         ]
@@ -22145,11 +22156,11 @@
           {
             "name": "青野链条",
             "type": "Chain",
-            "distanceKm": 5076.124,
+            "distanceKm": 5085.401,
             "replacement": {
               "status": "available",
               "date": "2025-10-12",
-              "distanceKm": 5076.124
+              "distanceKm": 5085.401
             },
             "sharedBy": [
               "CYCPLUS R200",
@@ -22160,11 +22171,11 @@
           {
             "name": "青野牙盘",
             "type": "Chainrings",
-            "distanceKm": 5076.122,
+            "distanceKm": 5085.399,
             "replacement": {
               "status": "available",
               "date": "2025-10-12",
-              "distanceKm": 5076.122
+              "distanceKm": 5085.399
             },
             "sharedBy": [
               "CYCPLUS R200",
