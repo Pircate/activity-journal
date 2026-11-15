@@ -65,23 +65,27 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
   const spec = reportMetrics[metric];
   if (!spec) throw new Error('请选择有效的图表指标。');
   canvas.width = 1080;
-  canvas.height = 1100 + Math.max(1, report.sports.length) * 68;
+  canvas.height = Math.max(1920, 1600 + Math.max(1, report.sports.length) * 80);
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('当前浏览器无法生成图片。');
-  const text = (value, x, y, size = 26, color = '#f5f5f5', weight = 400, width = 936) => {
+  const text = (value, x, y, size = 26, color = '#252821', weight = 400, width = 936) => {
     ctx.fillStyle = color;
     ctx.font = `${weight} ${size}px -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif`;
     ctx.fillText(String(value), x, y, width);
   };
-  const line = y => { ctx.fillStyle = '#353535'; ctx.fillRect(72, y, 936, 1); };
-  ctx.fillStyle = '#131313'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#fc4c02'; ctx.fillRect(72, 68, 56, 7);
-  text(name + '的运动日志', 72, 126, 28, '#ff8a4c', 600);
-  text(report.title, 72, 208, 54, '#f5f5f5', 700);
-  text(`${pretty(report.start)} — ${pretty(report.end)}`, 72, 260, 25, '#b5b5b5');
-  line(296);
-  text('已记录距离 / km', 72, 349, 26, '#b5b5b5');
-  text(report.distanceKm === null ? '—' : formatDistance(report.distanceKm), 72, 459, 102, '#fc4c02', 700);
+  const line = y => { ctx.fillStyle = '#d4cfc3'; ctx.fillRect(72, y, 936, 1); };
+  ctx.fillStyle = '#f1eee4'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#202820'; ctx.fillRect(0, 0, 1080, 820);
+  ctx.fillStyle = '#e85a31'; ctx.fillRect(0, 330, 1080, 250);
+  text('运动日志 / ' + name, 72, 78, 25, '#f1eee4', 600, 650);
+  text(report.mode === 'year' ? '年度记录' : '月度记录', 830, 78, 24, '#f1eee4', 600, 178);
+  text(report.selection.slice(0, 4), 68, 210, 120, '#f1eee4', 700, 440);
+  text(report.mode === 'month' ? report.selection.slice(5) : '年', 696, 252, 186, '#e85a31', 700, 300);
+  text(pretty(report.start) + ' — ' + pretty(report.end), 72, 262, 24, '#bec5b7');
+  text('距离 / km', 72, 390, 25, '#202820', 600);
+  text(report.distanceKm === null ? '—' : formatDistance(report.distanceKm), 68, 522, 116, '#202820', 700, 720);
+  text('运动的痕迹', 837, 480, 25, '#202820', 600, 170);
+  text('留在每一天', 837, 514, 25, '#202820', 600, 170);
   const metrics = [
     ['时长', report.durationSeconds === null ? '—' : formatTime(report.durationSeconds)],
     ['次数', report.count === null ? '—' : report.count + ' 次'],
@@ -89,45 +93,47 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
   ];
   metrics.forEach(([label, value], index) => {
     const x = 72 + index * 320;
-    text(label, x, 526, 24, '#b5b5b5');
-    text(value, x, 579, 43, '#f5f5f5', 600, 295);
+    text(label, x, 650, 24, '#bec5b7');
+    text(value, x, 704, 43, '#f1eee4', 600, 295);
   });
-  text('活跃 ' + (report.activeDays ?? '—') + ' 天', 72, 626, 24, '#b5b5b5');
-  line(654);
-  text((report.mode === 'year' ? '每月' : '每日') + spec.label + ' / ' + spec.unit, 72, 705, 28, '#f5f5f5', 600);
+  text('活跃 ' + (report.activeDays ?? '—') + ' 天', 72, 762, 24, '#bec5b7');
+  text((report.mode === 'year' ? '每月' : '每日') + spec.label + ' / ' + spec.unit, 72, 900, 28, '#292b25', 600);
   const value = bucket => metric === 'durationSeconds' && bucket[metric] !== null ? bucket[metric] / 3600
     : metric === 'distanceKm' && bucket.distanceKm === null && !bucket.missingDistance && !bucket.incomplete ? 0 : bucket[metric];
   const max = Math.max(1, ...report.buckets.map(bucket => value(bucket) ?? 0));
   const step = 850 / report.buckets.length;
   // 保留量纲和刻度，图中只绘制已记录值。
   for (const tick of [0, max / 2, max]) {
-    const y = 850 - tick / max * 130;
-    ctx.fillStyle = '#303030'; ctx.fillRect(72, y, 850, 1);
-    text(number(tick), 942, y + 7, 20, '#b5b5b5', 400, 68);
+    const y = 1190 - tick / max * 230;
+    ctx.fillStyle = '#d8d4c9'; ctx.fillRect(72, y, 850, 1);
+    text(number(tick), 942, y + 7, 20, '#77796e', 400, 68);
   }
   report.buckets.forEach((bucket, index) => {
-    const barWidth = Math.min(12, step * 0.3);
+    const barWidth = Math.min(36, step * 0.65);
     const x = 72 + index * step + (step - barWidth) / 2;
     const amount = value(bucket);
-    const height = (amount ?? 0) / max * 130;
-    ctx.fillStyle = '#fc4c02';
-    if (amount !== null && amount > 0) ctx.fillRect(x, 850 - height, barWidth, height);
+    const height = (amount ?? 0) / max * 230;
+    ctx.fillStyle = '#d9512b';
+    if (amount !== null && amount > 0) ctx.fillRect(x, 1190 - height, barWidth, height);
     if (report.mode === 'year' || index === 0 || Number(bucket.label) % 5 === 0 || index === report.buckets.length - 1 && (step >= 40 || Number(bucket.label) % 5 > 2)) {
-      text(bucket.label, x, 883, 21, '#b5b5b5', 400, step - 1);
+      text(bucket.label, x, 1227, 21, '#77796e', 400, step - 1);
     }
   });
-  line(922);
-  text('运动统计', 72, 973, 28, '#f5f5f5', 600);
-  [['运动 / 次数',72], ['距离 / km',350], ['时长',590], ['负荷 / TL',850]].forEach(([label,x]) => text(label, x, 1017, 22, '#b5b5b5'));
-  if (!report.sports.length) text(report.pendingDays || report.unavailable ? '暂无可读取记录' : '暂无运动记录', 72, 1070, 26, '#b5b5b5');
+  line(1280);
+  text('运动统计', 72, 1350, 28, '#292b25', 600);
+  [['运动 / 次数',72], ['距离 / km',350], ['时长',590], ['负荷 / TL',850]].forEach(([label,x]) => text(label, x, 1410, 22, '#77796e'));
+  if (!report.sports.length) text(report.pendingDays || report.unavailable ? '暂无可读取记录' : '暂无运动记录', 72, 1480, 26, '#77796e');
   report.sports.forEach((item, index) => {
-    const y = 1064 + index * 68;
-    text(sportLabel(item.sport), 72, y, 25, '#f5f5f5', 600, 250);
-    text(item.count + ' 次', 72, y + 26, 20, '#b5b5b5');
-    text(distanceNumber(item.distanceKm), 350, y + 9, 27, '#f5f5f5', 600, 215);
-    text(formatTime(item.durationSeconds), 590, y + 9, 27, '#f5f5f5', 600, 235);
-    text(loadNumber(item.trainingLoad), 850, y + 9, 27, '#f5f5f5', 600, 158);
+    const y = 1480 + index * 80;
+    text(sportLabel(item.sport), 72, y, 25, '#292b25', 600, 250);
+    text(item.count + ' 次', 72, y + 26, 20, '#77796e');
+    text(distanceNumber(item.distanceKm), 350, y + 9, 27, '#292b25', 600, 215);
+    text(formatTime(item.durationSeconds), 590, y + 9, 27, '#292b25', 600, 235);
+    text(loadNumber(item.trainingLoad), 850, y + 9, 27, '#292b25', 600, 158);
   });
+  line(canvas.height - 130);
+  text('运动日志 / ' + name, 72, canvas.height - 75, 22, '#77796e', 600, 700);
+  text(report.selection, 850, canvas.height - 75, 22, '#77796e', 600, 158);
 }
 
 function yearOptions(data, today) {

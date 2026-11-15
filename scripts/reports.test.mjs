@@ -126,7 +126,7 @@ test('分享图精简说明并移除空心框，仍绘制已记录值且保留�
   drawReport(canvas, report, '测试');
   assert.equal(bars.length, 1);
   assert.ok(bars[0].height > 0);
-  assert.ok(canvas.height < 1440, '移除说明后收紧图片高度');
+  assert.equal(canvas.height, 1920, '常规报表采用手机竖屏 9:16 比例');
   assert.doesNotMatch(texts.join(' '), /空心框|未同步|仅统计|数据来自|同步于|数据不完整|截至今日/);
   assert.match(reportSummary(report), /未同步|距离未提供/, '详细数据说明仍保留在无障碍摘要中');
 });
