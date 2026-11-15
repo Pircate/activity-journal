@@ -129,5 +129,5 @@ test('数据刷新只在内容变化时重绘，保留节点', async t => {
   assert.equal(content.writes, 0);
   update(snapshot([activity('2026-01-01', {distanceKm:5000})]));
   assert.equal(content.writes, 1);
-  assert.match(content.innerHTML, /已达成 2 \/ 27 项/);
+  assert.match(content.innerHTML, /已达成 2 \/ 29 项/);
 });
