@@ -2,10 +2,21 @@
   "sourcePolicyVersion": 2,
   "period": {
     "start": "2020-01-01",
-    "end": "2026-11-14"
+    "end": "2026-11-15"
   },
-  "syncedAt": "2026-11-14 16:34:35 +08:00",
+  "syncedAt": "2026-11-15 16:06:03 +08:00",
   "activities": [
+    {
+      "date": "2026-11-15",
+      "startTime": "13:58:51",
+      "sport": "Ride",
+      "distanceKm": 66.1142,
+      "durationSeconds": 7383,
+      "elevationGain": 427,
+      "trainingLoad": 184,
+      "stravaUrl": "https://www.strava.com/activities/20993001324",
+      "activityUrl": "https://intervals.icu/activities/i210216927"
+    },
     {
       "date": "2026-11-14",
       "startTime": "15:54:54",
@@ -22198,56 +22209,56 @@
       {
         "name": "墨澜",
         "type": "Bike",
-        "distanceKm": 112.08824,
+        "distanceKm": 178.20245,
         "components": [
           {
             "name": "UT 飞轮",
             "type": "Cassette",
-            "distanceKm": 3492.9882000000002,
+            "distanceKm": 3559.1025,
             "replacement": {
               "status": "available",
               "date": "2025-10-07",
-              "distanceKm": 3492.9882000000002
+              "distanceKm": 3559.1025
             }
           },
           {
             "name": "UT 链条",
             "type": "Chain",
-            "distanceKm": 3492.9882000000002,
+            "distanceKm": 3559.1025,
             "replacement": {
               "status": "available",
               "date": "2025-10-07",
-              "distanceKm": 3492.9882000000002
+              "distanceKm": 3559.1025
             }
           },
           {
             "name": "后胎 · 倍耐力",
             "type": "Tyre",
-            "distanceKm": 1927.6882,
+            "distanceKm": 1993.8025,
             "replacement": {
               "status": "available",
               "date": "2026-06-10",
-              "distanceKm": 1927.6882
+              "distanceKm": 1993.8025
             }
           },
           {
             "name": "前胎 · 倍耐力",
             "type": "Tyre",
-            "distanceKm": 1927.6882,
+            "distanceKm": 1993.8025,
             "replacement": {
               "status": "available",
               "date": "2026-06-10",
-              "distanceKm": 1927.6882
+              "distanceKm": 1993.8025
             }
           },
           {
             "name": "105 牙盘",
             "type": "Chainrings",
-            "distanceKm": 10567.259,
+            "distanceKm": 10633.373,
             "replacement": {
               "status": "available",
               "date": "2024-03-30",
-              "distanceKm": 10567.259
+              "distanceKm": 10633.373
             }
           }
         ]
