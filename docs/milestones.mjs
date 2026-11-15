@@ -18,8 +18,8 @@ const definitions = [
   {key:'distance', label:'累计里程', targets:[5000, 10000, 20000, 30000, 50000], amount:activity => distanceApplies(activity) ? activity.distanceKm : null},
   {key:'ride', label:'骑行里程', targets:[5000, 10000, 20000, 30000], amount:activity => isRide(activity.sport) ? activity.distanceKm : null},
   {key:'run', label:'跑步里程', targets:[1000, 2000, 5000, 10000], amount:activity => runSports.has(activity.sport) ? activity.distanceKm : null},
-  {key:'count', label:'运动次数', targets:[100, 500, 1000, 1500, 2000], amount:() => 1},
-  {key:'activeDays', label:'活跃天数', targets:[100, 365, 730, 1000, 1500], amount:() => 1},
+  {key:'count', label:'运动次数', targets:[100, 500, 1000, 1500, 2000, 3000], amount:() => 1},
+  {key:'activeDays', label:'活跃天数', targets:[100, 365, 730, 1000, 1500, 2000], amount:() => 1},
   {key:'duration', label:'运动时长', targets:[500, 1000, 1500, 2000], amount:activity => activity.durationSeconds},
 ];
 
