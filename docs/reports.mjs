@@ -149,7 +149,7 @@ export function renderReportPanel(data, today = beijingDate()) {
     <div class="history-field"><label for="report-metric">图表指标</label><select id="report-metric">${Object.entries(reportMetrics).map(([key, spec]) => `<option value="${key}">${spec.label}</option>`).join('')}</select></div>
     <button type="button" id="report-generate">生成分享图片</button></form>
     <p id="report-status" class="report-intro" role="status" aria-live="polite"></p>
-    <div id="report-result" hidden><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整 · 手机也可长按下方图片保存。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
+    <div id="report-result" hidden><button type="button" id="report-save" class="report-download" hidden>保存到相册</button><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整 · 手机也可长按下方图片保存。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
     <noscript><p>启用 JavaScript 后可生成与下载图片。</p></noscript></div></section>`;
 }
 
@@ -157,6 +157,7 @@ export function initializeReports(initialData, name) {
   let data = initialData;
   let revision = 0;
   let imageUrl;
+  let imageFile;
   const form = document.getElementById('report-form');
   const mode = document.getElementById('report-mode');
   const month = document.getElementById('report-month');
@@ -165,6 +166,7 @@ export function initializeReports(initialData, name) {
   const result = document.getElementById('report-result');
   const status = document.getElementById('report-status');
   const image = document.getElementById('report-image');
+  const save = document.getElementById('report-save');
   const download = document.getElementById('report-download');
   const generate = document.getElementById('report-generate');
   function invalidate(message) {
@@ -172,6 +174,7 @@ export function initializeReports(initialData, name) {
     result.hidden = true;
     image.removeAttribute('src');
     download.removeAttribute('href');
+    imageFile = undefined;
     if (imageUrl) URL.revokeObjectURL(imageUrl);
     imageUrl = undefined;
     generate.disabled = false;
@@ -202,10 +205,14 @@ export function initializeReports(initialData, name) {
       image.src = imageUrl;
       image.height = canvas.height;
       image.alt = reportSummary(report);
+      imageFile = typeof File === 'function' ? new File([blob], '运动' + (report.mode === 'month' ? '月报' : '年报') + '-' + report.selection + '.png', {type:'image/png'}) : undefined;
       document.getElementById('report-summary').textContent = image.alt;
       document.getElementById('report-image-info').textContent = `1080 × ${canvas.height} 像素 · 手机也可长按下方图片保存。`;
       download.href = imageUrl;
-      download.download = '运动' + (report.mode === 'month' ? '月报' : '年报') + '-' + report.selection + '.png';
+      download.download = imageFile?.name || '运动' + (report.mode === 'month' ? '月报' : '年报') + '-' + report.selection + '.png';
+      const canShareFile = imageFile && typeof globalThis.navigator?.canShare === 'function' && typeof globalThis.navigator.share === 'function' && globalThis.navigator.canShare({files:[imageFile]});
+      save.hidden = !canShareFile;
+      download.hidden = Boolean(canShareFile);
       result.hidden = false;
       status.textContent = report.title + '已生成，可预览并下载。';
     } catch (error) {
@@ -216,6 +223,18 @@ export function initializeReports(initialData, name) {
   }
   form.addEventListener('submit', generateReport);
   generate.addEventListener('click', () => generateReport());
+  save.addEventListener('click', async () => {
+    if (!imageFile || typeof globalThis.navigator?.share !== 'function') return;
+    try {
+      await globalThis.navigator.share({files:[imageFile], title:imageFile.name});
+      status.textContent = '已打开系统分享面板，请选择保存图片。';
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+      save.hidden = true;
+      download.hidden = false;
+      status.textContent = '系统保存面板不可用，可下载 PNG 图片。';
+    }
+  });
   return (latest, nextToday) => {
     data = latest;
     month.min = data.period.start.slice(0, 7);
