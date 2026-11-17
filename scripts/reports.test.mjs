@@ -93,7 +93,7 @@ test('总负荷与各运动距离、时长、次数、负荷一致，未知负�
   assert.equal(report.buckets[0].missingLoad, 1);
   assert.equal(report.buckets[1].trainingLoad, 0);
   assert.match(reportSummary(report), /总负荷 80 TL/);
-  assert.match(reportSummary(report), /骑行 2 次 \/ 80\.00 km \/ 1:00:00 \/ 70 TL/);
+  assert.match(reportSummary(report), /骑行 2 次 \/ 80\.00 km \/ 1 小时 0 分钟 \/ 70 TL/);
 });
 
 test('图片支持四项图表指标，完整显示所有运动统计，图片高度容纳明细', () => {
@@ -101,14 +101,57 @@ test('图片支持四项图表指标，完整显示所有运动统计，图片�
   const report = createReport(data, 'month', '2026-10', today);
   for (const metric of ['distanceKm', 'durationSeconds', 'count', 'trainingLoad']) {
     const texts = [];
-    const canvas = {getContext:() => ({fillRect() {}, strokeRect() {}, fillText(value, x, y) {texts.push({value, y});}})};
+    const canvas = {getContext:() => ({font:'', fillRect() {}, strokeRect() {}, measureText:value => ({width:String(value).length * 8}), fillText(value, x, y) {texts.push({value, y});}})};
     drawReport(canvas, report, '测试', metric);
     for (const sport of report.sports) assert.ok(texts.some(text => text.value === sportLabel(sport.sport)), '所有运动类型都有明细');
-    assert.ok(texts.some(text => text.value === '负荷 / TL'));
+    assert.ok(texts.some(text => text.value === '负荷'));
+    for (const legacy of ['距离 / km', '负荷 / TL']) assert.equal(texts.some(text => text.value === legacy), false, '表头不再携带单位');
     assert.ok(texts.every(text => text.y < canvas.height));
     assert.ok(canvas.height > 1440, '明细较多时自动增加图片高度');
     assert.equal(texts.some(text => text.value === '未开始'), false);
   }
+});
+
+test('时长精确到分钟并以小字号单位呈现，距离与负荷带单位且标题不含单位', () => {
+  const report = createReport(fixture([activity('2024-02-01', {durationSeconds:9000})]), 'month', '2024-02', today);
+  const calls = [];
+  const canvas = {getContext:() => ({
+    font:'',
+    fillRect() {},
+    measureText:value => ({width:String(value).length * 8}),
+    fillText(value, x, y) {calls.push({value, size:Number(this.font.match(/(\d+)px/)[1]), color:this.fillStyle, x, y});},
+  })};
+  drawReport(canvas, report, '测试');
+  const row = calls.filter(call => call.y === 704).sort((a, b) => a.x - b.x);
+  assert.deepEqual(row.map(call => call.value), ['2', 'h', '30', 'min', '1', '次', '20', 'TL']);
+  for (const value of ['2', '30', '1', '20']) assert.equal(row.find(call => call.value === value).size, 43);
+  for (const unit of ['h', 'min', '次', 'TL']) assert.ok(row.find(call => call.value === unit).size < 43, '单位使用小字号');
+  const distance = calls.filter(call => call.y === 522).sort((a, b) => a.x - b.x);
+  assert.deepEqual(distance.map(call => call.value), ['5.25', 'km']);
+  assert.ok(distance[1].size < distance[0].size);
+  for (const [unit, value] of [['h', '2'], ['min', '30'], ['次', '1'], ['TL', '20']]) assert.notEqual(calls.find(call => call.value === unit).color, calls.find(call => call.value === value).color, '单位颜色与数字区分');
+  assert.equal(calls.find(call => call.value === 'km').color, calls.find(call => call.value === '5.25').color, '橙色主视觉单位沿用墨色');
+  assert.ok(calls.find(call => call.value === 'km').size < calls.find(call => call.value === '5.25').size, '主视觉单位仅以字号区分');
+  assert.ok(calls.some(call => call.value === '日均距离' && call.y === 888 && call.size === 22), '月报图表标签改为日均且不再包含单位');
+  const subtitle = calls.filter(call => call.y === 932).sort((a, b) => a.x - b.x);
+  assert.deepEqual(subtitle.map(call => call.value), ['0.18', 'km']);
+  assert.equal(subtitle[0].size, 34, '日均值作为图表头部的数值');
+  assert.ok(subtitle[1].size < subtitle[0].size);
+  assert.notEqual(subtitle[1].color, subtitle[0].color);
+  assert.ok(subtitle[1].x - (subtitle[0].x + 4 * 8) >= 4, '数字与单位之间留有间距');
+  assert.ok(row.find(call => call.value === 'h').x - (row[0].x + 8) >= 4, '时长数值与单位不贴在一起');
+  const annualCalls = [];
+  const annualCanvas = {getContext:() => ({font:'', fillRect() {}, measureText:value => ({width:String(value).length * 8}), fillText(value) {annualCalls.push(value);}})};
+  drawReport(annualCanvas, createReport(fixture([activity('2024-02-01')]), 'year', '2024', today), '测试');
+  assert.ok(annualCalls.includes('月均距离'), '年报图表标签改为月均');
+  assert.ok(annualCalls.includes('0.44'), '年报图表显示每月均值');
+  assert.equal(annualCalls.includes('每月距离'), false);
+  const headers = calls.filter(call => call.y === 1410).map(call => call.value);
+  assert.deepEqual(headers, ['运动 / 次数', '距离', '时长', '负荷']);
+  const shortCalls = [];
+  const shortCanvas = {getContext:() => ({font:'', fillRect() {}, measureText:value => ({width:String(value).length * 8}), fillText(value, x, y) {shortCalls.push({value, y});}})};
+  drawReport(shortCanvas, createReport(fixture([activity('2024-02-01')]), 'month', '2024-02', today), '测试');
+  assert.deepEqual(shortCalls.filter(call => call.y === 704).map(call => call.value).slice(0, 2), ['30', 'min'], '不足一小时时只显示分钟');
 });
 
 test('分享图精简说明并移除空心框，仍绘制已记录值且保留文字摘要', () => {
@@ -119,6 +162,8 @@ test('分享图精简说明并移除空心框，仍绘制已记录值且保留�
   const texts = [];
   const bars = [];
   const canvas = {getContext:() => ({
+    font:'',
+    measureText:value => ({width:String(value).length * 8}),
     fillRect(x, y, width, height) {if (width < 20) bars.push({height});},
     fillText(value) {texts.push(value);},
     strokeRect() {assert.fail('分享图不再绘制空心框');},
@@ -159,7 +204,7 @@ test('图片生成失败可重试；更改周期和刷新使旧预览失效，�
   const previousRevoke = URL.revokeObjectURL;
   const revoked = [];
   let fail = true;
-  const ctx = {fillRect() {}, fillText() {}, strokeRect() {}};
+  const ctx = {font:'', measureText:value => ({width:String(value).length * 8}), fillRect() {}, fillText() {}, strokeRect() {}};
   globalThis.document = {getElementById:element, fonts:{ready:fonts}, createElement:() => ({getContext:() => ctx, toBlob:callback => callback(fail ? null : new Blob(['png'], {type:'image/png'}))})};
   URL.revokeObjectURL = url => {revoked.push(url); previousRevoke(url);};
   t.after(() => {globalThis.document = previousDocument; URL.revokeObjectURL = previousRevoke;});
