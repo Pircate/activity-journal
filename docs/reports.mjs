@@ -147,7 +147,7 @@ export function renderReportPanel(data, today = beijingDate()) {
     <div class="history-field" id="report-month-field"><label for="report-month">月份</label><input id="report-month" type="month" required min="${data.period.start.slice(0, 7)}" max="${today.slice(0, 7)}" value="${(data.period.end < today ? data.period.end : today).slice(0, 7)}"></div>
     <div class="history-field" id="report-year-field" hidden><label for="report-year">年份</label><select id="report-year" disabled>${yearOptions(data, today)}</select></div>
     <div class="history-field"><label for="report-metric">图表指标</label><select id="report-metric">${Object.entries(reportMetrics).map(([key, spec]) => `<option value="${key}">${spec.label}</option>`).join('')}</select></div>
-    <button type="submit" id="report-generate">生成分享图片</button></form>
+    <button type="button" id="report-generate">生成分享图片</button></form>
     <p id="report-status" class="report-intro" role="status" aria-live="polite"></p>
     <div id="report-result" hidden><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整 · 手机也可长按下方图片保存。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
     <noscript><p>启用 JavaScript 后可生成与下载图片。</p></noscript></div></section>`;
@@ -185,8 +185,8 @@ export function initializeReports(initialData, name) {
     year.disabled = !annual;
     invalidate('报表选项已调整，请生成分享图片。');
   });
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
+  async function generateReport(event) {
+    event?.preventDefault();
     invalidate('正在生成分享图片…');
     const request = revision;
     generate.disabled = true;
@@ -213,7 +213,9 @@ export function initializeReports(initialData, name) {
     } finally {
       if (request === revision) generate.disabled = false;
     }
-  });
+  }
+  form.addEventListener('submit', generateReport);
+  generate.addEventListener('click', () => generateReport());
   return (latest, nextToday) => {
     data = latest;
     month.min = data.period.start.slice(0, 7);
