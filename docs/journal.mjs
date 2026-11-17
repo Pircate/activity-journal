@@ -250,6 +250,69 @@ const gearTypes = {
 const gearType = part => part.type === 'Tyre'
   ? part.name.startsWith('前胎') ? '前胎' : part.name.startsWith('后胎') ? '后胎' : '外胎'
   : Object.hasOwn(gearTypes, part.type) ? gearTypes[part.type] : part.type;
+const gearWatermarkKinds = {
+  Chain:'chain', Drivetrain:'chain',
+  Chainrings:'chainring', Crankset:'chainring',
+  Cassette:'cassette',
+  Tyre:'tyre', Wheel:'tyre', Wheelset:'tyre', Tube:'tyre', Hub:'tyre',
+};
+const gearOutline = (cx, cy, outerRadius, rootRadius, teeth) => {
+  const step = Math.PI * 2 / teeth;
+  const point = (radius, angle) => `${(cx + radius * Math.cos(angle)).toFixed(2)} ${(cy + radius * Math.sin(angle)).toFixed(2)}`;
+  const points = Array.from({length:teeth}, (_, index) => {
+    const angle = index * step;
+    return [
+      point(rootRadius, angle - step * .25), point(outerRadius, angle - step * .14),
+      point(outerRadius, angle + step * .14), point(rootRadius, angle + step * .25),
+    ];
+  }).flat();
+  return `M${points[0]}${points.slice(1).map(value => 'L' + value).join('')}Z`;
+};
+const tyreTread = Array.from({length:32}, (_, index) => {
+  const angle = .08 + index * Math.PI * 2 / 32;
+  const outer = [120 + 110 * Math.cos(angle), 120 + 82 * Math.sin(angle)];
+  const inner = [120 + 102 * Math.cos(angle), 120 + 74 * Math.sin(angle)];
+  const dx = inner[0] - outer[0], dy = inner[1] - outer[1], length = Math.hypot(dx, dy);
+  const tx = -dy / length * 4.4, ty = dx / length * 4.4;
+  return `M${(outer[0] + tx).toFixed(1)} ${(outer[1] + ty).toFixed(1)}L${(inner[0] - tx).toFixed(1)} ${(inner[1] - ty).toFixed(1)}`;
+}).join('');
+const tyreSpokes = Array.from({length:18}, (_, index) => {
+  const angle = .1 + index * Math.PI * 2 / 18;
+  return `M120 120L${(120 + 86 * Math.cos(angle)).toFixed(1)} ${(120 + 59 * Math.sin(angle)).toFixed(1)}`;
+}).join('');
+const chainringSpider = (cx, cy, angle, hubRadius, rimRadius, hubHalf, rimHalf) => {
+  const a = angle * Math.PI / 180;
+  const point = (radius, offset) => `${(cx + radius * Math.cos(a + offset)).toFixed(2)} ${(cy + radius * Math.sin(a + offset)).toFixed(2)}`;
+  return `M${point(hubRadius,-hubHalf / hubRadius)}L${point(rimRadius,-rimHalf / rimRadius)}A${rimRadius} ${rimRadius} 0 0 1 ${point(rimRadius,rimHalf / rimRadius)}L${point(hubRadius,hubHalf / hubRadius)}A${hubRadius} ${hubRadius} 0 0 0 ${point(hubRadius,-hubHalf / hubRadius)}Z`;
+};
+const chainringCrank = (cx, cy, angle, length, baseHalf, tailHalf, holeOffset, holeRadius) => {
+  const a = angle * Math.PI / 180;
+  const n = value => value.toFixed(2);
+  const cos = Math.cos(a), sin = Math.sin(a), nx = -sin, ny = cos;
+  const endX = cx + length * cos, endY = cy + length * sin, holeX = cx + (length - holeOffset) * cos, holeY = cy + (length - holeOffset) * sin;
+  const arm = `M${n(cx + nx * baseHalf)} ${n(cy + ny * baseHalf)}L${n(endX + nx * tailHalf)} ${n(endY + ny * tailHalf)}A${tailHalf} ${tailHalf} 0 0 0 ${n(endX - nx * tailHalf)} ${n(endY - ny * tailHalf)}L${n(cx - nx * baseHalf)} ${n(cy - ny * baseHalf)}A${baseHalf} ${baseHalf} 0 0 0 ${n(cx + nx * baseHalf)} ${n(cy + ny * baseHalf)}Z`;
+  const hole = `M${n(holeX - holeRadius)} ${n(holeY)}a${holeRadius} ${holeRadius} 0 1 0 ${holeRadius * 2} 0a${holeRadius} ${holeRadius} 0 1 0 ${-holeRadius * 2} 0Z`;
+  return `<path d="${arm}${hole}" fill="currentColor" fill-rule="evenodd" stroke="none"/>`;
+};
+const chainringAngles = [5,95,185,275];
+const chainringSpokes = chainringAngles.map(angle => `<path d="${chainringSpider(120,120,angle,26,62,11,20)}" stroke-width="4.5"/>`).join('');
+const chainringBolts = chainringAngles.map(angle => {
+  const a = angle * Math.PI / 180;
+  return `<circle cx="${(120 + 50 * Math.cos(a)).toFixed(2)}" cy="${(120 + 50 * Math.sin(a)).toFixed(2)}" r="5.5" stroke-width="3.5"/>`;
+}).join('');
+const gearWatermarks = {
+  chain:`<g transform="rotate(-32 120 120)" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="94" width="82" height="52" rx="26"/><rect x="70" y="99" width="84" height="42" rx="21"/><rect x="134" y="94" width="82" height="52" rx="26"/><path d="M28 108h38M28 132h38M158 108h38M158 132h38M90 104v32M134 104v32" stroke-width="4"/><circle cx="49" cy="120" r="8" fill="currentColor" stroke="none"/><circle cx="112" cy="120" r="8" fill="currentColor" stroke="none"/><circle cx="175" cy="120" r="8" fill="currentColor" stroke="none"/></g>`,
+  chainring:`<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="${gearOutline(120,120,90,82,46)}" stroke-width="4.5"/><circle cx="120" cy="120" r="80" stroke-width="3.5"/><path d="${gearOutline(120,120,70,64,36)}" stroke-width="4.5"/><circle cx="120" cy="120" r="62" stroke-width="3.5"/>${chainringSpokes}${chainringBolts}${chainringCrank(120,120,50,120,15,11,9,5.5)}<circle cx="120" cy="120" r="20" stroke-width="5"/><circle cx="120" cy="120" r="7.6" fill="currentColor" stroke="none"/></g>`,
+  cassette:`<g transform="rotate(-14 120 120)" fill="none" stroke="currentColor" stroke-linejoin="round"><g transform="translate(22 12)"><path d="${gearOutline(112,108,94,85,36)}" stroke-width="6"/><circle cx="112" cy="108" r="73" stroke-width="4"/></g><g transform="translate(15 8)"><path d="${gearOutline(112,108,83,75,32)}" stroke-width="6"/><circle cx="112" cy="108" r="63" stroke-width="4"/></g><g transform="translate(8 4)"><path d="${gearOutline(112,108,72,65,30)}" stroke-width="5"/><circle cx="112" cy="108" r="53" stroke-width="4"/></g><g><path d="${gearOutline(112,108,61,55,28)}" stroke-width="5"/><circle cx="112" cy="108" r="43" stroke-width="4"/><circle cx="112" cy="108" r="21" stroke-width="5" stroke-dasharray="4 4"/><circle cx="112" cy="108" r="11" fill="currentColor" stroke="none"/><circle cx="143" cy="80" r="5" stroke-width="3"/><circle cx="145" cy="130" r="5" stroke-width="3"/><circle cx="101" cy="152" r="5" stroke-width="3"/><circle cx="74" cy="122" r="5" stroke-width="3"/><circle cx="79" cy="86" r="5" stroke-width="3"/></g></g>`,
+  tyre:id => `<g transform="rotate(-20 120 120)" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="240"><ellipse cx="120" cy="120" rx="104" ry="76" stroke="#fff" stroke-width="15"/><path d="${tyreTread}" stroke="#000" stroke-width="3.2"/></mask><ellipse cx="120" cy="120" rx="104" ry="76" stroke-width="15" mask="url(#${id})"/><ellipse cx="120" cy="120" rx="95" ry="67" stroke-width="3"/><path d="${tyreSpokes}" stroke-width="2.3"/><ellipse cx="120" cy="120" rx="88" ry="61" stroke-width="5"/><ellipse cx="120" cy="120" rx="82" ry="56" stroke-width="2"/><ellipse cx="120" cy="120" rx="12" ry="9" stroke-width="5"/><path d="M99 120h42" stroke-width="3"/><ellipse cx="120" cy="120" rx="4.5" ry="3.4" fill="currentColor" stroke="none"/></g>`,
+  generic:`<g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="${gearOutline(120,120,88,77,18)}" stroke-width="8"/><circle cx="120" cy="120" r="57" stroke-width="6"/><circle cx="120" cy="120" r="18" stroke-width="5"/><path d="M120 63v114M63 120h114M80 80l80 80M160 80l-80 80" stroke-width="6"/></g>`,
+};
+let gearWatermarkSequence = 0;
+function gearWatermark(part) {
+  const kind = gearWatermarkKinds[part.type] ?? 'generic';
+  const body = typeof gearWatermarks[kind] === 'function' ? gearWatermarks[kind]('tyre-tread-' + ++gearWatermarkSequence) : gearWatermarks[kind];
+  return `<span class="gear-watermark-layer" aria-hidden="true"><svg class="gear-watermark" data-kind="${kind}" viewBox="0 0 240 240" aria-hidden="true" focusable="false">${body}</svg></span>`;
+}
 const gearDistance = value => value === null ? '未提供' : formatDistance(value) + ' km';
 const componentState = part => !part.replacement ? 'untracked' : part.replacement.distanceKm === null ? 'unknown'
   : part.replacement.distanceKm >= replacementTargets[part.type] ? 'due'
@@ -276,7 +339,7 @@ function componentCard(part, bikeName, id) {
   const positionNote = part.type === 'Tyre' && type === '外胎' ? '<p class="gear-note">未标记前后位置</p>' : '';
   const heading = `<div class="gear-part-heading"><span class="gear-type">${escapeHtml(type)}</span>${part.sharedBy ? '<span class="gear-shared" tabindex="0" aria-describedby="' + id + '-shared">共享配件<span class="gear-shared-owners" id="' + id + '-shared" role="tooltip">共享车辆：' + part.sharedBy.map(escapeHtml).join(' / ') + '</span></span>' : ''}<h4>${escapeHtml(part.name)}</h4></div>`;
   const total = `<p class="gear-note">累计里程 ${gearDistance(part.distanceKm)}</p>`;
-  if (part.replacement === null) return `<article class="gear-part" id="${id}" tabindex="-1">${heading}${total}</article>`;
+  if (part.replacement === null) return `<article class="gear-part" id="${id}" tabindex="-1">${gearWatermark(part)}${heading}${total}</article>`;
   const {status, date, distanceKm} = part.replacement;
   const target = replacementTargets[part.type];
   const warning = status === 'missing-reminder' ? '未设置更换提醒' : status === 'duplicate-reminder' ? '“更换”提醒重名，请保留一个' : null;
@@ -285,7 +348,7 @@ function componentCard(part, bikeName, id) {
   const remaining = distanceKm === null ? '' : distanceKm > target ? '已超出建议里程 ' + gearDistance(distanceKm - target)
     : distanceKm === target ? '已达建议更换里程' : '距建议里程 ' + gearDistance(target - distanceKm);
   const progress = distanceKm === null ? '' : `<div class="gear-progress" role="progressbar" aria-label="${escapeHtml(bikeName + ' · ' + type + ' · ' + part.name + '更换里程')}" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${Math.min(distanceKm,target)}" aria-valuetext="已使用 ${gearDistance(distanceKm)}，建议更换里程 ${formatDistance(target)} km，${remaining}"><span style="width:${Math.min(distanceKm / target * 100,100)}%"></span></div>`;
-  return `<article class="gear-part gear-part-tracked" id="${id}" tabindex="-1" data-state="${state}">${heading}
+  return `<article class="gear-part gear-part-tracked" id="${id}" tabindex="-1" data-state="${state}">${gearWatermark(part)}${heading}
     <p class="gear-replaced">最近更换 ${date === null ? '<span>未记录</span>' : '<time datetime="' + date + '">' + date.replaceAll('-','.') + '</time>'}</p>
     <p class="gear-used"><strong>${gearDistance(distanceKm)}</strong><span> / ${formatDistance(target)} km</span></p>
     ${progress}${distanceKm === null ? '' : '<div class="gear-progress-caption"><span>' + remaining + '</span><span>' + Math.floor(distanceKm / target * 100) + '%</span></div>'}

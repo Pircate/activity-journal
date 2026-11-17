@@ -165,6 +165,26 @@ test('普通配件显示总里程；页面转义装备名称，且公开数据�
   assert.throws(() => validateData(snapshot({...library,active:[{...library.active[0],components:[{...library.active[0].components[0],notes:'leak'}]}]})));
 });
 
+test('配件卡片按类型显示可忽略的 SVG 水印，未知类型使用通用图案', () => {
+  const mappings = [
+    ['Chain','chain'], ['Drivetrain','chain'], ['Chainrings','chainring'], ['Crankset','chainring'],
+    ['Cassette','cassette'], ['Tyre','tyre'], ['Wheelset','tyre'], ['Brake','generic'],
+  ];
+  for (const [type, kind] of mappings) {
+    const html = renderGearLibrary(normalizeGear([bike('车',['配件']), part('配件',type)]));
+    const watermark = html.match(/<svg class="gear-watermark"[\s\S]*?<\/svg>/)?.[0];
+    assert.ok(watermark, type + ' 应包含水印');
+    assert.match(watermark, new RegExp('data-kind="' + kind + '"'));
+    assert.match(watermark, /aria-hidden="true" focusable="false"/);
+    assert.doesNotMatch(watermark, /<text|<img/);
+  }
+  const html = renderGearLibrary(normalizeGear([bike('车',['链条','牙盘','飞轮']),
+    part('链条','Chain'), part('牙盘','Chainrings'), part('飞轮','Cassette')]));
+  assert.equal((html.match(/class="gear-watermark"/g) ?? []).length, 3);
+  assert.match(renderGearLibrary(normalizeGear([bike('车',['链条']), part('链条','Chain',{reminders:[reminder()]})])), /data-kind="chain"/);
+  assert.doesNotMatch(html, /<img/);
+});
+
 test('装备使用总里程与年度范围无关，首次未同步与成功空装备库明确区分', () => {
   const data = snapshot(normalizeGear([bike('车',['链条']),part('链条','Chain',{reminders:[reminder(6500000)]})]));
   assert.notEqual(createJournal(data).period.end,createJournal(data,'2027-10-15').period.end);
