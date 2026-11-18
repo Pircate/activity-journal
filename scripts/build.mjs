@@ -10,12 +10,14 @@ import {renderTrendPanel} from '../docs/trends.mjs';
 import {renderPersonalBestsPanel, validatePersonalBests} from '../docs/personal-bests.mjs';
 import {renderMilestonePanel} from '../docs/milestones.mjs';
 import {renderReportPanel} from '../docs/reports.mjs';
-export async function buildHtml({data, personalBests, profile}) {
+export async function buildHtml({data, personalBests, profile, brand}) {
 validatePersonalBests(personalBests);
 validateData(data);
 profile ??= JSON.parse(await readFile(new URL('../data/profile.json',import.meta.url),'utf8'));
+brand ??= JSON.parse(await readFile(new URL('../data/brand.json',import.meta.url),'utf8'));
 if (Object.keys(profile).sort().join(',') !== 'location,name,stravaUrl' || typeof profile.name!=='string' || !profile.name.trim() || typeof profile.location!=='string' || typeof profile.stravaUrl!=='string' || !/^https:\/\/www\.strava\.com\/athletes\/\d+$/.test(profile.stravaUrl)) throw new Error('个人资料格式无效');
-const siteTitle=profile.name+'的运动日志';
+if (Object.keys(brand).sort().join(',') !== 'name,nameZh' || typeof brand.name!=='string' || !brand.name.trim() || typeof brand.nameZh!=='string' || !brand.nameZh.trim() || /[\r\n]/.test(brand.name) || /[\r\n]/.test(brand.nameZh)) throw new Error('站点品牌格式无效');
+const siteTitle=brand.nameZh+'的运动日志';
 const description=[siteTitle,profile.location].filter(Boolean).join('，')+'。查看近期运动与全年活动。';
 const ogDescription=[profile.location,'日常运动记录'].filter(Boolean).join('，')+'。';
 const journal = createJournal(data);
@@ -30,13 +32,13 @@ assert.ok(Math.abs(daily.reduce((s,d)=>s+(d.distanceKm ?? 0),0)-(distance ?? 0))
 const assetFiles=['activity-data.mjs','style.css','app.js','journal.mjs','history.mjs','trends.mjs','calendar.mjs','personal-bests.mjs','milestones.mjs','reports.mjs'];
 const assetVersion=createHash('sha256').update((await Promise.all(assetFiles.map(name=>readFile(new URL('../docs/'+name,import.meta.url))))).join('\0')).digest('hex').slice(0,8);
 const favicon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#fc4c02"/><path d="M6 22V16M12 22V10M18 22V6M24 22V13" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>';
-const html=`<!DOCTYPE html><html lang="zh-CN"><head>
+const html=`<!DOCTYPE html><html lang="zh-CN" data-brand="${esc(brand.name)}" data-brand-zh="${esc(brand.nameZh)}"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#131313">
 <meta name="description" content="${esc(description)}">
-<meta property="og:title" content="${esc(siteTitle)}"><meta property="og:description" content="${esc(ogDescription)}"><meta property="og:type" content="website">
-<title>${esc(siteTitle)} · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css?v=${assetVersion}"><script type="module" src="app.js?v=${assetVersion}"></script></head>
+<meta property="og:title" content="${esc(siteTitle+' · '+brand.name)}"><meta property="og:site_name" content="${esc(brand.name)}"><meta property="og:description" content="${esc(ogDescription)}"><meta property="og:type" content="website">
+<title>${esc(siteTitle+' · '+brand.name)} · 最近一年</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${encodeURIComponent(favicon)}"><link rel="stylesheet" href="style.css?v=${assetVersion}"><script type="module" src="app.js?v=${assetVersion}"></script></head>
 <body><a class="skip" href="#main">跳转到运动概览</a><div class="wrap">
-<header><a class="brand" href="#main" aria-label="${esc(siteTitle)}，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${esc(siteTitle)}</a><nav aria-label="页面导航"><a href="#records">记录</a><a href="#rhythm">活动</a><a href="#trends">趋势</a><a href="#personal-bests">最佳</a><a href="#milestones">里程碑</a><a href="#reports">分享</a><a href="#gear">装备</a></nav></header>
+<header><a class="brand" href="#main" aria-label="${esc(siteTitle)}，回到概览"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="brand-text"><span class="brand-en">${esc(brand.name.toUpperCase())}</span><span class="brand-zh">${esc(siteTitle)}</span></span></a><nav aria-label="页面导航"><a href="#records">记录</a><a href="#rhythm">活动</a><a href="#trends">趋势</a><a href="#personal-bests">最佳</a><a href="#milestones">里程碑</a><a href="#reports">分享</a><a href="#gear">装备</a></nav></header>
 <main id="main"><div class="intro"><section class="hero profile" aria-labelledby="title"><div class="profile-identity"><h1 id="title">${esc(profile.name)}</h1><div class="profile-meta">${profile.location ? `<p class="profile-location">${esc(profile.location)}</p>` : ''}<a class="strava-link" href="${esc(profile.stravaUrl)}" target="_blank" rel="noopener noreferrer">在 Strava 查看 <span aria-hidden="true">↗</span><span class="sr-only">（新标签页）</span></a></div></div></section>
 <div class="recent-summary" aria-label="最近一周运动摘要">${recentSummary}</div></div>
 <section class="records-section" id="records" aria-labelledby="records-title"><div class="section-head"><h2 id="records-title"><span class="section-number">01</span><span id="recent-records-title">最近一周</span></h2><p id="recent-records-status">${recent.length} 次运动</p></div><div class="records-grid">${cards}</div>

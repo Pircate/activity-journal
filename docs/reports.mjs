@@ -81,9 +81,12 @@ export function reportSummary(report) {
   return `${report.title}，${pretty(report.start)} 至 ${pretty(report.end)}${report.ongoing ? '（周期进行中）' : ''}。已记录距离 ${distance}，运动时长 ${durationText(report.durationSeconds)}，总负荷 ${loadNumber(report.trainingLoad)} TL，运动 ${report.count ?? '未知'} 次，活跃 ${report.activeDays ?? '未知'} 天。${sports ? '各运动统计：' + sports + '。' : ''}${report.notes.join('；')}。`;
 }
 
-export function drawReport(canvas, report, name, metric = 'distanceKm') {
+export function drawReport(canvas, report, name, metric = 'distanceKm', brand = '', brandZh = '') {
   const spec = reportMetrics[metric];
   if (!spec) throw new Error('请选择有效的图表指标。');
+  const title = '运动日志 / ' + name;
+  // 底部署名只展示品牌，不混入用户名。
+  const signature = brand ? brand.toUpperCase() + (brandZh ? ' / ' + brandZh : '') : title;
   canvas.width = 1080;
   canvas.height = Math.max(1920, 1600 + Math.max(1, report.sports.length) * 80);
   const ctx = canvas.getContext('2d');
@@ -121,7 +124,7 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
   ctx.fillStyle = '#f1eee4'; ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = '#202820'; ctx.fillRect(0, 0, 1080, 820);
   ctx.fillStyle = '#e85a31'; ctx.fillRect(0, 330, 1080, 250);
-  text('运动日志 / ' + name, 72, 78, 25, '#f1eee4', 600, 650);
+  text(title, 72, 78, 25, '#f1eee4', 600, 650);
   text(report.mode === 'year' ? '年度记录' : '月度记录', 830, 78, 24, '#f1eee4', 600, 178);
   text(report.selection.slice(0, 4), 68, 210, 120, '#f1eee4', 700, 440);
   // 年报右侧用已覆盖的月份数延续“数字 + 小字单位”的版式，避免孤立的“年”字。
@@ -202,7 +205,7 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
     annotated(loadNumber(item.trainingLoad), 'TL', 850, y + 9, 27, '#292b25', 600, 16, 7, unitColors.light);
   });
   line(canvas.height - 130);
-  text('运动日志 / ' + name, 72, canvas.height - 75, 22, '#77796e', 600, 700);
+  text(signature, 72, canvas.height - 75, 22, '#77796e', 600, 700);
   text(report.selection, 850, canvas.height - 75, 22, '#77796e', 600, 158);
 }
 
@@ -223,7 +226,7 @@ export function renderReportPanel(data, today = beijingDate()) {
     <noscript><p>启用 JavaScript 后可生成与下载图片。</p></noscript></div></section>`;
 }
 
-export function initializeReports(initialData, name) {
+export function initializeReports(initialData, name, brand = '', brandZh = '') {
   let data = initialData;
   let revision = 0;
   let imageUrl;
@@ -268,7 +271,7 @@ export function initializeReports(initialData, name) {
       await document.fonts.ready;
       if (request !== revision) return;
       const canvas = document.createElement('canvas');
-      drawReport(canvas, report, name, metric.value || 'distanceKm');
+      drawReport(canvas, report, name, metric.value || 'distanceKm', brand, brandZh);
       const blob = await new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('图片生成失败，请重试。')), 'image/png'));
       if (request !== revision) return;
       imageUrl = URL.createObjectURL(blob);

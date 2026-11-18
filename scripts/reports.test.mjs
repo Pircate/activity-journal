@@ -289,3 +289,11 @@ test('图片生成失败可重试；更改周期和刷新使旧预览失效，�
   assert.equal(element('report-download').href, undefined);
   assert.equal(revoked.length, 1);
 });
+
+test('分享图标题使用运动日志与用户名，底部署名只展示品牌', () => {
+  const texts = [];
+  const canvas = {getContext:() => ({font:'', fillRect() {}, measureText:value => ({width:String(value).length * 8}), fillText(value) {texts.push(value);}})};
+  drawReport(canvas, createReport(fixture([activity('2026-10-16')]), 'month', '2026-10', today), '波咖茶 @HRC', 'distanceKm', 'Pogacha', '波咖茶');
+  assert.equal(texts.filter(value => value === '运动日志 / 波咖茶 @HRC').length, 1, '顶部标题');
+  assert.equal(texts.filter(value => value === 'POGACHA / 波咖茶').length, 1, '底部署名');
+});

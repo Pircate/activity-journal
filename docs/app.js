@@ -13,6 +13,9 @@ let data = JSON.parse(document.getElementById('journal-data').textContent);
 let daily, byDate, buttons, buttonByDate;
 let renderedData, renderedDate, renderedGear;
 const siteTitle = document.querySelector('meta[property="og:title"]').content;
+const userName = document.getElementById('title').textContent;
+const brandNameEn = document.documentElement?.dataset?.brand || '';
+const brandNameZh = document.documentElement?.dataset?.brandZh || '';
 const dateInput = document.getElementById('selected-date');
 const description = document.getElementById('day-description');
 const dayRecords = document.getElementById('day-records');
@@ -20,7 +23,7 @@ const yearSelect = document.getElementById('activity-year');
 const updateHistory = initializeHistory(data);
 const updateTrends = initializeTrends(data);
 const updateMilestones = initializeMilestones(data);
-const updateReports = initializeReports(data, document.getElementById('title').textContent);
+const updateReports = initializeReports(data, userName, brandNameEn, brandNameZh);
 // 先展开所属车辆，再由原生锚点定位；其余车辆保持各自的展开状态。
 document.querySelector('.gear-library').addEventListener('click', event => {
   const link = event.target.closest('[data-gear-target]');

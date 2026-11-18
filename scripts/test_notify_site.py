@@ -50,6 +50,7 @@ class NotificationTests(unittest.TestCase):
         message = smtp.send_message.call_args.args[0]
         self.assertEqual(message["To"], "gao497868860@163.com")
         self.assertEqual(message["From"].addresses[0].addr_spec, "gao497868860@163.com")
+        self.assertIn("Pogacha", str(message["From"]))
         body = message.get_body(preferencelist=("plain",)).get_content()
         self.assertIn(self.env["SITE_URL"], body)
         self.assertIn("/commit/" + self.env["DEPLOYED_COMMIT"], body)
@@ -156,6 +157,8 @@ class NotificationTests(unittest.TestCase):
         self.assertNotIn('>' + self.env["SITE_URL"] + '<', html)
         self.assertIn("aaaaaaa &nbsp;↗", html)
         self.assertIn("样式测试 · 不代表实际更新结果", html)
+        self.assertIn("POGACHA", html)
+        self.assertIn("波咖茶", html)
 
     @patch.object(notification, "failure_details", return_value='失败环节：Build\n错误摘要：<script>alert("x")</script> & unexpected')
     def test_failure_html_escapes_diagnostics_and_links_to_run(self, details):

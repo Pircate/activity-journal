@@ -18,6 +18,9 @@ from zoneinfo import ZoneInfo
 
 
 MAILBOX = "gao497868860@163.com"
+BRAND = json.loads(
+    (Path(__file__).resolve().parent.parent / "data" / "brand.json").read_text(encoding="utf-8")
+)
 
 
 class GitHubRedirectHandler(HTTPRedirectHandler):
@@ -109,7 +112,7 @@ def build_message(env, *, now=None, test=False):
             status_color, status_background = "#e8ce93", "#3d3625"
         version_label = "运行版本"
     message = EmailMessage()
-    message["From"] = f"波咖茶的运动日志 <{MAILBOX}>"
+    message["From"] = f'{BRAND["name"]} · {BRAND["nameZh"]}的运动日志 <{MAILBOX}>'
     message["To"] = MAILBOX
     message["Subject"] = ("【测试】" if test else "") + subject
     message["Date"] = format_datetime(now)
@@ -146,6 +149,8 @@ def build_message(env, *, now=None, test=False):
         "secondary_label": "查看发布详情" if result == "success" else "打开运动日志",
         "preheader": ("样式测试 · " if test else "") + description,
         "notice": "样式测试 · 不代表实际更新结果" if test else "自动通知 · 无需回复",
+        "brand_name_zh": BRAND["nameZh"],
+        "brand_wordmark": BRAND["name"].upper(),
     }
     html = template.substitute({key: escape(value, quote=True) for key, value in values.items()}, diagnostic_block=diagnostic_block)
     message.add_alternative(html, subtype="html")

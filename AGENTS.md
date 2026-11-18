@@ -4,7 +4,7 @@
 
 - `docs/`：GitHub Pages 发布目录，包含原生 JavaScript 模块、`style.css`、公开 JSON 快照和 `images/` 图片资源。
 - `scripts/`：数据同步、HTML 构建、邮件通知及测试；`build.mjs` 生成 `docs/index.html`，页面结构应在构建脚本中修改。
-- `data/`：个人资料、COROS 力量训练组数及本地同步状态。
+- `data/`：品牌配置、个人资料、COROS 力量训练组数及本地同步状态。
 - `workers/strava-webhook/`：Cloudflare Worker 与 Durable Object，负责事件合并和同步协调。
 - `.github/workflows/site.yml`：云端同步、测试与发布；`output/` 存放忽略提交的临时产物。
 

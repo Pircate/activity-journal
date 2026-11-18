@@ -22,6 +22,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   const windowEvents = new Map();
   const intervals = [];
   const document = {hidden:false, activeElement:null,
+    documentElement:{dataset:{brand:'Pogacha', brandZh:'波咖茶'}},
     getElementById:id => element('#' + id), querySelector:selector => element(selector),
     querySelectorAll:selector => groups.get(selector) ?? [],
     addEventListener:(name, callback) => documentEvents.set(name, callback),
@@ -59,7 +60,7 @@ test('刷新复用缓存、只在内容或北京时间日期改变时重绘，�
   groups.get('[data-metric]').forEach((node, index) => node.dataset.metric = ['distanceKm','durationSeconds','trainingLoad'][index]);
   element('#journal-data').textContent = JSON.stringify(initial);
   element('#personal-bests-data').textContent = JSON.stringify(initialBests);
-  element('meta[property="og:title"]').content = '波咖茶的运动日志';
+  element('meta[property="og:title"]').content = '波咖茶的运动日志 · Pogacha';
   const replacements = {document, window:{addEventListener:(name, callback) => windowEvents.set(name, callback)},
     matchMedia:() => ({matches:false}), setInterval:(callback, delay) => intervals.push({callback, delay})};
   for (const [name, value] of Object.entries(replacements)) {
