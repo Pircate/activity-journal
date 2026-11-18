@@ -10,6 +10,13 @@ const reportMetrics = {
 };
 // 单位用弱化的次级色；橙色主视觉沿用数字墨色，只靠字号和字重区分，避免叠色发浑。
 const unitColors = {light:'#77796e', dark:'#bec5b7', orange:'#202820'};
+// 桌面浏览器同样可能支持 navigator.share，但桌面没有相册，仍应使用下载。
+const isMobile = () => {
+  const nav = globalThis.navigator;
+  if (!nav) return false;
+  if (/Android|iPhone|iPad|iPod|Mobile/i.test(nav.userAgent || '')) return true;
+  return nav.platform === 'MacIntel' && (nav.maxTouchPoints || 0) > 1;
+};
 const distanceNumber = value => value === null ? '—' : formatDistance(value);
 const loadNumber = value => value === null ? '—' : formatLoad(value);
 const number = value => value === null ? '—' : value.toLocaleString('zh-CN', {maximumFractionDigits:2});
@@ -205,7 +212,7 @@ export function renderReportPanel(data, today = beijingDate()) {
     <div class="history-field"><label for="report-metric">图表指标</label><select id="report-metric">${Object.entries(reportMetrics).map(([key, spec]) => `<option value="${key}">${spec.label}</option>`).join('')}</select></div>
     <button type="button" id="report-generate">生成分享图片</button></form>
     <p id="report-status" class="report-intro" role="status" aria-live="polite"></p>
-    <div id="report-result" hidden><button type="button" id="report-save" class="report-download" hidden>保存到相册</button><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整 · 手机也可长按下方图片保存。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
+    <div id="report-result" hidden><button type="button" id="report-save" class="report-download" hidden>保存到相册</button><a id="report-download" class="report-download">下载 PNG 图片</a><p class="report-intro" id="report-image-info">图片宽 1080 像素，高度随运动类型数量调整。</p><p id="report-summary" class="sr-only"></p><img id="report-image" class="report-image" width="1080" height="1440" alt=""></div>
     <noscript><p>启用 JavaScript 后可生成与下载图片。</p></noscript></div></section>`;
 }
 
@@ -263,10 +270,10 @@ export function initializeReports(initialData, name) {
       image.alt = reportSummary(report);
       imageFile = typeof File === 'function' ? new File([blob], '运动' + (report.mode === 'month' ? '月报' : '年报') + '-' + report.selection + '.png', {type:'image/png'}) : undefined;
       document.getElementById('report-summary').textContent = image.alt;
-      document.getElementById('report-image-info').textContent = `1080 × ${canvas.height} 像素 · 手机也可长按下方图片保存。`;
+      document.getElementById('report-image-info').textContent = `1080 × ${canvas.height} 像素${isMobile() ? ' · 长按下方图片也可保存。' : ''}`;
       download.href = imageUrl;
       download.download = imageFile?.name || '运动' + (report.mode === 'month' ? '月报' : '年报') + '-' + report.selection + '.png';
-      const canShareFile = imageFile && typeof globalThis.navigator?.canShare === 'function' && typeof globalThis.navigator.share === 'function' && globalThis.navigator.canShare({files:[imageFile]});
+      const canShareFile = isMobile() && imageFile && typeof globalThis.navigator?.canShare === 'function' && typeof globalThis.navigator.share === 'function' && globalThis.navigator.canShare({files:[imageFile]});
       save.hidden = !canShareFile;
       download.hidden = Boolean(canShareFile);
       result.hidden = false;

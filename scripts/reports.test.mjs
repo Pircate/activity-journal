@@ -192,6 +192,47 @@ test('拒绝无效／未来周期，不修改快照，界面包含独立周期�
   assert.match(staleHtml, /id="report-month"[^>]*value="2025-12"/, '快照跨年未同步时默认仍选择可生成月份');
 });
 
+test('仅手机端显示保存到相册，桌面端显示下载 PNG 图片', async t => {
+  const previousDocument = globalThis.document;
+  const previousNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  t.after(() => {
+    globalThis.document = previousDocument;
+    if (previousNavigator) Object.defineProperty(globalThis, 'navigator', previousNavigator);
+    else delete globalThis.navigator;
+  });
+  const ctx = {font:'', measureText:value => ({width:String(value).length * 8}), fillRect() {}, fillText() {}, strokeRect() {}};
+  function setup(userAgent, {platform = '', maxTouchPoints = 0, share = true} = {}) {
+    const elements = new Map();
+    const element = id => {
+      if (!elements.has(id)) elements.set(id, {value:'', hidden:false, disabled:false, textContent:'', events:{}, addEventListener(event, callback) {this.events[event] = callback;}, removeAttribute(name) {delete this[name];}});
+      return elements.get(id);
+    };
+    globalThis.document = {getElementById:element, fonts:{ready:Promise.resolve()}, createElement:() => ({getContext:() => ctx, toBlob:callback => callback(new Blob(['png'], {type:'image/png'}))})};
+    Object.defineProperty(globalThis, 'navigator', {value:{userAgent, platform, maxTouchPoints, canShare:share ? () => true : undefined, share:share ? async () => {} : undefined}, configurable:true, writable:true});
+    element('report-mode').value = 'month';
+    element('report-month').value = '2024-02';
+    initializeReports(fixture([activity('2024-02-01')]), '测试');
+    return {element, generate: () => element('report-form').events.submit({preventDefault() {}})};
+  }
+  const desktop = setup('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15', {platform:'MacIntel'});
+  await desktop.generate();
+  assert.equal(desktop.element('report-save').hidden, true, '桌面端即使支持分享也不显示保存到相册');
+  assert.equal(desktop.element('report-download').hidden, false, '桌面端显示下载 PNG 图片');
+  assert.doesNotMatch(desktop.element('report-image-info').textContent, /长按/);
+  const phone = setup('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1', {platform:'iPhone'});
+  await phone.generate();
+  assert.equal(phone.element('report-save').hidden, false, '手机端显示保存到相册');
+  assert.equal(phone.element('report-download').hidden, true, '手机端隐藏下载入口');
+  assert.match(phone.element('report-image-info').textContent, /长按/);
+  const ipad = setup('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15', {platform:'MacIntel', maxTouchPoints:5});
+  await ipad.generate();
+  assert.equal(ipad.element('report-save').hidden, false, 'iPad 桌面模式按移动端处理');
+  const unsupported = setup('Mozilla/5.0 (Linux; Android 14; Pixel 8)', {platform:'Linux armv8l', share:false});
+  await unsupported.generate();
+  assert.equal(unsupported.element('report-save').hidden, true, '不支持分享文件时不显示保存到相册');
+  assert.equal(unsupported.element('report-download').hidden, false, '不支持分享文件时回退到下载');
+});
+
 test('图片生成失败可重试；更改周期和刷新使旧预览失效，异步生成不覆盖新选择', async t => {
   const elements = new Map();
   function element(id) {
