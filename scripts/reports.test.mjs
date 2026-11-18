@@ -154,6 +154,18 @@ test('时长精确到分钟并以小字号单位呈现，距离与负荷带单�
   assert.deepEqual(shortCalls.filter(call => call.y === 704).map(call => call.value).slice(0, 2), ['30', 'min'], '不足一小时时只显示分钟');
 });
 
+test('年报右上以已覆盖月份数和小字单位替代孤立的年字，月报仍显示月份数字', () => {
+  const calls = [];
+  const canvas = {getContext:() => ({font:'', measureText:value => ({width:String(value).length * 8}), fillRect() {}, fillText(value, x, y) {calls.push({value, x, y});}})};
+  drawReport(canvas, createReport(fixture([activity('2026-02-01')]), 'year', '2026', today), '测试');
+  const annualTop = calls.filter(call => call.y === 252);
+  assert.deepEqual(annualTop.map(call => call.value), ['10', '个月'], '年份进行中按已覆盖月份绘制');
+  assert.equal(calls.some(call => call.value === '年'), false, '不再绘制孤立的年字');
+  calls.length = 0;
+  drawReport(canvas, createReport(fixture([activity('2026-10-16')]), 'month', '2026-10', today), '测试');
+  assert.deepEqual(calls.filter(call => call.y === 252).map(call => call.value), ['10'], '月报右上仍是月份数字');
+});
+
 test('分享图精简说明并移除空心框，仍绘制已记录值且保留文字摘要', () => {
   const report = createReport(fixture([
     activity('2024-02-01'),

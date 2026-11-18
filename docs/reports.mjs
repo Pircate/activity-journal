@@ -124,7 +124,14 @@ export function drawReport(canvas, report, name, metric = 'distanceKm') {
   text('运动日志 / ' + name, 72, 78, 25, '#f1eee4', 600, 650);
   text(report.mode === 'year' ? '年度记录' : '月度记录', 830, 78, 24, '#f1eee4', 600, 178);
   text(report.selection.slice(0, 4), 68, 210, 120, '#f1eee4', 700, 440);
-  text(report.mode === 'month' ? report.selection.slice(5) : '年', 696, 252, 186, '#e85a31', 700, 300);
+  // 年报右侧用已覆盖的月份数延续“数字 + 小字单位”的版式，避免孤立的“年”字。
+  if (report.mode === 'month') text(report.selection.slice(5), 696, 252, 186, '#e85a31', 700, 300);
+  else {
+    const months = String(report.buckets.length);
+    const monthsWidth = measure(months, 186, 700);
+    text(months, 696, 252, 186, '#e85a31', 700, monthsWidth + 1);
+    text('个月', 696 + monthsWidth + 10, 252, 34, '#bec5b7', 600, 90);
+  }
   text(pretty(report.start) + ' — ' + pretty(report.end), 72, 262, 24, '#bec5b7');
   text('距离', 72, 390, 25, '#202820', 600);
   annotated(distanceNumber(report.distanceKm), 'km', 68, 522, 116, '#202820', 700, 46, 18, unitColors.orange);
