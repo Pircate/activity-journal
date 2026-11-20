@@ -2,10 +2,21 @@
   "sourcePolicyVersion": 2,
   "period": {
     "start": "2020-01-01",
-    "end": "2026-11-19"
+    "end": "2026-11-20"
   },
-  "syncedAt": "2026-11-19 20:55:49 +08:00",
+  "syncedAt": "2026-11-20 11:28:06 +08:00",
   "activities": [
+    {
+      "date": "2026-11-20",
+      "startTime": "11:18:21",
+      "sport": "Workout",
+      "distanceKm": 0,
+      "durationSeconds": 410,
+      "elevationGain": 0,
+      "trainingLoad": null,
+      "stravaUrl": "https://www.strava.com/activities/21054292041",
+      "activityUrl": "https://intervals.icu/activities/21054292041"
+    },
     {
       "date": "2026-11-19",
       "startTime": "19:53:18",
