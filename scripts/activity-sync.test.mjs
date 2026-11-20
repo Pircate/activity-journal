@@ -38,3 +38,13 @@ test('开始时间倒序，未来活动排除，缺失负荷保留历史且不�
   assert.deepEqual(result.data.activities.map(a=>a.startTime),['17:00:00','08:00:00']);
   assert.equal(result.data.activities[1].distanceKm,null);assert.equal(result.data.activities[1].trainingLoad,30);
 });
+test('删除事件按 Strava ID 整行移除并清理不可读取提示，重复删除幂等',()=>{
+  const previous={...snapshot([old()]),unavailableActivities:[{id:unavailableId('901'),date:'2026-10-24'}]};
+  const result=merge({previous,stravaRecords:[],intervalsRecords:[],deletedStravaIds:['901']});
+  assert.equal(result.data.activities.length,0);
+  assert.equal(result.data.unavailableActivities.length,0);
+  assert.deepEqual(result.report.deleted,['https://www.strava.com/activities/901']);
+  const again=merge({previous:result.data,stravaRecords:[],intervalsRecords:[],deletedStravaIds:['901']});
+  assert.deepEqual(again.report.deleted,[]);
+  assert.equal(again.data.activities.length,0);
+});

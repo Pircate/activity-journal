@@ -20,11 +20,14 @@ export class SyncCoordinator {
   }
 
   async load() {
-    return await this.ctx.storage.get('state') ?? {
+    const state = await this.ctx.storage.get('state') ?? {
       pending:[], seen:{}, active:null, dispatchUntil:null, nextAt:null,
       attempts:0, lastError:null, lastCompleted:null,
       lastSuccessfulAt:null, cursor:null, publishedCommit:null,
     };
+    // 旧版本保存的事件没有 aspect；升级后按新增事件处理，下一次写入即持久化。
+    for (const event of state.pending) event.aspect ??= 'create';
+    return state;
   }
 
   async save(state) {
@@ -108,10 +111,10 @@ export class SyncCoordinator {
         if (!event || !Number.isSafeInteger(event.object_id) || event.object_id <= 0 || !Number.isSafeInteger(event.event_time) || event.event_time <= 0 ||
             !Number.isSafeInteger(event.owner_id) || !Number.isSafeInteger(event.subscription_id)) return json({error:'Invalid event'}, 400);
         if (String(event.owner_id) !== this.env.STRAVA_ATHLETE_ID || String(event.subscription_id) !== this.env.STRAVA_SUBSCRIPTION_ID ||
-            event.object_type !== 'activity' || event.aspect_type !== 'create') return json({ignored:true});
+            event.object_type !== 'activity' || !['create', 'delete'].includes(event.aspect_type)) return json({ignored:true});
         const key = eventKey(event);
         if (!Object.hasOwn(state.seen, key)) {
-          state.pending.push({key, activityId:String(event.object_id)});
+          state.pending.push({key, activityId:String(event.object_id), aspect:event.aspect_type});
           state.seen[key] = this.now();
           // A genuinely new event reactivates exhausted retries.
           if (!state.active && !state.dispatchUntil && !state.nextAt) {
@@ -195,7 +198,7 @@ export class SyncCoordinator {
           const response = await this.fetchImpl('https://api.github.com/repos/' + this.env.GITHUB_REPOSITORY + '/dispatches', {
             method:'POST', redirect:'manual', signal:AbortSignal.timeout(10_000),
             headers:{Authorization:'Bearer ' + this.env.GITHUB_DISPATCH_TOKEN, Accept:'application/vnd.github+json', 'Content-Type':'application/json', 'User-Agent':'activity-journal-webhook'},
-            body:JSON.stringify({event_type:'strava-activity-created'}),
+            body:JSON.stringify({event_type:'strava-activity-event'}),
           });
           // Distinguish auth, scope and transport failures; the token itself
           // never reaches the status payload.

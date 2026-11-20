@@ -40,9 +40,11 @@ export function activityAssociations(previous, records, strengthSets = []) {
   return {byStrava, loads, sets};
 }
 
-export function mergeActivities({previous, stravaRecords, intervalsRecords, corosRecords = [], strengthSets = [], window, now}) {
+export function mergeActivities({previous, stravaRecords, intervalsRecords, corosRecords = [], strengthSets = [],
+  deletedStravaIds = [], window, now}) {
   validateData(previous);
   if (!Array.isArray(stravaRecords) || !Array.isArray(intervalsRecords)) throw new Error('活动列表无效');
+  if (!Array.isArray(deletedStravaIds)) throw new Error('删除活动标识无效');
   const matchedSets = matchCorosStrengthSets(intervalsRecords, corosRecords);
   const associations = activityAssociations(previous, intervalsRecords, strengthSets);
   const {byStrava, loads, sets} = associations;
@@ -81,6 +83,13 @@ export function mergeActivities({previous, stravaRecords, intervalsRecords, coro
     row.trainingLoad = loads.get(row.activityUrl) ?? row.trainingLoad;
     if (row.sport === 'WeightTraining' && sets.has(row.activityUrl)) row.sets = sets.get(row.activityUrl);
   }
+  // 删除事件以 Strava 活动 ID 为准，最后统一剔除，同批次先建后删也不会残留。
+  const deleted = [];
+  for (const id of deletedStravaIds) {
+    const stravaUrl = 'https://www.strava.com/activities/' + id;
+    if (rows.delete(stravaUrl)) deleted.push(stravaUrl);
+    unavailable.delete(unavailableId(id));
+  }
   const activities = [...rows.values()].sort((a,b) => compareActivityDates(a,b) || (a.stravaUrl ?? a.activityUrl).localeCompare(b.stravaUrl ?? b.activityUrl));
   const unavailableActivities = [...unavailable.values()].sort((a,b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
   const end = beijingDate(now);
@@ -89,11 +98,13 @@ export function mergeActivities({previous, stravaRecords, intervalsRecords, coro
     syncedAt:new Intl.DateTimeFormat('sv-SE', {timeZone:'Asia/Shanghai', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit', hourCycle:'h23'}).format(now) + ' +08:00',
     activities, unavailableActivities, gearLibrary:previous.gearLibrary};
   validateData(data);
-  const retained = previous.activities.filter(row => row.date >= window.oldest && !touched.has(row.stravaUrl ?? row.activityUrl));
+  const deletedSet = new Set(deleted);
+  const retained = previous.activities.filter(row => row.date >= window.oldest && !touched.has(row.stravaUrl ?? row.activityUrl) && !deletedSet.has(row.stravaUrl));
   return {data, strengthSets:[...sets].map(([activityUrl,sets]) => ({activityUrl,sets})), report:{
     sourcePolicyVersion:2, mode:window.oldest === '1900-01-01' ? 'full' : 'incremental',
     stravaFetched:stravaRecords.length, intervalsFetched:intervalsRecords.length, added, updated,
-    retainedHistory:previous.activities.length - touched.size, corosMatched:matchedSets.length, corosUnmatched:corosRecords.length - matchedSets.length,
+    retainedHistory:previous.activities.length - touched.size - deleted.length, deleted,
+    corosMatched:matchedSets.length, corosUnmatched:corosRecords.length - matchedSets.length,
     uncorrected:retained.map(row => ({date:row.date, activityUrl:row.activityUrl ?? null, stravaUrl:row.stravaUrl ?? null,
       reason:row.stravaUrl ? 'Strava 未返回或无法读取' : '缺少 Strava 关联'})),
     unavailable:unavailableActivities,

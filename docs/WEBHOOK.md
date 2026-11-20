@@ -23,6 +23,8 @@ npx wrangler secret put GITHUB_DISPATCH_TOKEN --config workers/strava-webhook/wr
 npm run worker:deploy
 ```
 
+工作流触发类型为 `strava-activity-event`。升级已有部署时，先发布包含该类型的工作流，再部署 Worker；切换窗口内新增或删除的活动，可手动运行一次增量同步补齐。
+
 `GITHUB_DISPATCH_TOKEN` 使用仅允许访问 `Pircate/activity-journal`、具有 **Contents: write** 的 GitHub fine-grained PAT，用于 `repository_dispatch`。不要把 Strava client secret 或 Intervals.icu API Key 放入 Worker。Durable Object 自动创建，保存事件、成功状态及轮换后的 Strava 刷新令牌；不要删除绑定、迁移记录或清空其存储。Worker URL 通常为 `https://activity-journal-strava.<账号>.workers.dev`。
 
 ## 2. 注册 Strava 订阅
@@ -98,7 +100,7 @@ gh workflow run site.yml --repo Pircate/activity-journal --ref main
 gh workflow run site.yml --repo Pircate/activity-journal --ref main -f full=true
 ```
 
-增量以游标对应北京时间日期向前重叠两天为起点；Strava 查询窗口额外扩两天，最后按完整北京时间范围合并，保留未返回的历史和已知指标。旧日期新增事件直接读取 Strava 活动详情并扩大窗口。旧记录的编辑、删除不属于本次 webhook 处理范围；保持远端现有的保守合并，不自动删除历史，超出增量窗口时需手动全量更新。
+增量以游标对应北京时间日期向前重叠两天为起点；Strava 查询窗口额外扩两天，最后按完整北京时间范围合并，保留未返回的历史和已知指标。旧日期新增事件直接读取 Strava 活动详情并扩大窗口。删除事件先复核 `/activities/{id}`，只有 404 才整行移除；主动复核失败时保留记录并让批次失败。全量同步会对列表中缺失的历史逐个复核，仍可读取的保留。删除后活动列表、周统计和里程碑按剩余记录重算，删除结果写入历史修正报告；个人最佳成绩来自 Intervals.icu 曲线，若该平台仍保留原活动则可能继续显示。编辑事件不会主动触发更新，超出增量窗口的历史修改仍需手动全量同步。
 
 新活动到达后由 Strava 提供基础指标，无需等待 Intervals.icu 收录；尚未取得 Intervals.icu 负荷时显示“未提供”，后续同步会通过真实平台关联补齐。不能用日期或名称猜测另一平台活动，也不能把 API 失败当成没有运动。
 

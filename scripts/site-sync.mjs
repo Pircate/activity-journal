@@ -80,7 +80,7 @@ export async function updateSnapshot(claim, {runImpl = run, directory = process.
   }
   if (claim.mode === 'sync') {
     const eventsPath = join(directory, 'site-sync-events.json');
-    await writeFile(eventsPath, JSON.stringify(claim.events.map(event => event.activityId)));
+    await writeFile(eventsPath, JSON.stringify(claim.events.map(event => ({activityId:event.activityId, aspect:event.aspect}))));
     args.push('--events', eventsPath);
     args.push('--report', join(directory, 'history-correction.json'));
     if (full) args.push('--full');

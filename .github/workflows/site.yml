@@ -2,7 +2,7 @@ name: Update and publish activity journal
 
 on:
   repository_dispatch:
-    types: [strava-activity-created]
+    types: [strava-activity-event]
   workflow_dispatch:
     inputs:
       full:

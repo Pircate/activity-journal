@@ -9,7 +9,8 @@ import {workerRequest, updateSnapshot, commitSnapshot, publishedSnapshot} from '
 import {manageSubscription} from './strava-subscription.mjs';
 
 const commit = 'a'.repeat(40);
-const claim = {runId:'1:1', mode:'sync', startedAt:'2026-10-27T00:00:00Z', cursor:'2026-10-26T00:00:00Z', publishedCommit:commit, events:[{activityId:'901'}]};
+const claim = {runId:'1:1', mode:'sync', startedAt:'2026-10-27T00:00:00Z', cursor:'2026-10-26T00:00:00Z', publishedCommit:commit,
+  events:[{activityId:'901', aspect:'create'}, {activityId:'902', aspect:'delete'}]};
 const activities = JSON.stringify({period:{start:'2020-01-01',end:'2026-10-27'},syncedAt:'2026-10-27 12:00:00 +08:00',activities:[],unavailableActivities:[],gearLibrary:{active:[],retired:[]}});
 const personalBests = JSON.stringify({source:'Intervals.icu',syncedAt:'2026-10-27T04:00:00.000Z',records:[],history:[]});
 const profile = JSON.stringify({name:'成功版本姓名', location:'成功版本位置', stravaUrl:'https://www.strava.com/athletes/78720097'});
@@ -28,7 +29,8 @@ test('sync scripts use the published version, cursor and all claimed event IDs',
   await updateSnapshot(claim, {directory, full:true, runImpl:(command, args) => {calls.push({command, args}); return args[1]?.endsWith('personal-bests.json') ? personalBests : activities;}});
   assert.deepEqual(calls[0].args, ['show', commit + ':docs/activities.json']);
   assert.equal(await readFile(join(directory, 'site-sync-baseline.json'), 'utf8'), activities);
-  assert.deepEqual(JSON.parse(await readFile(join(directory, 'site-sync-events.json'), 'utf8')), ['901']);
+  assert.deepEqual(JSON.parse(await readFile(join(directory, 'site-sync-events.json'), 'utf8')),
+    [{activityId:'901', aspect:'create'}, {activityId:'902', aspect:'delete'}]);
   assert.deepEqual(calls[2].args, ['scripts/fetch-site-data.mjs', '--baseline', join(directory,'site-sync-baseline.json'), '--since', claim.cursor, '--events', join(directory,'site-sync-events.json'), '--report', join(directory,'history-correction.json'), '--full']);
   assert.deepEqual(calls.slice(3).map(call => call.args[0]), ['scripts/update-personal-bests.mjs', 'scripts/build.mjs']);
 });

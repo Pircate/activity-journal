@@ -9,12 +9,18 @@ import {createStravaClient, normalizeStravaActivity, stravaId} from './strava-da
 import {workerRequest} from './site-sync.mjs';
 
 export async function fetchAllActivities({config, fetchImpl = fetch, now = new Date(), baseData, since,
-  eventActivityIds = [], full = false, strengthSets = [], corosRecords = [], stravaClient, onReport = () => {}, onProfile = () => {}} = {}) {
+  events = [], full = false, strengthSets = [], corosRecords = [], stravaClient, onReport = () => {}, onProfile = () => {}} = {}) {
   if (!Number.isFinite(now.getTime())) throw new Error('同步时间无效');
   if (since != null && (typeof since !== 'string' || !/Z$/.test(since) || !Number.isFinite(Date.parse(since)) || Date.parse(since) > now.getTime())) throw new Error('增量起点无效');
-  if (!Array.isArray(eventActivityIds)) throw new Error('事件活动 ID 无效');
-  let ids;
-  try { ids = [...new Set(eventActivityIds.map(stravaId))]; } catch { throw new Error('事件活动 ID 无效'); }
+  if (!Array.isArray(events)) throw new Error('事件活动 ID 无效');
+  const eventIds = {create:[], delete:[]};
+  try {
+    for (const event of events) {
+      if (!event || !['create', 'delete'].includes(event.aspect)) throw new Error();
+      eventIds[event.aspect].push(stravaId(event.activityId));
+    }
+  } catch { throw new Error('事件活动 ID 无效'); }
+  const createIds = [...new Set(eventIds.create)], deleteIds = new Set(eventIds.delete);
   const end = beijingDate(now);
   const previous = baseData ?? {period:{start:'1900-01-01', end}, syncedAt:end + ' 00:00:00 +08:00', activities:[], unavailableActivities:[], gearLibrary:{active:[],retired:[]}};
   validateData(previous);
@@ -26,7 +32,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
   const before = Math.floor(now.getTime() / 1000);
   const details = new Map();
   let unavailableEvents = 0;
-  for (const id of ids) {
+  for (const id of createIds) {
     const record = await client.activity(id);
     if (!record) {
       unavailableEvents++;
@@ -39,8 +45,21 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
     details.set(id, record);
   }
   if (unavailableEvents) console.warn(`Strava 事件活动不可读取，已跳过 ${unavailableEvents} 个`);
+  const deletedIds = new Set();
+  for (const id of deleteIds) {
+    const record = await client.activity(id);
+    if (record) {
+      if (stravaId(record.id) !== id) throw new Error('Strava 删除事件活动关联冲突');
+      continue;
+    }
+    // 只有明确 404 才视为删除；迟到的删除事件和暂时不可读取都保留原记录。
+    deletedIds.add(id);
+  }
   const after = start === '1900-01-01' ? null : Math.floor(Date.parse(start + 'T00:00:00+08:00') / 1000) - 1;
   const stravaRecords = await client.activities({after, before});
+  if (isFull && !stravaRecords.length && previous.activities.some(row => row.stravaUrl)) {
+    throw new Error('Strava 全量活动列表为空，保留原数据');
+  }
   const records = new Map();
   for (const row of stravaRecords) {
     const id = stravaId(row.id);
@@ -48,6 +67,16 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
     records.set(id, row);
   }
   for (const [id, record] of details) records.set(id, record);
+  // 全量列表缺行时逐个复核，只有 404 才补删；列表分页到空页才返回，失败会抛错。
+  if (isFull) {
+    const listed = new Set(stravaRecords.map(row => stravaId(row.id)));
+    for (const row of previous.activities) {
+      const id = /^https:\/\/www\.strava\.com\/activities\/([1-9]\d*)$/.exec(row.stravaUrl ?? '')?.[1];
+      if (!id || listed.has(id) || deletedIds.has(id)) continue;
+      if (await client.activity(id)) continue;
+      deletedIds.add(id);
+    }
+  }
   const intervals = await fetchIntervalsData({config, fetchImpl, now, oldest:start === '1900-01-01' ? start : shiftDate(start, -2)});
   const {byStrava, sets} = activityAssociations(previous, intervals.records, strengthSets);
   const oldByStrava = new Map(previous.activities.map(row => [row.stravaUrl, row]));
@@ -63,7 +92,7 @@ export async function fetchAllActivities({config, fetchImpl = fetch, now = new D
     }
   }
   const merged = mergeActivities({previous, stravaRecords:[...records.values()], intervalsRecords:intervals.records,
-    corosRecords, strengthSets, window:{oldest:start, end, before}, now});
+    corosRecords, strengthSets, deletedStravaIds:[...deletedIds], window:{oldest:start, end, before}, now});
   merged.data.gearLibrary = intervals.gearLibrary;
   validateData(merged.data);
   await onReport(merged.report);
@@ -93,10 +122,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const {values} = parseArgs({options:{full:{type:'boolean'}, since:{type:'string'}, baseline:{type:'string'}, events:{type:'string'}, report:{type:'string'}}});
     const baseData = JSON.parse(await readFile(values.baseline ?? new URL('../docs/activities.json', import.meta.url), 'utf8'));
     const strengthSets = JSON.parse(await readFile(new URL('../data/strength-sets.json', import.meta.url), 'utf8'));
-    const eventActivityIds = values.events ? JSON.parse(await readFile(values.events, 'utf8')) : [];
+    const events = values.events ? JSON.parse(await readFile(values.events, 'utf8')) : [];
     const config = {...await readConfig(), STRAVA_ACCESS_TOKEN:await stravaAccessToken()};
     let profile;
-    const data = await fetchAllActivities({config, baseData, strengthSets, eventActivityIds, since:values.since, full:values.full,
+    const data = await fetchAllActivities({config, baseData, strengthSets, events, since:values.since, full:values.full,
       onProfile:value => { profile = value; },
       onReport:async report => {
         const path = values.report ?? 'output/sync/history-correction.json';

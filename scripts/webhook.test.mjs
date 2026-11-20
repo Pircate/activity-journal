@@ -40,9 +40,9 @@ test('subscription challenge checks mode/token and management endpoints require 
   assert.equal((await c.request('/webhook/wrong', event, false)).status, 401);
 });
 
-test('only matching activity create events are persisted; malformed events fail', async () => {
+test('只持久化匹配的 create 和 delete 事件，其余事件与畸形载荷拒绝', async () => {
   const c = coordinator();
-  for (const override of [{owner_id:3}, {subscription_id:3}, {aspect_type:'delete'}, {object_type:'athlete'}]) {
+  for (const override of [{owner_id:3}, {subscription_id:3}, {aspect_type:'update'}, {object_type:'athlete'}]) {
     assert.equal((await c.post({...event, ...override})).status, 200);
     assert.equal(c.state(), undefined);
   }
@@ -50,6 +50,24 @@ test('only matching activity create events are persisted; malformed events fail'
   assert.equal((await c.post({...event, object_id:Number.MAX_SAFE_INTEGER + 1})).status, 400);
   delete c.env.STRAVA_SUBSCRIPTION_ID;
   assert.equal((await c.post()).status, 503);
+});
+
+test('删除事件与新增事件分别记录 aspect，并进入同一批次', async () => {
+  const c = coordinator();
+  await c.post();
+  await c.post({...event, object_id:902, aspect_type:'delete', event_time:101});
+  assert.deepEqual(c.state().pending.map(({activityId, aspect}) => ({activityId, aspect})),
+    [{activityId:'901', aspect:'create'}, {activityId:'902', aspect:'delete'}]);
+  assert.deepEqual((await (await c.start()).json()).events.map(({activityId, aspect}) => ({activityId, aspect})),
+    [{activityId:'901', aspect:'create'}, {activityId:'902', aspect:'delete'}]);
+});
+
+test('旧版本待处理事件按新增事件补全 aspect', async () => {
+  const c = coordinator();
+  await c.ctx.storage.put('state', {pending:[{key:'legacy', activityId:'901'}], seen:{}, active:null, dispatchUntil:null, nextAt:null,
+    attempts:0, lastError:null, lastCompleted:null, lastSuccessfulAt:null, cursor:null, publishedCommit:null});
+  assert.deepEqual((await (await c.start()).json()).events.map(({activityId, aspect}) => ({activityId, aspect})),
+    [{activityId:'901', aspect:'create'}]);
 });
 
 test('persisted events survive a fresh instance; duplicates and batching preserve the first alarm', async () => {
@@ -66,7 +84,7 @@ test('persisted events survive a fresh instance; duplicates and batching preserv
   c.advance(minute);
   await c.object.alarm();
   assert.equal(c.calls.length, 1);
-  assert.deepEqual(JSON.parse(c.calls[0][1].body), {event_type:'strava-activity-created'});
+  assert.deepEqual(JSON.parse(c.calls[0][1].body), {event_type:'strava-activity-event'});
   assert.equal(c.state().pending.length, 2, 'dispatch is not event acknowledgment');
 });
 
@@ -222,7 +240,7 @@ test('dispatch uses only request options the Workers runtime implements', async 
   assert.equal(url, 'https://api.github.com/repos/owner/repo/dispatches');
   assert.equal(init.method, 'POST');
   assert.ok(['follow', 'manual'].includes(init.redirect), 'redirect must be follow or manual');
-  assert.equal(init.body, JSON.stringify({event_type:'strava-activity-created'}));
+  assert.equal(init.body, JSON.stringify({event_type:'strava-activity-event'}));
 });
 
 function stravaAuth(c) {

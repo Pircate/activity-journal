@@ -56,7 +56,7 @@ test('旧快照无规则版本强制全量，第二次按同一规则增量且�
 test('新活动无需 Intervals 收录，旧日期事件直接查询 Strava 扩大窗口',async()=>{
   const event=record('9','2021-02-02');
   const client=api([],[],{'9':event});
-  const data=await sync({...client,baseData:baseline(),since,eventActivityIds:['9']});
+  const data=await sync({...client,baseData:baseline(),since,events:[{activityId:'9',aspect:'create'}]});
   assert.equal(client.calls[0],'9');assert.equal(data.activities[0].date,'2021-02-02');
   assert.equal(data.activities[0].trainingLoad,null);
   assert.equal(client.calls.find(x=>x instanceof URL&&x.pathname.endsWith('/activities')).searchParams.get('oldest'),'2021-01-31');
@@ -70,23 +70,44 @@ test('仅缺组数的力量训练读取详情卡路里，已存零组数不触�
   assert.equal(data.activities.find(a=>a.stravaUrl.endsWith('/1')).calories,123.4);
   assert.equal(data.activities.find(a=>a.stravaUrl.endsWith('/2')).sets,0);
 });
-test('无法读取历史列入报告，未关联不猜测，同日记录不合并',async()=>{
-  const baseData=baseline([record('1','2020-01-01'),record('2','2020-01-01')]);
+test('增量未返回历史列入报告，未关联不猜测，同日记录不合并',async()=>{
+  const baseData=baseline([record('1','2026-10-24'),record('2','2026-10-24')]);
   delete baseData.activities[1].stravaUrl;baseData.activities[1].activityUrl='https://intervals.icu/activities/i2';
   let report;
-  const data=await sync({...api([record('3','2020-01-01')]),baseData,since,full:true,onReport:r=>{report=r;}});
+  const data=await sync({...api([record('3','2026-10-24')]),baseData,since,onReport:r=>{report=r;}});
   assert.equal(data.activities.length,3);assert.equal(report.uncorrected.length,2);
   assert.match(report.uncorrected[1].reason,/缺少 Strava/);
   assert.equal(report.before.count,2);assert.equal(report.after.count,3);
 });
+test('删除事件只在 Strava 返回 404 时移除记录，重复事件幂等',async()=>{
+  const baseData=baseline([record('1','2026-10-24'),record('2','2026-10-24')]);
+  let report;
+  const client=api([record('3','2026-10-24')],[],{'2':record('2','2026-10-24')});
+  const data=await sync({...client,baseData,since,onReport:r=>{report=r;},
+    events:[{activityId:'1',aspect:'delete'},{activityId:'2',aspect:'delete'},{activityId:'1',aspect:'delete'}]});
+  assert.deepEqual(data.activities.map(a=>a.stravaUrl.split('/').at(-1)).sort(),['2','3']);
+  assert.deepEqual(report.deleted,['https://www.strava.com/activities/1']);
+  assert.deepEqual(client.calls.filter(x=>typeof x==='string'),['1','2']);
+});
+test('全量列表缺行时逐个复核，只有 404 才删除',async()=>{
+  const baseData=baseline([record('1','2026-10-24'),record('2','2026-10-24')]);
+  const client=api([record('3','2026-10-24')],[],{'2':record('2','2026-10-24')});
+  const data=await sync({...client,baseData,since,full:true});
+  assert.deepEqual(data.activities.map(a=>a.stravaUrl.split('/').at(-1)).sort(),['2','3']);
+  assert.deepEqual(client.calls.filter(x=>typeof x==='string'),['1','2']);
+});
+test('全量列表为空时停止，不把历史误判为删除',async()=>{
+  const baseData=baseline([record('1','2026-10-24')]);
+  await assert.rejects(sync({...api([]),baseData,since,full:true}),/列表为空/);
+});
 test('不可读取的事件活动被跳过，不阻塞其他活动发布',async()=>{
   const baseData=baseline([record('1','2020-01-01')]);
-  const data=await sync({...api([record('2','2026-10-27')]),baseData,since,eventActivityIds:['9']});
+  const data=await sync({...api([record('2','2026-10-27')]),baseData,since,events:[{activityId:'9',aspect:'create'}]});
   assert.deepEqual(data.activities.map(a=>a.stravaUrl.split('/').at(-1)),['2','1']);
 });
 test('未来日期、重复和鉴权或装备失败保持输入不变',async()=>{
   const baseData=baseline([record('1','2020-01-01')]),before=JSON.stringify(baseData);
-  await assert.rejects(sync({...api([],[],{'9':record('9','2026-10-28')}),baseData,since,eventActivityIds:['9']}),/可发布日期/);
+  await assert.rejects(sync({...api([],[],{'9':record('9','2026-10-28')}),baseData,since,events:[{activityId:'9',aspect:'create'}]}),/可发布日期/);
   await assert.rejects(sync({...api([record('1','2026-10-25'),record('1','2026-10-25')]),baseData,since}),/重复/);
   await assert.rejects(sync({...api(),baseData,since,fetchImpl:async()=>new Response(null,{status:503})}),/HTTP 503/);
   for(const since of ['bad','2026-10-28T00:00:00Z']) await assert.rejects(sync({baseData,since}),/增量起点/);
