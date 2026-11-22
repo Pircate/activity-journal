@@ -95,6 +95,10 @@ jobs:
         uses: actions/upload-pages-artifact@v5
         with:
           path: docs
+      # 上传与部署同 job 时，artifact 索引可能短暂不可见（actions/deploy-pages#455）。
+      - name: Wait for artifact availability
+        if: steps.claim.outputs.skip != 'true'
+        run: sleep 20
       - name: Deploy website
         if: steps.claim.outputs.skip != 'true'
         id: deployment
