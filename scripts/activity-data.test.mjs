@@ -71,8 +71,8 @@ test('不可读记录必须有唯一稳定标识，不能用同日或重复日�
   }
 });
 
-test('PB 数值保留曲线精度，单位和展示格式由项目决定', () => {
-  const bests = buildPersonalBests({activities:[], now:new Date('2026-10-27T04:00:00Z'),
+test('PB 数值保留曲线精度，单位和展示格式由项目决定', async () => {
+  const bests = await buildPersonalBests({activities:[], now:new Date('2026-10-27T04:00:00Z'),
     paceCurves:{distances:[5000,10000,21097.5,42195],curves:[{id:'i1', start_date_local:'2026-01-01T08:00:00',secs:[1092.25]}]},
     powerCurves:{secs:[300,600,1200],curves:[{id:'i2', start_date_local:'2026-01-01T08:00:00',watts:[288.125]}]},
   });

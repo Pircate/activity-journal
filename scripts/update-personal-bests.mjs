@@ -10,6 +10,8 @@ const runEvents = [
   {event:'halfMarathon', distance:21097.5}, {event:'marathon', distance:42195},
 ];
 const powerEvents = [{event:'cp5', seconds:300}, {event:'cp10', seconds:600}, {event:'cp20', seconds:1200}];
+const powerSeconds = new Map(powerEvents.map(({event, seconds}) => [event, seconds]));
+const powerCache = new URL('../data/power-best-values.json', import.meta.url);
 const activityUrl = id => typeof id === 'string' && /^(?:i)?\d+$/.test(id) ? 'https://intervals.icu/activities/' + id : null;
 const validTime = value => typeof value === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(value);
 
@@ -50,7 +52,71 @@ export function activityCurveRecords(payload, sport, activities) {
   });
 }
 
-export function buildPersonalBests({activities = [], paceCurves, powerCurves, now = new Date()} = {}) {
+// 曲线接口只给整数瓦（实测为向下取整），候选纪录改用原始功率流计算后四舍五入。
+// 功率流只覆盖移动时间，采样之间的间隔按上一次功率延续。
+export function powerStreamAverage(time, watts, seconds) {
+  if (!Number.isInteger(seconds) || seconds <= 0 || !Array.isArray(time) || !Array.isArray(watts) ||
+      !time.length || time.length !== watts.length) return null;
+  for (let index = 0; index < time.length; index++) {
+    if (!Number.isInteger(time[index]) || time[index] < 0 || (index > 0 && time[index] <= time[index - 1]) ||
+        !Number.isFinite(watts[index]) || watts[index] < 0) return null;
+  }
+  const values = [];
+  for (let index = 0; index < watts.length; index++) {
+    const step = index + 1 < time.length ? time[index + 1] - time[index] : 1;
+    if (step > 86_400) return null;
+    for (let second = 0; second < step; second++) values.push(watts[index]);
+  }
+  if (values.length < seconds) return null;
+  let sum = 0, best = 0;
+  for (let index = 0; index < values.length; index++) {
+    sum += values[index];
+    if (index >= seconds) sum -= values[index - seconds];
+    if (index >= seconds - 1) best = Math.max(best, sum / seconds);
+  }
+  return best;
+}
+
+export function validatePowerValues(payload) {
+  const fail = () => { throw new Error('功率成绩缓存格式无效'); };
+  if (!payload || payload.version !== 1 || !payload.values || typeof payload.values !== 'object' || Array.isArray(payload.values)) fail();
+  for (const [url, bests] of Object.entries(payload.values)) {
+    if (!/^https:\/\/intervals\.icu\/activities\/i?\d+$/.test(url) || !bests || typeof bests !== 'object' || Array.isArray(bests)) fail();
+    for (const [event, value] of Object.entries(bests)) if (!powerSeconds.has(event) || !Number.isInteger(value) || value <= 0) fail();
+  }
+  return payload.values;
+}
+
+export function serializePowerValues(values) {
+  const sorted = {};
+  for (const url of Object.keys(values).sort()) {
+    const bests = {};
+    for (const {event} of powerEvents) if (Number.isInteger(values[url]?.[event])) bests[event] = values[url][event];
+    if (Object.keys(bests).length) sorted[url] = bests;
+  }
+  return JSON.stringify({version:1, values:sorted}, null, 2) + '\n';
+}
+
+export async function readPowerValues() {
+  try {
+    return validatePowerValues(JSON.parse(await readFile(powerCache, 'utf8')));
+  } catch (error) {
+    if (error.code === 'ENOENT') return {};
+    throw error;
+  }
+}
+
+async function writePowerValues(values) {
+  const temporary = new URL('../data/power-best-values.json.tmp', import.meta.url);
+  try {
+    await writeFile(temporary, serializePowerValues(values));
+    await rename(temporary, powerCache);
+  } finally {
+    await unlink(temporary).catch(error => {if (error.code !== 'ENOENT') throw error;});
+  }
+}
+
+export async function buildPersonalBests({activities = [], paceCurves, powerCurves, resolvePower, now = new Date()} = {}) {
   if (!Array.isArray(activities)) throw new Error('活动列表无效，未更新数据');
   const candidates = [
     ...activityCurveRecords(paceCurves, 'Run', activities),
@@ -64,6 +130,10 @@ export function buildPersonalBests({activities = [], paceCurves, powerCurves, no
   const history = [];
   for (const record of candidates.sort(compareRecordHistory)) {
     const previous = latest.get(record.event);
+    if (resolvePower && record.sport === 'Ride' && powerSeconds.has(record.event) && (!previous || record.value >= previous.value)) {
+      const value = await resolvePower(record);
+      if (value != null) record.value = value;
+    }
     if (!previous || improvesRecord(record.event, record.value, previous.value)) {
       latest.set(record.event, record);
       history.push(record);
@@ -81,7 +151,7 @@ export function buildPersonalBests({activities = [], paceCurves, powerCurves, no
   return data;
 }
 
-export async function fetchPersonalBests({config, fetchImpl = fetch, now = new Date(), activities = []} = {}) {
+export async function fetchPersonalBests({config, fetchImpl = fetch, now = new Date(), activities = [], powerValues, refresh = false} = {}) {
   config ??= await readConfig();
   if (typeof config?.INTERVALS_ICU_API_KEY !== 'string' || !config.INTERVALS_ICU_API_KEY.trim()) {
     throw new Error('请配置 ~/.config/interval-icu/config.json 中的 INTERVALS_ICU_API_KEY');
@@ -105,13 +175,39 @@ export async function fetchPersonalBests({config, fetchImpl = fetch, now = new D
     get(`athlete/${athlete.id}/activity-pace-curves?type=Run&distances=5000,10000,21097.5,42195` + range),
     get(`athlete/${athlete.id}/activity-power-curves?type=Ride&secs=300,600,1200` + range),
   ]);
-  return buildPersonalBests({activities, paceCurves, powerCurves, now});
+  powerValues ??= await readPowerValues();
+  const streams = new Map();
+  const loadStreams = url => {
+    if (!streams.has(url)) streams.set(url, (async () => {
+      const id = url.match(/^https:\/\/intervals\.icu\/activities\/(.+)$/)?.[1];
+      if (!id) return null;
+      const payload = await get(`activity/${id}/streams?types=time,watts`);
+      const list = Array.isArray(payload) ? payload : Object.entries(payload ?? {}).map(([type, data]) => ({type, data}));
+      const byType = new Map(list.filter(stream => stream && typeof stream.type === 'string').map(stream => [stream.type, stream.data]));
+      return {time:byType.get('time'), watts:byType.get('watts')};
+    })().catch(() => null));
+    return streams.get(url);
+  };
+  const resolvePower = async record => {
+    const cached = powerValues[record.activityUrl]?.[record.event];
+    if (!refresh && Number.isInteger(cached)) return cached;
+    const payload = await loadStreams(record.activityUrl);
+    if (!payload) return null;
+    const average = powerStreamAverage(payload.time, payload.watts, powerSeconds.get(record.event));
+    // 原始流与曲线整数不一致时保留曲线值，避免算法差异造成错误纪录。
+    if (average === null || Math.floor(average) !== record.value) return null;
+    const value = Math.round(average);
+    powerValues[record.activityUrl] = {...powerValues[record.activityUrl], [record.event]:value};
+    return value;
+  };
+  return buildPersonalBests({activities, paceCurves, powerCurves, resolvePower, now});
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   if (process.argv.length > 2) throw new Error('用法：node scripts/update-personal-bests.mjs（获取全部历史个人最佳成绩与纪录历程）');
   const {activities} = JSON.parse(await readFile(new URL('../docs/activities.json', import.meta.url), 'utf8'));
-  const data = await fetchPersonalBests({activities});
+  const powerValues = await readPowerValues();
+  const data = await fetchPersonalBests({activities, powerValues, refresh:process.env.SYNC_FULL === 'true'});
   const target = new URL('../docs/personal-bests.json', import.meta.url);
   const temporary = new URL('../docs/personal-bests.json.tmp', import.meta.url);
   try {
@@ -120,5 +216,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   } finally {
     await unlink(temporary).catch(error => {if (error.code !== 'ENOENT') throw error;});
   }
+  await writePowerValues(powerValues);
   console.log(JSON.stringify({source:data.source, records:data.records.length, history:data.history.length}));
 }

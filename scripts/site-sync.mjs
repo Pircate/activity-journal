@@ -92,7 +92,7 @@ export async function updateSnapshot(claim, {runImpl = run, directory = process.
 
 export function commitSnapshot(claim, runImpl = run) {
   if (claim.mode === 'sync') {
-    const files = ['docs/activities.json', 'docs/personal-bests.json', 'data/profile.json', 'docs/index.html'];
+    const files = ['docs/activities.json', 'docs/personal-bests.json', 'data/profile.json', 'data/power-best-values.json', 'docs/index.html'];
     if (runImpl('git', ['status', '--porcelain', '--', ...files]).trim()) {
       runImpl('git', ['config', 'user.name', 'github-actions[bot]']);
       runImpl('git', ['config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com']);

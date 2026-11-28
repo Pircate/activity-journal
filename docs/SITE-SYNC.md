@@ -17,12 +17,14 @@ scripts/fetch-site-data.mjs 以 Strava 活动为主数据，复用 scripts/updat
 - `distanceKm` 保留来源米数除以 1000 后的精度，汇总和里程碑不逐条舍入，仅展示时取两位小数。2026 年 10 月 27 日已按真实活动链接恢复上游仍可读取的距离；其余历史保留原有精度，不推算丢失数值。
 - 距离、负荷的 `null` 表示未提供，数值 `0` 是有效零值。力量训练的距离不适用，不累计距离，也不计为距离缺失；组数、卡路里、心率与负荷仍按各自缺失情况统计。组数存在时包括 `0` 组均优先展示，否则展示卡路里。全部适用活动都缺距离时汇总为 `null`，无适用活动时累计为 0。
 - `unavailableActivities` 每项为 `{id,date}`，`id` 是 Strava 活动标识加固定来源前缀的 SHA-256 摘要，不输出原始标识。按标识去重，允许同一天多条记录，不按日期匹配恢复的活动。
-- PB 的 `sport` 使用 `Run` 或 `Ride`，`event` 使用 `run5k`、`run10k`、`halfMarathon`、`marathon`、`longestRide`、`cp5`、`cp10`、`cp20`。`value` 为正有限数：跑步用秒、最远骑行用公里、功率用瓦；单位由项目确定，不再保存带单位的 `result`。原始数值保留精度，页面统一格式化。
+- PB 的 `sport` 使用 `Run` 或 `Ride`，`event` 使用 `run5k`、`run10k`、`halfMarathon`、`marathon`、`longestRide`、`cp5`、`cp10`、`cp20`。`value` 为正有限数：跑步用秒、最远骑行用公里、功率用瓦；功率按原始功率流四舍五入取整，其余原始数值保留精度。单位由项目确定，不再保存带单位的 `result`，页面统一格式化。
 - `personal-bests.json` 必须包含 `history` 数组。每项保存 `sport`、`event`、原始 `value`、北京时间 `date`、`startTime`、`activityUrl` 及可取得的 `stravaUrl`；历史快照未提供开始时间时保留 `null`。运行时拒绝缺少 `history` 的旧格式。
 
 ### 纪录历程
 
 成绩同步先查询真实用户 ID 与时区，再完整读取 `activity-pace-curves?type=Run&distances=5000,10000,21097.5,42195` 与 `activity-power-curves?type=Ride&secs=300,600,1200`，范围从 `1900-01-01` 至当前北京时间日期。沿用上游运动大类，包含对应的虚拟运动；最远骑行沿用活动快照的骑行分组。接口依据：[Intervals.icu 官方 API 文档](https://intervals.icu/api/v1/docs)。不保存原始曲线响应。
+
+功率曲线接口只返回向下取整的整数瓦，因此凡是可能刷新纪录的功率候选（不低于当前纪录）都会额外读取该活动的原始功率流，按移动时间重算最大平均功率并四舍五入。结果缓存在 `data/power-best-values.json`，后续同步直接复用；全量同步忽略缓存重新计算。原始流与曲线整数不一致时保留曲线值，避免算法差异产生错误纪录。
 
 候选成绩按日期和开始时间升序处理，跑步用时严格减少、距离与功率严格增加才进入 `history`。首项是“首次成绩”；同分、退步、短活动和缺失的目标距离／时长不产生新纪录，也不以平均指标推算。每次完整重算，所以历史成绩修正会反映到当前最佳与纪录历程，两者始终使用同一候选集。
 

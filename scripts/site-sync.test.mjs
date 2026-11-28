@@ -119,6 +119,7 @@ test('real git push conflicts are rejected without overwriting remote changes', 
   await mkdir(join(local, 'data'));
   for (const name of ['activities.json','personal-bests.json','index.html']) await writeFile(join(local,'docs',name), 'published');
   await writeFile(join(local,'data/profile.json'), profile);
+  await writeFile(join(local,'data/power-best-values.json'), '{"version":1,"values":{}}');
   git(local, ['add','.']);
   git(local, ['commit','-m','initial']);
   git(local, ['remote','add','origin',origin]);

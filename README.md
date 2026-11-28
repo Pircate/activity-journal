@@ -73,7 +73,7 @@ Pogacha 是「波咖茶」的英文名，谐音公路车手 Tadej Pogačar，仅
 | 事件协调 | `workers/strava-webhook/index.mjs` | 验证并去重事件、合并批次、管理租约与重试，持久保存轮换后的 Strava 刷新令牌 |
 | 流程编排 | `.github/workflows/site.yml`、`scripts/site-sync.mjs` | 领取批次，选择成功基线，依次执行同步、构建、测试、提交、部署与回执 |
 | 取数与合并 | `scripts/fetch-site-data.mjs`、`scripts/activity-sync.mjs` | 查询平台数据，按真实平台标识关联，保留未返回的历史与已知指标 |
-| 成绩同步 | `scripts/update-personal-bests.mjs` | 获取全历史配速、功率曲线，并从活动快照计算最远骑行 |
+| 成绩同步 | `scripts/update-personal-bests.mjs` | 获取全历史配速、功率曲线，候选功率纪录按原始流四舍五入，并从活动快照计算最远骑行 |
 | 静态构建 | `scripts/build.mjs` | 读取资料和快照，生成内嵌首屏数据的 `docs/index.html` |
 | 展示与交互 | `docs/app.js`、`docs/*.mjs`、`docs/style.css` | 日历、筛选、趋势、报表与装备展示，以及同源快照刷新 |
 | 结果通知 | `scripts/notify-site.py` | 独立发送发布成功或失败邮件，并提供运行日志链接 |
@@ -191,7 +191,7 @@ Pogacha 是「波咖茶」的英文名，谐音公路车手 Tadej Pogačar，仅
 │   ├── SITE-SYNC.md              # 数据与合并规则
 │   └── WEBHOOK.md                # 部署、Secrets 与恢复操作
 ├── scripts/                      # 同步、构建、通知与测试
-├── data/                         # 品牌配置、个人资料、力量组数与同步辅助数据
+├── data/                         # 品牌配置、个人资料、力量组数与功率成绩缓存
 ├── workers/strava-webhook/        # Worker 与 Durable Object
 ├── .github/workflows/site.yml    # 云端同步与发布入口
 └── output/                       # 临时产物，不提交
