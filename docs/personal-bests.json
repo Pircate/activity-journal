@@ -1,6 +1,6 @@
 {
   "source": "Intervals.icu",
-  "syncedAt": "2026-11-28T08:13:23.052Z",
+  "syncedAt": "2026-11-28T09:21:09.597Z",
   "records": [
     {
       "sport": "Run",
@@ -49,6 +49,14 @@
       "date": "2026-05-10",
       "activityUrl": "https://intervals.icu/activities/i146848137",
       "stravaUrl": "https://www.strava.com/activities/18445078306"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp10",
+      "value": 248,
+      "date": "2025-09-27",
+      "activityUrl": "https://intervals.icu/activities/i99091425",
+      "stravaUrl": "https://www.strava.com/activities/15947438947"
     },
     {
       "sport": "Ride",
@@ -548,6 +556,15 @@
     },
     {
       "sport": "Ride",
+      "event": "cp10",
+      "value": 188,
+      "date": "2024-04-17",
+      "startTime": "20:56:53",
+      "activityUrl": "https://intervals.icu/activities/11202543887",
+      "stravaUrl": "https://www.strava.com/activities/11202543887"
+    },
+    {
+      "sport": "Ride",
       "event": "cp20",
       "value": 179,
       "date": "2024-04-17",
@@ -559,6 +576,15 @@
       "sport": "Ride",
       "event": "cp5",
       "value": 217,
+      "date": "2024-04-18",
+      "startTime": "20:16:50",
+      "activityUrl": "https://intervals.icu/activities/11209462713",
+      "stravaUrl": "https://www.strava.com/activities/11209462713"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp10",
+      "value": 191,
       "date": "2024-04-18",
       "startTime": "20:16:50",
       "activityUrl": "https://intervals.icu/activities/11209462713",
@@ -584,8 +610,26 @@
     },
     {
       "sport": "Ride",
+      "event": "cp10",
+      "value": 203,
+      "date": "2024-04-25",
+      "startTime": "21:15:54",
+      "activityUrl": "https://intervals.icu/activities/11261419019",
+      "stravaUrl": "https://www.strava.com/activities/11261419019"
+    },
+    {
+      "sport": "Ride",
       "event": "cp5",
       "value": 280,
+      "date": "2024-05-29",
+      "startTime": "19:53:25",
+      "activityUrl": "https://intervals.icu/activities/11524665363",
+      "stravaUrl": "https://www.strava.com/activities/11524665363"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp10",
+      "value": 234,
       "date": "2024-05-29",
       "startTime": "19:53:25",
       "activityUrl": "https://intervals.icu/activities/11524665363",
@@ -629,6 +673,15 @@
     },
     {
       "sport": "Ride",
+      "event": "cp10",
+      "value": 236,
+      "date": "2025-08-27",
+      "startTime": "19:44:47",
+      "activityUrl": "https://intervals.icu/activities/i94501508",
+      "stravaUrl": "https://www.strava.com/activities/15604353015"
+    },
+    {
+      "sport": "Ride",
       "event": "cp20",
       "value": 206,
       "date": "2025-08-27",
@@ -644,6 +697,15 @@
       "startTime": "06:34:59",
       "activityUrl": "https://intervals.icu/activities/i98116509",
       "stravaUrl": "https://www.strava.com/activities/15870328966"
+    },
+    {
+      "sport": "Ride",
+      "event": "cp10",
+      "value": 248,
+      "date": "2025-09-27",
+      "startTime": "06:30:29",
+      "activityUrl": "https://intervals.icu/activities/i99091425",
+      "stravaUrl": "https://www.strava.com/activities/15947438947"
     },
     {
       "sport": "Ride",
