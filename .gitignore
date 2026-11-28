@@ -7,3 +7,4 @@ scripts/__pycache__
 .wrangler/
 .dev.vars
 .env
+tmp/
