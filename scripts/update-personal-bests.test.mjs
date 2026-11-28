@@ -4,7 +4,7 @@ import {activityCurveRecords, buildPersonalBests, fetchPersonalBests} from './up
 
 const now = new Date('2026-10-30T04:00:00Z');
 const pace = curves => ({distances:[5000, 10000, 21097.5, 42195], curves});
-const power = curves => ({secs:[300, 1200], curves});
+const power = curves => ({secs:[300, 600, 1200], curves});
 const curve = (id, start, secs) => ({id, start_date_local:start, secs});
 const paceCurves = pace([
   curve('i3', '2023-01-01T09:00:00', [1400, 2900, 6100, 13000]),
@@ -14,20 +14,23 @@ const paceCurves = pace([
   curve('i5', '2024-01-01T08:00:00', []),
 ]);
 const powerCurves = power([
-  {id:'i8', start_date_local:'2023-01-01T08:00:00', watts:[280, 230]},
-  {id:'i7', start_date_local:'2022-01-01T08:00:00', watts:[270, 220]},
-  {id:'i9', start_date_local:'2024-01-01T08:00:00', watts:[280, null]},
+  {id:'i8', start_date_local:'2023-01-01T08:00:00', watts:[280, 260, 230]},
+  {id:'i7', start_date_local:'2022-01-01T08:00:00', watts:[270, 250, 220]},
+  {id:'i9', start_date_local:'2024-01-01T08:00:00', watts:[280, 250, null]},
 ]);
 const ride = (id, date, distanceKm, sport = 'Ride', startTime = '08:00:00') =>
   ({date, startTime, sport, distanceKm, activityUrl:'https://intervals.icu/activities/' + id, stravaUrl:'https://www.strava.com/activities/' + id.slice(1)});
 const activities = [ride('i11', '2022-01-01', 100), ride('i12', '2023-01-01', 150, 'VirtualRide'), ride('i13', '2024-01-01', 150)];
 
-test('七项从同一候选集生成，首次成绩、突破、同分、退步、短活动与乱序输入', () => {
+test('八项从同一候选集生成，首次成绩、突破、同分、退步、短活动与乱序输入', () => {
   const data = buildPersonalBests({activities, paceCurves, powerCurves, now});
-  assert.equal(data.records.length, 7);
+  assert.equal(data.records.length, 8);
   assert.deepEqual(data.history.filter(r => r.event === 'run5k').map(r => r.value), [1500, 1400, 1390]);
   assert.deepEqual(data.history.filter(r => r.event === 'run10k').map(r => r.value), [3000, 2900]);
   assert.deepEqual(data.history.filter(r => r.event === 'longestRide').map(r => r.value), [100, 150]);
+  assert.deepEqual(data.history.filter(r => r.event === 'cp5').map(r => r.value), [270, 280]);
+  assert.deepEqual(data.history.filter(r => r.event === 'cp10').map(r => r.value), [250, 260]);
+  assert.deepEqual(data.history.filter(r => r.event === 'cp20').map(r => r.value), [220, 230]);
   for (const record of data.records) {
     const {startTime, ...last} = data.history.filter(r => r.event === record.event).at(-1);
     assert.deepEqual(record, last);
@@ -79,7 +82,7 @@ test('使用真实用户 ID 与运动大类批量查询全历史，网络及任�
     return Response.json(url.endsWith('/athlete/0') ? {id:'i123', timezone:'Asia/Shanghai'} : url.includes('pace') ? paceCurves : powerCurves);
   };
   const data = await fetchPersonalBests({config:{INTERVALS_ICU_API_KEY:'test'}, activities, now, fetchImpl});
-  assert.equal(data.records.length, 7);
+  assert.equal(data.records.length, 8);
   assert.deepEqual(calls.slice(1).map(u => u.pathname), ['/api/v1/athlete/i123/activity-pace-curves', '/api/v1/athlete/i123/activity-power-curves']);
   for (const url of calls.slice(1)) {
     assert.equal(url.searchParams.get('oldest'), '1900-01-01');
@@ -87,6 +90,7 @@ test('使用真实用户 ID 与运动大类批量查询全历史，网络及任�
   }
   assert.equal(calls[1].searchParams.get('type'), 'Run');
   assert.equal(calls[2].searchParams.get('type'), 'Ride');
+  assert.equal(calls[2].searchParams.get('secs'), '300,600,1200');
   for (const failing of [async () => {throw Error('offline');}, async () => new Response(null, {status:503}), async () => Response.json({id:'i123', timezone:'UTC'}), async url => url.endsWith('/athlete/0') ? Response.json({id:'i123', timezone:'Asia/Shanghai'}) : Response.json({})]) {
     await assert.rejects(fetchPersonalBests({config:{INTERVALS_ICU_API_KEY:'test'}, activities, now, fetchImpl:failing}));
   }

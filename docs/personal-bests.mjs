@@ -3,11 +3,12 @@ const {escapeHtml:esc, isDate, formatDistance, formatTime} = await import('./jou
 
 // 事件白名单同时决定分组的展示顺序：跑步按距离，骑行按距离与功率。
 const {sportLabel} = await import('./activity-data.mjs' + (version ? '?v=' + version : ''));
-export const personalBestEvents = {Run:['run5k', 'run10k', 'halfMarathon', 'marathon'], Ride:['longestRide', 'cp5', 'cp20']};
+export const personalBestEvents = {Run:['run5k', 'run10k', 'halfMarathon', 'marathon'], Ride:['longestRide', 'cp5', 'cp10', 'cp20']};
 const events = {
   run5k:{label:'5 公里', unit:'seconds'}, run10k:{label:'10 公里', unit:'seconds'},
   halfMarathon:{label:'半程马拉松', unit:'seconds'}, marathon:{label:'全程马拉松', unit:'seconds'},
-  longestRide:{label:'最远距离', unit:'km'}, cp5:{label:'5 分钟功率', unit:'W'}, cp20:{label:'20 分钟功率', unit:'W'},
+  longestRide:{label:'最远距离', unit:'km'}, cp5:{label:'5 分钟功率', unit:'W'}, cp10:{label:'10 分钟功率', unit:'W'},
+  cp20:{label:'20 分钟功率', unit:'W'},
 };
 const eventOrder = Object.values(personalBestEvents).flat();
 const eventSport = new Map(Object.entries(personalBestEvents).flatMap(([sport, events]) => events.map(event => [event, sport])));

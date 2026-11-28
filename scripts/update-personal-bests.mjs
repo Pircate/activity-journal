@@ -9,7 +9,7 @@ const runEvents = [
   {event:'run5k', distance:5000}, {event:'run10k', distance:10000},
   {event:'halfMarathon', distance:21097.5}, {event:'marathon', distance:42195},
 ];
-const powerEvents = [{event:'cp5', seconds:300}, {event:'cp20', seconds:1200}];
+const powerEvents = [{event:'cp5', seconds:300}, {event:'cp10', seconds:600}, {event:'cp20', seconds:1200}];
 const activityUrl = id => typeof id === 'string' && /^(?:i)?\d+$/.test(id) ? 'https://intervals.icu/activities/' + id : null;
 const validTime = value => typeof value === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(value);
 
@@ -103,7 +103,7 @@ export async function fetchPersonalBests({config, fetchImpl = fetch, now = new D
   const range = '&oldest=1900-01-01&newest=' + beijingDate(now);
   const [paceCurves, powerCurves] = await Promise.all([
     get(`athlete/${athlete.id}/activity-pace-curves?type=Run&distances=5000,10000,21097.5,42195` + range),
-    get(`athlete/${athlete.id}/activity-power-curves?type=Ride&secs=300,1200` + range),
+    get(`athlete/${athlete.id}/activity-power-curves?type=Ride&secs=300,600,1200` + range),
   ]);
   return buildPersonalBests({activities, paceCurves, powerCurves, now});
 }

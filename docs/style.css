@@ -248,7 +248,6 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
 .pb-group h3{margin:0;font-size:1rem;font-weight:650;line-height:1.4}
 .pb-count{flex-shrink:0;padding:3px 9px;border:1px solid rgb(var(--pb-rgb) / .18);border-radius:6px;background:rgb(var(--pb-rgb) / .06);color:var(--pb-color);font-size:.6875rem;font-variant-numeric:tabular-nums}
 .pb-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
-.pb-group[data-sport="Ride"] .pb-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .pb-card{position:relative;min-width:0;padding:22px}
 .pb-card:not(:last-child){border-inline-end:1px solid #ffffff0e}
 .pb-card h4{margin:0 0 12px;color:#c5c2c0;font-size:.8125rem;font-weight:500;overflow-wrap:anywhere}
@@ -264,6 +263,11 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
   .pb-group[data-sport="Run"] .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .pb-group[data-sport="Run"] .pb-card:nth-child(2n){border-inline-end:0}
   .pb-group[data-sport="Run"] .pb-card:nth-child(n+3){border-top:1px solid #ffffff0e}
+  .pb-group[data-sport="Ride"] .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pb-group[data-sport="Ride"] .pb-card{border-inline-end:0}
+  .pb-group[data-sport="Ride"] .pb-card[data-event="longestRide"]{grid-column:1/-1}
+  .pb-group[data-sport="Ride"] .pb-card[data-event="cp5"]:not(:last-child){border-inline-end:1px solid #ffffff0e}
+  .pb-group[data-sport="Ride"] .pb-card[data-event="longestRide"]~.pb-card{border-top:1px solid #ffffff0e}
 }
 @media(max-width:600px){
   .pb-section{padding-top:28px}
@@ -277,11 +281,6 @@ footer{border-top:1px solid var(--line);margin-top:32px;padding:20px 0 28px;disp
   .pb-card h4{margin-bottom:8px}
   .pb-result{font-size:1.625rem}
   .pb-unit{font-size:.8125rem}
-  .pb-group[data-sport="Ride"] .pb-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .pb-group[data-sport="Ride"] .pb-card{border-inline-end:0}
-  .pb-group[data-sport="Ride"] .pb-card[data-event="longestRide"]{grid-column:1/-1}
-  .pb-group[data-sport="Ride"] .pb-card[data-event="cp5"]:not(:last-child){border-inline-end:1px solid #ffffff0e}
-  .pb-group[data-sport="Ride"] .pb-card[data-event="longestRide"]~.pb-card{border-top:1px solid #ffffff0e}
 }
 @media print{.pb-group,.pb-empty{background:white;color:#111;border-color:#ccc}.pb-result,.pb-sport-mark,.pb-count{color:#111}.pb-sport-mark,.pb-count{background:none;border-color:#ccc}.pb-card{break-inside:avoid}.pb-group::before{display:none}}
 

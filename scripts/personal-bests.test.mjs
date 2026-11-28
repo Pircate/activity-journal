@@ -33,14 +33,17 @@ test('功率名称直接说明时长，标准单位缩小显示且保留原始�
   const data = snapshot([
     {...record, sport:'Ride', event:'longestRide', value:154.86},
     {...record, sport:'Ride', event:'cp5', value:288},
+    {...record, sport:'Ride', event:'cp10', value:262},
     {...record, sport:'Ride', event:'cp20', value:233},
   ]);
   const html = renderPersonalBests(data, opened('cp5'));
   assert.match(html, /data-sport="Ride"/);
   assert.match(html, /<h4>5 分钟功率<\/h4>/);
+  assert.match(html, /<h4>10 分钟功率<\/h4>/);
   assert.match(html, /<h4>20 分钟功率<\/h4>/);
   assert.match(html, /154\.86 <small class="pb-unit">km<\/small>/);
   assert.match(html, /288 <small class="pb-unit">W<\/small>/);
+  assert.match(html, /262 <small class="pb-unit">W<\/small>/);
   assert.match(html, /aria-label="2025-05-01 骑行 5 分钟功率，288 W，查看活动（新标签页）"/);
   assert.equal(data.records[0].value, 154.86);
   for (const value of ['288 W', 'banana', null, NaN, Infinity, 0, -1]) {
@@ -56,12 +59,13 @@ test('卡片成绩不可跳转，只有时间线的成绩保留真实链接', ()
 
 test('分组与组内顺序固定，不随记录顺序变化', () => {
   const shuffled = snapshot([{...record, sport:'Ride', event:'cp20', value:233}, {...record, event:'run10k', value:2643},
-    {...record, sport:'Ride', event:'longestRide', value:154.86}, {...record, event:'run5k', value:1262}]);
+    {...record, sport:'Ride', event:'longestRide', value:154.86}, {...record, sport:'Ride', event:'cp10', value:262},
+    {...record, sport:'Ride', event:'cp5', value:288}, {...record, event:'run5k', value:1262}]);
   assert.deepEqual(renderPersonalBests(shuffled), renderPersonalBests(snapshot([...shuffled.records].reverse())));
   const html = renderPersonalBests(shuffled);
   assert.match(html, /<h3>跑步<\/h3>[\s\S]*<h3>骑行<\/h3>/);
   assert.match(html, /5 公里[\s\S]*10 公里/);
-  assert.match(html, /最远距离[\s\S]*20 分钟功率/);
+  assert.match(html, /最远距离[\s\S]*5 分钟功率[\s\S]*10 分钟功率[\s\S]*20 分钟功率/);
 });
 
 test('首次未同步与成功空列表分别表达，拒绝缺失日期并保留上游活动链接', () => {
