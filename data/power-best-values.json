@@ -1,4 +1,51 @@
 {
   "version": 1,
-  "values": {}
+  "values": {
+    "https://intervals.icu/activities/i103635446": {
+      "cp20": 212
+    },
+    "https://intervals.icu/activities/i122974915": {
+      "cp20": 216
+    },
+    "https://intervals.icu/activities/i133426487": {
+      "cp20": 217
+    },
+    "https://intervals.icu/activities/i136442860": {
+      "cp20": 229
+    },
+    "https://intervals.icu/activities/i146848137": {
+      "cp5": 288
+    },
+    "https://intervals.icu/activities/i192532318": {
+      "cp20": 234
+    },
+    "https://intervals.icu/activities/i203800250": {
+      "cp20": 237
+    },
+    "https://intervals.icu/activities/i215582050": {
+      "cp10": 249
+    },
+    "https://intervals.icu/activities/i76863261": {
+      "cp20": 186
+    },
+    "https://intervals.icu/activities/i77934321": {
+      "cp20": 195
+    },
+    "https://intervals.icu/activities/i79113403": {
+      "cp20": 197
+    },
+    "https://intervals.icu/activities/i79868766": {
+      "cp20": 199
+    },
+    "https://intervals.icu/activities/i94501508": {
+      "cp10": 237,
+      "cp20": 206
+    },
+    "https://intervals.icu/activities/i98116509": {
+      "cp20": 212
+    },
+    "https://intervals.icu/activities/i99091425": {
+      "cp10": 248
+    }
+  }
 }
